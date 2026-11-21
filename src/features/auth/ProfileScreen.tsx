@@ -11,6 +11,7 @@ import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SettingsCol, SettingsGrid } from '@/shared/ui/SettingsGrid'
 import { useToast } from '@/shared/ui/Toast'
 import { applyServerError } from './useServerErrors'
 
@@ -50,10 +51,16 @@ type PasswordValues = z.infer<typeof passwordSchema>
 
 export function ProfileScreen() {
   return (
-    <Page width="form" gap={8}>
+    <Page width="wide" gap={8}>
       <PageHeader title="Profile" backToSettings />
-      <ProfileForm />
-      <ChangePasswordForm />
+      <SettingsGrid>
+        <SettingsCol>
+          <ProfileForm />
+        </SettingsCol>
+        <SettingsCol>
+          <ChangePasswordForm />
+        </SettingsCol>
+      </SettingsGrid>
     </Page>
   )
 }

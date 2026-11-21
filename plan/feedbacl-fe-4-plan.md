@@ -68,11 +68,11 @@ Tick a task only after tests pass and the app starts. Added by the build loop; t
 - [x] F18-T04 Tests (unit, component, and `test/e2e/add-return.spec.ts` passing in real Chromium at 1440 and 360 px)
 
 **F19**
-- [ ] F19-T01 Settings layout
-- [ ] F19-T02 Edit wallet layout
-- [ ] F19-T03 Wallet detail layout
-- [ ] F19-T04 Settings sub-pages
-- [ ] F19-T05 Tests
+- [x] F19-T01 Settings layout (wide tier, two columns: links on the left, preferences and Sign out on the right)
+- [x] F19-T02 Edit wallet layout (form and balance adjustment left, sticky live card preview and display options right)
+- [x] F19-T03 Wallet detail layout (wide tier, transactions 8 of 12 columns and a details column from 1280 px. The period income and expense block is NOT built: it needs a wallet-scoped server total, and summing in the client is forbidden by 5.2. The side column shows details, reserved and available instead)
+- [x] F19-T04 Settings sub-pages (Profile, Space, Security and Currency use the shared `SettingsGrid`)
+- [x] F19-T05 Tests (`test/e2e/width-fill.spec.ts` in real Chromium: it fails on the old layout at 1920 px for all 7 screens and passes now, plus 360 px overflow and the live preview)
 
 **F20**
 - [ ] F20-T01 Auth shell

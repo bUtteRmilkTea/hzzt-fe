@@ -12,6 +12,7 @@ import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { SettingsCol, SettingsGrid } from '@/shared/ui/SettingsGrid'
 import { SettingsGroup, SettingsRow } from '@/shared/ui/SettingsRow'
 import { SheetShell } from '@/shared/ui/SheetShell'
 import { Switch } from '@/shared/ui/Switch'
@@ -39,37 +40,43 @@ export function SecurityScreen() {
   const close = () => setMode(null)
 
   return (
-    <Page width="form" gap={6}>
+    <Page width="wide" gap={6}>
       <PageHeader title="Security" backToSettings />
-      <SettingsGroup>
-        <SettingsRow label="App lock">
-          <Switch
-            aria-label="App lock"
-            checked={preferences.appLockEnabled}
-            onCheckedChange={(on) => setMode(on ? 'enable' : 'disable')}
-          />
-        </SettingsRow>
-        {preferences.appLockEnabled ? (
-          <button
-            type="button"
-            onClick={() => setMode('change')}
-            className="flex min-h-14 w-full items-center px-4 text-left hover:bg-surface-3"
-          >
-            Change PIN
-          </button>
-        ) : null}
-        <SettingsRow label="Hide amounts">
-          <Switch
-            aria-label="Hide amounts"
-            checked={preferences.hideAmounts}
-            onCheckedChange={(hideAmounts) => update({ hideAmounts })}
-          />
-        </SettingsRow>
-      </SettingsGroup>
-      <p className="px-1 text-sm text-label-tertiary">
-        App lock guards the screen on this device. It does not encrypt your data, so it is not a
-        replacement for a device passcode.
-      </p>
+      <SettingsGrid>
+        <SettingsCol>
+          <SettingsGroup>
+            <SettingsRow label="App lock">
+              <Switch
+                aria-label="App lock"
+                checked={preferences.appLockEnabled}
+                onCheckedChange={(on) => setMode(on ? 'enable' : 'disable')}
+              />
+            </SettingsRow>
+            {preferences.appLockEnabled ? (
+              <button
+                type="button"
+                onClick={() => setMode('change')}
+                className="flex min-h-14 w-full items-center px-4 text-left hover:bg-surface-3"
+              >
+                Change PIN
+              </button>
+            ) : null}
+            <SettingsRow label="Hide amounts">
+              <Switch
+                aria-label="Hide amounts"
+                checked={preferences.hideAmounts}
+                onCheckedChange={(hideAmounts) => update({ hideAmounts })}
+              />
+            </SettingsRow>
+          </SettingsGroup>
+        </SettingsCol>
+        <SettingsCol>
+          <p className="rounded-lg border border-border bg-surface-1 p-4 text-sm text-label-secondary">
+            App lock guards the screen on this device. It does not encrypt your data, so it is not a
+            replacement for a device passcode.
+          </p>
+        </SettingsCol>
+      </SettingsGrid>
 
       {mode === 'enable' ? <EnableSheet onClose={close} /> : null}
       {mode === 'disable' ? <DisableSheet onClose={close} /> : null}

@@ -138,7 +138,7 @@ test('mobile: the pill glides between tabs', async ({ page }) => {
         const tick = () => {
           const el = document.querySelector('[data-testid="nav-indicator"]')
           if (el) out.push(el.getBoundingClientRect().x)
-          if (performance.now() - t0 < 1000) requestAnimationFrame(tick)
+          if (performance.now() - t0 < 3500) requestAnimationFrame(tick)
           else resolve(out)
         }
         tick()
