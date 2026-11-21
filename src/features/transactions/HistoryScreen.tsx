@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, Outlet, useLocation, useNavigate, useSearch } from '@tanstack/react-router'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ListFilter, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -20,6 +20,7 @@ import { activeFilterCount, filtersFromSearch, filtersToSearch, hasAnyFilter } f
 import { HistorySummaryRail } from './HistorySummaryRail'
 import { useDailySummary, useTransactions } from './hooks'
 import type { PendingTransaction } from './optimistic'
+import { returnToFor } from './returnTo'
 
 const HEADER_PX = 44
 /** A dense row (48px) plus its 1px divider. */
@@ -49,6 +50,9 @@ export function HistoryScreen() {
   const { space } = useSpace()
   const search = useSearch({ from: '/_authed/s/$spaceId/history' })
   const navigate = useNavigate()
+  const location = useLocation()
+  // Cancel on the add sheet comes back here with the same filters.
+  const addReturnTo = returnToFor(location)
   const filters = useMemo(() => filtersFromSearch(search), [search])
   const txns = useTransactions(space.id, filters)
   const summary = useDailySummary(space.id, filters)
@@ -180,7 +184,7 @@ export function HistoryScreen() {
                   <Link
                     to="/s/$spaceId/transactions/new"
                     params={{ spaceId: space.id }}
-                    search={{ type: 'EXPENSE' }}
+                    search={{ type: 'EXPENSE', ...(addReturnTo ? { returnTo: addReturnTo } : {}) }}
                   >
                     Add transaction
                   </Link>

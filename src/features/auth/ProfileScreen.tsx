@@ -54,7 +54,6 @@ export function ProfileScreen() {
       <PageHeader title="Profile" backToSettings />
       <ProfileForm />
       <ChangePasswordForm />
-      <SignOut />
     </Page>
   )
 }
@@ -190,14 +189,5 @@ function ChangePasswordForm() {
         {change.isPending ? 'Saving…' : 'Change password'}
       </Button>
     </form>
-  )
-}
-
-function SignOut() {
-  const { logout } = useSession()
-  return (
-    <Button variant="secondary" block onClick={() => void logout()}>
-      Sign out
-    </Button>
   )
 }

@@ -13,12 +13,17 @@ describe('signed in', () => {
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
   })
 
-  it('signs out from the profile screen back to /login', async () => {
-    const { router } = renderApp('/settings/profile')
-    expect(await screen.findByDisplayValue('jane@example.com')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+  it('signs out from the settings screen back to /login', async () => {
+    const { router } = renderApp('/settings')
+    await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
+  })
+
+  it('Profile has no Sign out any more; it lives in Settings only', async () => {
+    renderApp('/settings/profile')
+    expect(await screen.findByDisplayValue('jane@example.com')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument()
   })
 
   it.each([

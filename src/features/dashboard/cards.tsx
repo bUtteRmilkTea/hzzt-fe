@@ -410,24 +410,19 @@ function GoalBar({ pct, achieved }: { pct: string | undefined; achieved: boolean
   )
 }
 
-/** Up to three active goals with progress, or an empty state with one action. */
+/** Goals shown on Home before "View more" appears. */
+const HOME_GOALS = 3
+
+/** Up to three active goals with progress, a "View more" button when there are more, or an empty state. */
 export function GoalsCard() {
   const { space } = useSpace()
   const q = useGoals(space.id)
-  const link = (
-    <Link
-      to="/s/$spaceId/goals"
-      params={{ spaceId: space.id }}
-      className="text-sm font-medium text-accent hover:underline"
-    >
-      View all
-    </Link>
-  )
   if (q.isPending) return <Skeleton className="h-32" />
   if (q.isError) return <Retry what="your goals" onRetry={() => void q.refetch()} />
-  const active = q.data.filter((g) => !g.achievedAt).slice(0, 3)
+  const allActive = q.data.filter((g) => !g.achievedAt)
+  const active = allActive.slice(0, HOME_GOALS)
   return (
-    <Card title="Goals" action={link}>
+    <Card title="Goals">
       {active.length === 0 ? (
         <div className="flex flex-col items-start gap-3" data-testid="goals-empty">
           <p className="text-sm text-label-secondary">Set a target and watch your progress here.</p>
@@ -467,6 +462,13 @@ export function GoalsCard() {
           ))}
         </ul>
       )}
+      {allActive.length > HOME_GOALS ? (
+        <Button variant="secondary" block asChild>
+          <Link to="/s/$spaceId/goals" params={{ spaceId: space.id }}>
+            View more
+          </Link>
+        </Button>
+      ) : null}
     </Card>
   )
 }
