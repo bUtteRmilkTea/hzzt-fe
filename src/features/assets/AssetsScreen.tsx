@@ -255,7 +255,7 @@ export function AssetsScreen() {
 
   return (
     <Page>
-      <h1 className="text-xl font-semibold">Assets</h1>
+      <h1 className="text-xl font-medium">Assets</h1>
 
       {summary.isPending ? (
         <Skeleton className="h-24" />
@@ -273,7 +273,7 @@ export function AssetsScreen() {
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <div>
                 <p className="text-sm text-label-secondary">{cashOnly ? 'Cash' : 'Net worth'}</p>
-                <p className="text-3xl font-semibold">
+                <p className="text-3xl font-medium">
                   <Amount value={s.netWorth} currency={currency} animate />
                 </p>
               </div>

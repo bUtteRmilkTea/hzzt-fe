@@ -122,7 +122,7 @@ export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
     return (
       <div className="min-h-dvh">
         <aside className="fixed inset-y-0 left-0 flex w-16 flex-col gap-2 border-r border-border bg-surface-1 p-2 xl:w-60 xl:p-4">
-          <p className="px-3 pt-2 pb-4 text-center text-lg font-semibold xl:text-left">
+          <p className="px-3 pt-2 pb-4 text-center text-lg font-medium xl:text-left">
             <span className="xl:hidden">H</span>
             <span className="hidden xl:inline">HZZT</span>
           </p>

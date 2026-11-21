@@ -4,6 +4,8 @@ import { installFakeApi } from './fakeApi'
 
 test('1920px: content fills the screen and cards share one gap', async ({ page }) => {
   await installFakeApi(page, { signedIn: true })
+  // Measure the resting layout: the staggered entry animation moves cards by a few px while it runs.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.setViewportSize({ width: 1920, height: 1080 })
   await page.goto('/s/s-1')
   const grid = page.getByTestId('home-grid')

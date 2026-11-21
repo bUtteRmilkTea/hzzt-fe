@@ -175,7 +175,7 @@ function ChangePasswordForm() {
         change.mutate(v)
       })}
     >
-      <h2 id="password-heading" className="text-lg font-semibold">
+      <h2 id="password-heading" className="text-lg font-medium">
         Change password
       </h2>
       {formError ? (

@@ -43,7 +43,7 @@ export function PinPad({ value, onChange, disabled, label = 'PIN' }: PinPadProps
               disabled={disabled}
               aria-label={k === 'back' ? 'Delete digit' : k}
               onClick={() => (k === 'back' ? onChange(value.slice(0, -1)) : press(k))}
-              className="flex size-[72px] items-center justify-center justify-self-center rounded-full bg-surface-3 text-xl font-semibold transition-transform duration-100 active:scale-95 disabled:opacity-40"
+              className="flex size-[72px] items-center justify-center justify-self-center rounded-full bg-surface-3 text-xl font-medium transition-transform duration-100 active:scale-95 disabled:opacity-40"
             >
               {k === 'back' ? <Delete aria-hidden className="size-6" /> : k}
             </button>

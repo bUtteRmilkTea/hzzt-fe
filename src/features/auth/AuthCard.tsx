@@ -11,7 +11,7 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <h1 className="text-xl font-medium">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-label-secondary">{subtitle}</p> : null}
       </div>
       {children}

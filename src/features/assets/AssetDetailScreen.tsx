@@ -59,7 +59,7 @@ export function AssetDetailScreen() {
               ? 'Owed to you'
               : 'Value'}
         </p>
-        <p className="text-3xl font-semibold" data-testid="asset-value">
+        <p className="text-3xl font-medium" data-testid="asset-value">
           <Amount animate value={toMoneyString(a.currentValue)} currency={currency} />
         </p>
         {a.counterpartyName ? (
@@ -103,7 +103,7 @@ export function AssetDetailScreen() {
 
       {(a.history ?? []).length > 0 ? (
         <section aria-labelledby="hist" className="flex flex-col gap-2">
-          <h2 id="hist" className="text-lg font-semibold">
+          <h2 id="hist" className="text-lg font-medium">
             History
           </h2>
           <ul className="divide-y divide-border rounded-lg border border-border bg-surface-1">

@@ -57,7 +57,7 @@ export function InvitationSection() {
 
   return (
     <section aria-labelledby="invite-heading" className="flex flex-col gap-3">
-      <h2 id="invite-heading" className="text-lg font-semibold">
+      <h2 id="invite-heading" className="text-lg font-medium">
         Invite someone
       </h2>
       <p className="text-sm text-label-secondary">

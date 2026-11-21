@@ -41,7 +41,7 @@ export function HomeScreen() {
     <Page>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Home</h1>
+          <h1 className="text-xl font-medium">Home</h1>
           <p data-testid="active-space" className="text-sm text-label-secondary">
             {space.avatarEmoji} {space.name} · {space.baseCurrency}
           </p>

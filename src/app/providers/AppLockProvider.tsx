@@ -109,7 +109,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
       className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-bg px-6"
     >
       <div className="text-center">
-        <h1 className="text-xl font-semibold">Enter your PIN</h1>
+        <h1 className="text-xl font-medium">Enter your PIN</h1>
         <p className="mt-1 text-sm text-label-secondary">HZZT is locked</p>
       </div>
 

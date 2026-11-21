@@ -177,7 +177,7 @@ export function WalletDetailScreen() {
           className="flex min-w-0 flex-col gap-2 xl:col-span-8"
         >
           <div className="flex items-center justify-between gap-3">
-            <h2 id="txn-heading" className="text-lg font-semibold">
+            <h2 id="txn-heading" className="text-lg font-medium">
               Transactions
             </h2>
             <PeriodPicker
@@ -244,7 +244,7 @@ export function WalletDetailScreen() {
           className="flex min-w-0 flex-col gap-4 xl:sticky xl:top-4 xl:col-span-4"
         >
           <Card className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">Details</h2>
+            <h2 className="text-lg font-medium">Details</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
               <dt className="text-label-secondary">Type</dt>
               <dd className="text-right">{TYPE_LABELS[w.type ?? 'OTHER'] ?? w.type}</dd>

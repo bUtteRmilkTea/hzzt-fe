@@ -34,7 +34,7 @@ One web app, used mostly on a phone, that records cash wallets, income and expen
 | --- | --- |
 | C1 | Responsive web app, mobile-first, same build on desktop. Installable PWA. |
 | C2 | Lightweight and fast: a measured JS budget, enforced in CI (Section 5.9) |
-| C3 | Modern minimalist design in the spirit of Apple's: restrained surfaces, system typography, spring motion, drag-dismissable bottom sheets |
+| C3 | Modern minimalist design in the spirit of Apple's: restrained surfaces, one self-hosted typeface (Inter, addendum 5 F23) in light weights, spring motion, drag-dismissable bottom sheets |
 | C4 | Email + password auth. No SSO. The access token lives in memory only. |
 | C5 | No Redux and no other global state library (D-F06) |
 | C6 | Built and run entirely inside WSL2 (D-F07) |
@@ -95,7 +95,7 @@ Every item is pure JavaScript or ships a Linux x64 binary, so all of it installs
 | Money | `decimal.js-light` | The API sends money as strings; the mini-calculator needs exact arithmetic |
 | Dates and formatting | `Intl.NumberFormat` / `Intl.DateTimeFormat` + `date-fns` | Currency and date formatting with no bundled locale data |
 | Icons | `lucide-react`, named imports only | Tree-shakes to the icons actually used. Category and wallet icons stay native emoji, as the backend stores emoji |
-| Fonts | System stack first (`-apple-system`, `Segoe UI`, `Roboto`), self-hosted Inter variable as fallback | Real SF Pro on Apple devices at zero network cost |
+| Fonts | Self-hosted Inter variable first, the system font only covers the swap (changed in addendum 5, F23) | The same face on every OS; headings are medium weight with tight tracking |
 | PWA | `vite-plugin-pwa` (Workbox) | Installable, cached app shell. Caches assets only, never API responses (Section 5.1) |
 | Lint and format | Biome | One Rust binary replacing ESLint and Prettier; fast enough to run on every save in WSL |
 | Unit and component tests | Vitest + Testing Library + MSW | MSW handlers are generated from the same OpenAPI types, so mocks cannot drift from the contract |
@@ -728,7 +728,7 @@ Starting values, derived from the reference screenshots. F1 implements these; ad
   --page-max-wide: 1200px;  --page-max-form: 960px;  --gutter: 16px;
 
   /* Type */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter var', 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter var', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;  /* addendum 5, F23 */
   --text-xs: 12px; --text-sm: 14px; --text-base: 16px; --text-lg: 20px;
   --text-xl: 28px; --text-2xl: 34px;  /* balance headline */
 }

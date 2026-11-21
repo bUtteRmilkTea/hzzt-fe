@@ -48,7 +48,7 @@ export function SheetShell({
           >
             <div className="flex items-start justify-between gap-4 px-6 pt-5">
               <div>
-                <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
+                <Dialog.Title className="text-lg font-medium">{title}</Dialog.Title>
                 {description ? (
                   <Dialog.Description className="mt-1 text-sm text-label-secondary">
                     {description}
@@ -81,7 +81,7 @@ export function SheetShell({
           <Drawer.Handle className="mt-2 mb-1 !h-1.5 !w-10 !bg-border-strong" />
           <div className="flex items-start justify-between gap-4 px-5 pt-2">
             <div>
-              <Drawer.Title className="text-lg font-semibold">{title}</Drawer.Title>
+              <Drawer.Title className="text-lg font-medium">{title}</Drawer.Title>
               {description ? (
                 <Drawer.Description className="mt-1 text-sm text-label-secondary">
                   {description}

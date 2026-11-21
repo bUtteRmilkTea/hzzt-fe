@@ -260,7 +260,7 @@ function AdjustBalance({ wallet }: { wallet: WalletDTO }) {
 
   return (
     <section aria-labelledby="adjust-heading" className="flex flex-col gap-4">
-      <h2 id="adjust-heading" className="text-lg font-semibold">
+      <h2 id="adjust-heading" className="text-lg font-medium">
         Adjust balance
       </h2>
       <p className="text-sm text-label-secondary">
@@ -329,7 +329,7 @@ function DisplaySection({ wallet }: { wallet: WalletDTO }) {
   const prefs = prefsOf(wallet)
   return (
     <section className="flex flex-col gap-3" aria-label="Card display">
-      <h2 className="text-lg font-semibold">Card display</h2>
+      <h2 className="text-lg font-medium">Card display</h2>
       <p className="text-sm text-label-secondary">
         Only you see these changes. They follow you across devices.
       </p>

@@ -5,7 +5,7 @@ import { Page } from '@/shared/ui/Page'
 export function PlaceholderScreen({ title, phase }: { title: string; phase: string }) {
   return (
     <Page width="form">
-      <h1 className="mb-4 text-xl font-semibold">{title}</h1>
+      <h1 className="mb-4 text-xl font-medium">{title}</h1>
       <EmptyState title="Coming soon" description={`This screen is built in phase ${phase}.`} />
     </Page>
   )

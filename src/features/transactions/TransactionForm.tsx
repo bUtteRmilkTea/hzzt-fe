@@ -91,7 +91,7 @@ export function TransactionForm({
           <Amount
             value={initial?.amount ?? '0'}
             currency={currency}
-            className="text-xl font-semibold"
+            className="text-xl font-medium"
           />
         </div>
       ) : (
