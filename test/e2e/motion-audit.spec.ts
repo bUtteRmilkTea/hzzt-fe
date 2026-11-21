@@ -96,19 +96,26 @@ test.describe('motion in a real browser (F16)', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.setViewportSize({ width: 1440, height: 1400 }) // tall: every card is in view
     await page.goto('/s/s-1')
-    const line = page.locator('.chart-line-draw').first()
-    await expect(line).toBeAttached()
-    const offsets: number[] = []
-    for (let i = 0; i < 6; i++) {
-      offsets.push(
-        await line.evaluate((el) => Number.parseFloat(getComputedStyle(el).strokeDashoffset)),
-      )
-      await page.waitForTimeout(160)
-    }
-    // Strictly decreasing at some point (moving), ending at 0 (done).
-    expect(Math.max(...offsets)).toBeGreaterThan(0.05)
-    expect(offsets.some((o, i) => i > 0 && o < (offsets[i - 1] ?? 0))).toBe(true)
-    expect(offsets.at(-1)).toBe(0)
+    await expect(page.locator('.chart-line-draw').first()).toBeAttached()
+    // Record the dash offset on every frame inside the page, so a slow machine cannot miss the motion.
+    const offsets = await page.evaluate(
+      () =>
+        new Promise<number[]>((resolve) => {
+          const out: number[] = []
+          const t0 = performance.now()
+          const tick = () => {
+            const el = document.querySelector('.chart-line-draw')
+            if (el) out.push(Number.parseFloat(getComputedStyle(el).strokeDashoffset))
+            if (performance.now() - t0 < 2000) requestAnimationFrame(tick)
+            else resolve(out)
+          }
+          tick()
+        }),
+    )
+    expect(offsets.length).toBeGreaterThan(5)
+    expect(Math.max(...offsets)).toBeGreaterThan(0.05) // started undrawn
+    expect(offsets.some((o, i) => i > 0 && o < (offsets[i - 1] ?? 0))).toBe(true) // moved
+    expect(offsets.at(-1)).toBe(0) // finished
   })
 
   test('a chart below the fold waits for the scroll, then animates', async ({ page }) => {

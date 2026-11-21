@@ -96,7 +96,7 @@ describe('history list', () => {
     // Every row has an explicit height, so loading more pages cannot move what is on screen.
     for (const li of rendered) expect(li.style.height).toMatch(/^\d+px$/)
     // The scroll area is sized for all 500 rows + the day header up front.
-    expect(Number.parseInt(list.style.height, 10)).toBeGreaterThanOrEqual(500 * 64)
+    expect(Number.parseInt(list.style.height, 10)).toBeGreaterThanOrEqual(500 * 49)
   })
 
   it('loads the next page by cursor as the end of the loaded rows comes into view', async () => {

@@ -62,13 +62,13 @@ Run them in order. F16 consumes the F15 layout and F17 is independent of F15 and
 Tick a task only after tests pass and the app starts. Added by the build loop; the tables below are unchanged.
 
 **F15**
-- [ ] F15-T01 Add investment fill
-- [ ] F15-T02 Home goals
-- [ ] F15-T03 Wallet card size
-- [ ] F15-T04 Transfer cancel
-- [ ] F15-T05 History density
-- [ ] F15-T06 Assets grouping
-- [ ] F15-T07 Tests
+- [x] F15-T01 Add investment fill (wide tier, form and a 24rem rail with a "Your <type>" list)
+- [x] F15-T02 Home goals (up to 3 active goals with a growing bar, empty state, replaces the Quick actions link)
+- [x] F15-T03 Wallet card size (`WalletCard size="compact"`, max 24rem, beside the details from 1024 px)
+- [x] F15-T04 Transfer cancel (`returnTo`, validated by `safeReturnTo`, cancel and save both return to the wallet)
+- [x] F15-T05 History density (48 px rows, 22rem rail, 232 px donut)
+- [x] F15-T06 Assets grouping (`accountGroups` by wrapper via `wrapperOf`, per-group cap of 5, "Other" last. `accountId` is still unused: QF-03 stays open, so this is the D-F18 wrapper fallback)
+- [x] F15-T07 Tests (unit and component tests, and `test/e2e/layout-fixes.spec.ts` passing in real Chromium)
 
 **F16**
 - [x] F16-T01 Motion audit (see the audit result below)

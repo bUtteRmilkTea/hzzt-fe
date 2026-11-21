@@ -22,7 +22,8 @@ import { useDailySummary, useTransactions } from './hooks'
 import type { PendingTransaction } from './optimistic'
 
 const HEADER_PX = 44
-const ROW_PX = 64
+/** A dense row (48px) plus its 1px divider. */
+const ROW_PX = 49
 const PREFETCH_ROWS = 12
 
 type Row =
@@ -230,6 +231,7 @@ export function HistoryScreen() {
                           transaction={row.txn}
                           pending={row.txn.pending}
                           showWallet
+                          dense
                         />
                       </Link>
                     )}

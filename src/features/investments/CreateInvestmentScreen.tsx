@@ -39,7 +39,7 @@ export function CreateInvestmentScreen() {
   const meta = metas.find((m) => m.assetType === (assetType ?? metas[0]?.assetType))
 
   return (
-    <Page width="form" gap={5}>
+    <Page width="wide" gap={5}>
       <PageHeader title="Add investment" />
       {types.isPending ? (
         <Skeleton className="h-64" />
@@ -87,6 +87,10 @@ function SummaryRail({
   icon?: string | undefined
   wrapper?: string | undefined
 }) {
+  const { space } = useSpace()
+  const list = useInvestments(space.id)
+  // The latest holdings of this type: context for the form, and it keeps the rail from being a stub.
+  const recent = (list.data?.items ?? []).filter((i) => i.assetType === meta.assetType).slice(0, 3)
   return (
     <aside
       aria-label="Summary"
@@ -112,6 +116,24 @@ function SummaryRail({
           In <span className="font-medium text-label">{wrapper.trim()}</span>
         </p>
       ) : null}
+      <div className="flex flex-col gap-2 border-t border-border pt-3" data-testid="rail-recent">
+        <h2 className="text-sm font-semibold text-label-secondary">Your {meta.label}</h2>
+        {recent.length === 0 ? (
+          <p className="text-sm text-label-tertiary">
+            {list.isPending ? 'Loading…' : `Nothing here yet. This will be your first.`}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {recent.map((i) => (
+              <li key={i.id} className="flex items-center gap-2 text-sm">
+                <span aria-hidden>{i.icon}</span>
+                <span className="min-w-0 flex-1 truncate">{i.name}</span>
+                <span className="text-label-secondary">{i.symbol}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </aside>
   )
 }
@@ -301,7 +323,7 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-8">
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
         {formError ? (
           <p role="alert" className="text-sm text-negative">

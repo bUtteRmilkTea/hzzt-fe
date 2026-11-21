@@ -20,6 +20,8 @@ export interface WalletCardProps {
   isFavorite?: boolean
   /** Per-user hide flags (all shown by default). The balance is always shown. */
   display?: { hideLogo?: boolean; hideName?: boolean; hideType?: boolean }
+  /** `compact` stops the card growing with its container (wallet detail, wide screens). */
+  size?: 'default' | 'compact'
   className?: string
 }
 
@@ -33,6 +35,7 @@ export function WalletCard({
   cardStyle,
   isFavorite,
   display,
+  size = 'default',
   className,
 }: WalletCardProps) {
   const { background, tone } = resolveCardStyle(cardStyle)
@@ -42,6 +45,7 @@ export function WalletCard({
       style={{ background }}
       className={cn(
         'flex aspect-[1.7/1] w-full flex-col justify-between rounded-lg p-4 shadow-card',
+        size === 'compact' && 'max-w-sm',
         tone === 'light' ? 'text-white' : 'text-black',
         className,
       )}

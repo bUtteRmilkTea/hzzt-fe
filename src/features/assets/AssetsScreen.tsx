@@ -17,7 +17,7 @@ import { Skeleton } from '@/shared/ui/Skeleton'
 import { TwoColumn } from '@/shared/ui/TwoColumn'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { AssetBreakdownList } from './AssetBreakdownList'
-import { cashGroups, investmentGroups } from './breakdown'
+import { accountGroups, capEach, cashGroups } from './breakdown'
 import { useManualAssets, useNetWorthHistory, useNetWorthSummary } from './hooks'
 import { KINDS, type KindMeta } from './kinds'
 
@@ -203,7 +203,7 @@ export function AssetsScreen() {
     </Section>
   ) : null
 
-  const allInvestmentGroups = investmentGroups(investments.data?.items ?? [], typeLabel, space.id)
+  const allInvestmentGroups = accountGroups(investments.data?.items ?? [], typeLabel, space.id)
   const investmentRows = allInvestmentGroups.flatMap((g) => g.rows)
   const investmentsSection = s ? (
     <Section
@@ -238,7 +238,7 @@ export function AssetsScreen() {
         </p>
       ) : null}
       <AssetBreakdownList
-        groups={capRows(allInvestmentGroups, INLINE_INVESTMENTS)}
+        groups={capEach(allInvestmentGroups, INLINE_INVESTMENTS)}
         empty={<p className="text-sm text-label-secondary">No investments yet.</p>}
       />
       {investmentRows.length > INLINE_INVESTMENTS ? (

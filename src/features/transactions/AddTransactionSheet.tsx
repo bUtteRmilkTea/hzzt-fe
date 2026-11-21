@@ -1,4 +1,4 @@
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { errorMessage } from '@/shared/api/errors'
@@ -8,6 +8,7 @@ import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { SheetShell } from '@/shared/ui/SheetShell'
 import { useToast } from '@/shared/ui/Toast'
 import { useCreateTransaction, useCreateTransfer } from './mutations'
+import { safeReturnTo } from './returnTo'
 import { TransactionForm } from './TransactionForm'
 import { TransferForm } from './TransferForm'
 
@@ -18,6 +19,7 @@ export function AddTransactionSheet() {
   const { space } = useSpace()
   const search = useSearch({ from: '/_authed/s/$spaceId/transactions/new' })
   const navigate = useNavigate()
+  const router = useRouter()
   const toast = useToast()
   const wallets = useWallets(space.id)
   const [kind, setKind] = useState<Kind>(search.type)
@@ -26,7 +28,13 @@ export function AddTransactionSheet() {
   const transfer = useCreateTransfer()
   const pending = create.isPending || transfer.isPending
 
-  const close = () => navigate({ to: '/s/$spaceId/history', params: { spaceId: space.id } })
+  // Back to where the sheet was opened from (a wallet, say), else History. Re-checked here as well
+  // as in the route, because this is the one place that navigates on the strength of the URL.
+  const returnTo = safeReturnTo(search.returnTo)
+  const close = () =>
+    returnTo
+      ? router.navigate({ href: returnTo })
+      : navigate({ to: '/s/$spaceId/history', params: { spaceId: space.id } })
   const walletById = (id: string) => wallets.data?.items.find((w) => w.id === id)
 
   return (

@@ -108,7 +108,8 @@ export function baseValueOf(i: InvestmentView): { value: string; currency: strin
   return b ? { value: b.value.toFixed(), currency: b.currency } : null
 }
 
-function sums(items: readonly InvestmentView[]) {
+/** Base-currency value, cost and PnL of some investments (Decimal; items without a rate are left out). */
+export function sums(items: readonly InvestmentView[]) {
   let value = new Decimal(0)
   let cost = new Decimal(0)
   let pl = new Decimal(0)
