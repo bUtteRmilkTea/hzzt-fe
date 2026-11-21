@@ -75,10 +75,10 @@ Tick a task only after tests pass and the app starts. Added by the build loop; t
 - [x] F19-T05 Tests (`test/e2e/width-fill.spec.ts` in real Chromium: it fails on the old layout at 1920 px for all 7 screens and passes now, plus 360 px overflow and the live preview)
 
 **F20**
-- [ ] F20-T01 Auth shell
-- [ ] F20-T02 Animated panel
-- [ ] F20-T03 Screens
-- [ ] F20-T04 Tests
+- [x] F20-T01 Auth shell (two equal halves from 1024 px in `routes/_guest.tsx`, panel hidden below)
+- [x] F20-T02 Animated panel (`AuthPanel`: CSS and inline SVG, a 9 s loop: the line draws, the figure counts up, two cards drift. One still, finished frame under OS reduced motion)
+- [x] F20-T03 Screens (Login, Register, Forgot password and Reset password inherit the shell. The invitation screen is under `_authed`, not the guest layout, so it is unchanged)
+- [x] F20-T04 Tests (component tests, and `test/e2e/auth-split.spec.ts` in real Chromium: halves at 1440 px, no panel and no overflow at 390 px, the line draws and loops with motion on, is still under reduced motion, axe including colour contrast)
 
 ---
 

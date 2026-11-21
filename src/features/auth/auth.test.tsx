@@ -289,3 +289,26 @@ describe('session expiry', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
+
+describe('auth split layout (F20)', () => {
+  it.each([
+    ['/login', 'Welcome back'],
+    ['/register', /Create/],
+    ['/forgot-password', /Forgot|Reset/i],
+  ])('%s still renders its form next to a decorative panel', async (path, heading) => {
+    renderApp(path)
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+    const panel = screen.getByTestId('auth-panel')
+    // Pure decoration: hidden from assistive technology, and the form stays reachable without it.
+    expect(panel).toHaveAttribute('aria-hidden', 'true')
+    expect(document.querySelector('form input')).not.toBeNull()
+  })
+
+  it('the panel scene carries a drawn line and no interactive controls', async () => {
+    renderApp('/login')
+    await screen.findByRole('heading', { name: 'Welcome back' })
+    const panel = screen.getByTestId('auth-panel')
+    expect(panel.querySelector('path.auth-line')).not.toBeNull()
+    expect(panel.querySelectorAll('a, button, input')).toHaveLength(0)
+  })
+})
