@@ -417,6 +417,25 @@ describe('goals card (F15-T02)', () => {
   })
 })
 
+describe('navigation highlight (F17-T01)', () => {
+  it('is one element for the whole nav, and the active link is marked for it to measure', async () => {
+    install()
+    renderApp('/s/s-1')
+    const nav = await screen.findByRole('navigation', { name: 'Primary' })
+    expect(within(nav).getAllByTestId('nav-indicator')).toHaveLength(1)
+    await waitFor(() =>
+      expect(within(nav).getByRole('link', { name: 'Home' })).toHaveAttribute(
+        'data-status',
+        'active',
+      ),
+    )
+    expect(within(nav).getByRole('link', { name: 'History' })).not.toHaveAttribute(
+      'data-status',
+      'active',
+    )
+  })
+})
+
 describe('hide amounts', () => {
   it('no money string appears anywhere on the dashboard when amounts are hidden', async () => {
     install()

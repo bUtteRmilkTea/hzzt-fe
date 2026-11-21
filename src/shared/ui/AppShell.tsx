@@ -5,6 +5,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { useSpring } from '@/shared/motion'
 import { cn } from './cn'
 import { useLayout } from './layout'
+import { NavIndicator, useNavIndicator } from './NavIndicator'
 
 interface NavItem {
   /** Every destination lives under /s/$spaceId. */
@@ -47,10 +48,10 @@ function NavLink({
       params={{ spaceId }}
       activeOptions={{ exact: item.exact ?? false }}
       className={cn(
-        'group flex items-center text-label-secondary transition-colors duration-150 [&.active]:text-label',
+        'group relative z-10 flex items-center text-label-secondary transition-colors duration-150 [&.active]:text-label',
         layout === 'tab'
-          ? 'min-h-12 min-w-12 flex-1 flex-col justify-center gap-0.5 text-xs font-medium'
-          : 'min-h-11 justify-center gap-3 rounded-md px-3 text-base font-medium hover:bg-surface-3 xl:justify-start [&.active]:bg-surface-3',
+          ? 'min-h-12 min-w-12 flex-1 flex-col justify-center gap-0.5 rounded-full text-xs font-medium'
+          : 'min-h-11 justify-center gap-3 rounded-md px-3 text-base font-medium hover:bg-surface-3/60 xl:justify-start',
       )}
     >
       <Icon aria-hidden className="size-6 group-[.active]:text-accent" />
@@ -81,6 +82,38 @@ function AddButton({ onAdd, layout }: { onAdd: () => void; layout: 'tab' | 'side
   )
 }
 
+function SideNav({ spaceId }: { spaceId: string }) {
+  const { ref, box, animate } = useNavIndicator()
+  return (
+    <nav ref={ref} aria-label="Primary" className="relative flex flex-col gap-1">
+      <NavIndicator box={box} animate={animate} shape="md" />
+      {NAV_ITEMS.map((item) => (
+        <NavLink key={item.label} item={item} layout="side" spaceId={spaceId} />
+      ))}
+    </nav>
+  )
+}
+
+function TabNav({ spaceId, onAdd }: { spaceId: string; onAdd: () => void }) {
+  const { ref, box, animate } = useNavIndicator()
+  const [home, history, wallets, assets] = NAV_ITEMS as [NavItem, NavItem, NavItem, NavItem]
+  return (
+    <nav
+      ref={ref}
+      aria-label="Primary"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+      className="fixed inset-x-4 z-40 mx-auto flex max-w-md items-center rounded-full border border-border bg-surface-2 px-2 py-1.5 shadow-sheet supports-[backdrop-filter]:bg-chrome supports-[backdrop-filter]:backdrop-blur-[20px]"
+    >
+      <NavIndicator box={box} animate={animate} shape="full" />
+      <NavLink item={home} layout="tab" spaceId={spaceId} />
+      <NavLink item={history} layout="tab" spaceId={spaceId} />
+      <AddButton onAdd={onAdd} layout="tab" />
+      <NavLink item={wallets} layout="tab" spaceId={spaceId} />
+      <NavLink item={assets} layout="tab" spaceId={spaceId} />
+    </nav>
+  )
+}
+
 /** One shell, chosen by a single media query (read once in LayoutProvider). */
 export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
   const { isDesktop } = useLayout()
@@ -93,11 +126,7 @@ export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
             <span className="xl:hidden">H</span>
             <span className="hidden xl:inline">HZZT</span>
           </p>
-          <nav aria-label="Primary" className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <NavLink key={item.label} item={item} layout="side" spaceId={spaceId} />
-            ))}
-          </nav>
+          <SideNav spaceId={spaceId} />
           <div className="mt-4">
             <AddButton onAdd={onAdd} layout="side" />
           </div>
@@ -114,7 +143,6 @@ export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
     )
   }
 
-  const [home, history, wallets, assets] = NAV_ITEMS as [NavItem, NavItem, NavItem, NavItem]
   return (
     <div className="min-h-dvh">
       {header ? (
@@ -123,17 +151,7 @@ export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
         </header>
       ) : null}
       <main className="px-4 pt-6 pb-32">{children}</main>
-      <nav
-        aria-label="Primary"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
-        className="fixed inset-x-4 z-40 mx-auto flex max-w-md items-center rounded-full border border-border bg-surface-2 px-2 py-1.5 shadow-sheet supports-[backdrop-filter]:bg-chrome supports-[backdrop-filter]:backdrop-blur-[20px]"
-      >
-        <NavLink item={home} layout="tab" spaceId={spaceId} />
-        <NavLink item={history} layout="tab" spaceId={spaceId} />
-        <AddButton onAdd={onAdd} layout="tab" />
-        <NavLink item={wallets} layout="tab" spaceId={spaceId} />
-        <NavLink item={assets} layout="tab" spaceId={spaceId} />
-      </nav>
+      <TabNav spaceId={spaceId} onAdd={onAdd} />
     </div>
   )
 }

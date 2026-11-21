@@ -80,10 +80,16 @@ test.describe('gallery (F1 acceptance)', () => {
     await page.getByRole('button', { name: 'Open sheet' }).click()
     const dialog = page.getByRole('dialog', { name: 'Example sheet' })
     await expect(dialog).toBeVisible()
+    // The drawer slides in (F17), so wait for it to settle before measuring where it docks.
+    await expect
+      .poll(async () => {
+        const b = await dialog.boundingBox()
+        return b ? Math.abs(b.x + b.width - DESKTOP.width) : 999
+      })
+      .toBeLessThan(4)
     const box = await dialog.boundingBox()
     if (!box) throw new Error('dialog has no box')
     // Docked to the right edge, full height.
-    expect(Math.abs(box.x + box.width - DESKTOP.width)).toBeLessThan(4)
     expect(box.height).toBeGreaterThan(DESKTOP.height - 4)
   })
 

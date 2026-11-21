@@ -6,6 +6,9 @@ export function createAppRouter(history?: RouterHistory) {
   return createRouter({
     routeTree,
     defaultPreload: 'intent',
+    // Page changes jump to the top at once; only in-page scrolling glides (see globals.css).
+    scrollRestoration: true,
+    scrollRestorationBehavior: 'instant',
     history,
     // The real value is supplied by <App> from the live session.
     context: undefined as unknown as RouterContext,
