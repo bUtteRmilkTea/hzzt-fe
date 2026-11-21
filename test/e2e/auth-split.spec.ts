@@ -11,7 +11,7 @@ const SCREENS: Array<[string, string, RegExp | string]> = [
   ['Reset password', '/reset-password?token=abc', /password/i],
 ]
 
-test.describe('1440px: two halves, panel left and form right', () => {
+test.describe('1440px: scene left, form right, one uniform surface (F22)', () => {
   for (const [name, path, heading] of SCREENS) {
     test(name, async ({ page }) => {
       await installFakeApi(page)
@@ -20,13 +20,36 @@ test.describe('1440px: two halves, panel left and form right', () => {
       const panel = page.getByTestId('auth-panel')
       await expect(panel).toBeVisible()
       const p = await panel.boundingBox()
-      expect(p?.x).toBe(0)
-      expect(Math.abs((p?.width ?? 0) - 720)).toBeLessThanOrEqual(2) // half of 1440
-      expect((p?.height ?? 0) >= 900).toBe(true) // fills the viewport height
       const h = await page.getByRole('heading', { name: heading }).first().boundingBox()
-      expect((h?.x ?? 0) >= 720).toBe(true) // the form is in the right half
+      expect((h?.x ?? 0) > (p?.x ?? 0) + (p?.width ?? 0) - 1).toBe(true) // the form is right of the scene
+      // Close together: at most 96px between the scene and the form column.
+      const gap = (h?.x ?? 0) - ((p?.x ?? 0) + (p?.width ?? 0))
+      expect(gap).toBeLessThanOrEqual(96)
+      // The group is centred, not pinned to the viewport edges.
+      expect((p?.x ?? 0) > 100).toBe(true)
     })
   }
+})
+
+test('no divider and one background across the whole screen', async ({ page }) => {
+  await installFakeApi(page)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/login')
+  const panel = page.getByTestId('auth-panel')
+  await expect(panel).toBeVisible()
+  const styles = await page.evaluate(() => {
+    const panelEl = document.querySelector('[data-testid="auth-panel"]') as HTMLElement
+    const main = document.querySelector('main') as HTMLElement
+    const cs = getComputedStyle(panelEl)
+    return {
+      borderRight: cs.borderRightWidth,
+      panelBg: cs.backgroundColor,
+      mainBg: getComputedStyle(main).backgroundColor,
+    }
+  })
+  expect(styles.borderRight).toBe('0px')
+  expect(styles.panelBg).toBe('rgba(0, 0, 0, 0)') // no surface of its own: the page background shows through
+  expect(styles.mainBg).not.toBe('rgba(0, 0, 0, 0)')
 })
 
 test.describe('390px: the panel is gone and nothing overflows', () => {

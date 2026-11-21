@@ -40,7 +40,7 @@ This addendum extends `docs/frontend-plan.md` and follows `plan/feedbacl-fe-4-pl
 
 | ID | Decision | Status | Recommended |
 | --- | --- | --- | --- |
-| D-F29 | Which simple animation for the auth background | **Open** | Two or three large blurred colour blobs that drift slowly behind everything, in grey tones that follow the theme (strict B/W rule, so no hue). CSS `transform` only, 20 to 30 s loops, GPU friendly. Alternatives: a faint dot grid with a slow pan, or slow diagonal gradient sweep |
+| D-F29 | Which simple animation for the auth background | Done | All three looks are built and chosen by one variable, `VITE_AUTH_BG` in `.env` (`blobs`, `grid` or `sweep`; default `blobs`; a typo falls back to `blobs`). Restart the dev server or rebuild after changing it |
 | D-F30 | Which typeface | **Open** | Inter variable, already self-hosted, made the primary face (not a fallback). Use the `ss01`/`cv11` stylistic sets for single-storey `a`, tighter tracking on headings (about `-0.02em`), and lighter weights (`font-medium` for headings, `font-normal` for body). Alternatives that need a new file: Geist or Manrope. Note: nothing in `plan/` names a typeface, so this reads "like the plan" as "modern, minimal, restrained" (`plan.md` C3). Tell me if you meant a specific font |
 | D-F31 | Auth layout grouping | Proposed | One centred group, `max-w-5xl`, two columns with a `gap-12 lg:gap-16`. Left: HZZT mark, card scene and tagline. Right: the form in a `max-w-sm` column. Below 1024 px the scene is hidden as today |
 | D-F32 | Card style layout from 1024 px | Done | Left column: type switch, the controls for the chosen mode, then Cancel and Apply (a sticky bottom bar, so Apply is always reachable). Right column (about 26rem, sticky): the live card preview. Apply moved left of the original idea so the DOM and tab order stay preview, controls, buttons. Below 1024 px: one column as before |
@@ -59,10 +59,10 @@ Run them in order. They are independent of each other, so any order works once D
 - [x] F21-T03 Tests (`test/e2e/card-style-layout.spec.ts` in real Chromium at 1440 px and 390 px)
 
 **F22**
-- [ ] F22-T01 Uniform surface, no divider
-- [ ] F22-T02 Tighter grouping
-- [ ] F22-T03 Animated background
-- [ ] F22-T04 Tests
+- [x] F22-T01 Uniform surface, no divider (panel border and surface removed, page is `bg-bg`)
+- [x] F22-T02 Tighter grouping (one centred `max-w-5xl` group, gap 48 to 64 px)
+- [x] F22-T03 Animated background (`AuthBackground`, three looks chosen by `VITE_AUTH_BG`: `blobs` default, `grid`, `sweep`)
+- [x] F22-T04 Tests (unit for the resolver and each look; `auth-split` and new `auth-background` specs in real Chromium; each look also checked in the browser in light and dark)
 
 **F23**
 - [ ] F23-T01 Font tokens
