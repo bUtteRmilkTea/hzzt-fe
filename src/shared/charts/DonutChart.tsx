@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { Decimal } from '@/shared/money'
+import { useInView } from '@/shared/motion/useInView'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 import { useCountUp } from '@/shared/ui/useCountUp'
@@ -41,7 +42,8 @@ export function DonutChart({
 }: DonutChartProps) {
   // The centre is a transaction count: count it up with the same Decimal interpolation as <Amount animate>.
   const countable = Boolean(draw) && /^\d+$/.test(centre.value)
-  const counted = useCountUp(centre.value, countable)
+  const [viewRef, seen] = useInView(Boolean(draw))
+  const counted = useCountUp(centre.value, countable, undefined, seen)
   const centreText = countable ? new Decimal(counted).toDecimalPlaces(0).toString() : centre.value
   const outer = size / 2 - 4
   const arcs = donutGeometry(slices, outer, outer * 0.62)
@@ -54,7 +56,12 @@ export function DonutChart({
     )
 
   return (
-    <div className="flex flex-col items-center gap-4" data-testid="donut-chart">
+    <div
+      ref={viewRef}
+      data-inview={draw ? seen : undefined}
+      className="flex flex-col items-center gap-4"
+      data-testid="donut-chart"
+    >
       <svg width={size} height={size} role="img" aria-label={label} className="block">
         <title>{label}</title>
         <g transform={`translate(${size / 2},${size / 2})`}>
@@ -123,29 +130,32 @@ export function DonutChart({
         })}
       </ul>
 
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Category</th>
-            <th scope="col">Share</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Transactions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {slices.map((s) => (
-            <tr key={s.key}>
-              <th scope="row">{s.name}</th>
-              <td>{s.pct}%</td>
-              <td>
-                <Amount value={s.amount} currency={currency} />
-              </td>
-              <td>{s.count}</td>
+      {/* The wrapper clips it: a bare sr-only table ignores width:1px and widens the page. */}
+      <div className="sr-only">
+        <table>
+          <caption>{label}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Share</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Transactions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {slices.map((s) => (
+              <tr key={s.key}>
+                <th scope="row">{s.name}</th>
+                <td>{s.pct}%</td>
+                <td>
+                  <Amount value={s.amount} currency={currency} />
+                </td>
+                <td>{s.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

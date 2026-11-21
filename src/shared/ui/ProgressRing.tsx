@@ -1,3 +1,4 @@
+import { useGrow } from '@/shared/motion/useGrow'
 import { cn } from './cn'
 
 interface ProgressRingProps {
@@ -27,8 +28,10 @@ export function ProgressRing({
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
   const shown = clamp(pct)
+  const [growRef, grown] = useGrow(shown)
   return (
     <div
+      ref={growRef}
       role="progressbar"
       aria-label="Progress"
       aria-valuemin={0}
@@ -55,9 +58,9 @@ export function ProgressRing({
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
-          strokeDashoffset={c * (1 - shown / 100)}
+          strokeDashoffset={c * (1 - grown / 100)}
           className={cn(
-            'transition-[stroke-dashoffset] duration-500',
+            'transition-[stroke-dashoffset] duration-1000 ease-out',
             achieved ? 'stroke-positive' : 'stroke-accent',
           )}
         />

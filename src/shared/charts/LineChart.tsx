@@ -1,5 +1,6 @@
 import { format as formatDate, parseISO } from 'date-fns'
 import { signOf, toDecimal } from '@/shared/money'
+import { useInView } from '@/shared/motion/useInView'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 import { type LinePoint, lineGeometry } from './geometry'
@@ -75,6 +76,7 @@ export function LineChart({
   loading,
 }: LineChartProps) {
   const { ref, width } = useChartWidth()
+  const [viewRef, seen] = useInView(Boolean(draw))
   if (loading)
     return (
       <div
@@ -99,94 +101,99 @@ export function LineChart({
   // A new key restarts the CSS animations, so changing the range redraws the line.
   const drawKey = draw ? `${data.length}:${first?.date}:${last?.date}` : 'static'
   return (
-    <div ref={ref} className="w-full" data-testid="line-chart">
-      <svg
-        key={drawKey}
-        data-draw={draw || undefined}
-        data-trend={trend ?? trendOf(data)}
-        width={width}
-        height={height}
-        role="img"
-        aria-label={label}
-        className="block overflow-visible"
-      >
-        <title>{label}</title>
-        {g.single ? (
-          <line
-            x1={MARGIN.left}
-            x2={width - MARGIN.right}
-            y1={first?.y}
-            y2={first?.y}
-            className="stroke-border-strong"
-            strokeDasharray="4 4"
-          />
-        ) : (
-          <>
-            <path d={g.areaPath} className={cn(t.fill, draw && 'chart-area-in')} />
-            <path
-              d={g.path}
-              // pathLength=1 lets the dash animation run 1 to 0 without measuring the path.
-              pathLength={1}
-              fill="none"
-              strokeWidth={2}
-              strokeLinecap="round"
-              className={cn(t.stroke, draw && 'chart-line-draw')}
-              style={t.glow ? { filter: `drop-shadow(${t.glow})` } : undefined}
+    <div ref={viewRef} data-inview={draw ? seen : undefined} className="w-full">
+      <div ref={ref} className="w-full" data-testid="line-chart">
+        <svg
+          key={drawKey}
+          data-draw={draw || undefined}
+          data-trend={trend ?? trendOf(data)}
+          width={width}
+          height={height}
+          role="img"
+          aria-label={label}
+          className="block overflow-visible"
+        >
+          <title>{label}</title>
+          {g.single ? (
+            <line
+              x1={MARGIN.left}
+              x2={width - MARGIN.right}
+              y1={first?.y}
+              y2={first?.y}
+              className="stroke-border-strong"
+              strokeDasharray="4 4"
             />
-          </>
-        )}
-        {g.points.map((p) =>
-          p.live || g.single ? (
-            <g
-              key={p.date}
-              data-live={p.live || undefined}
-              className={draw ? 'chart-dot-in' : undefined}
+          ) : (
+            <>
+              <path d={g.areaPath} className={cn(t.fill, draw && 'chart-area-in')} />
+              <path
+                d={g.path}
+                // pathLength=1 lets the dash animation run 1 to 0 without measuring the path.
+                pathLength={1}
+                fill="none"
+                strokeWidth={2}
+                strokeLinecap="round"
+                className={cn(t.stroke, draw && 'chart-line-draw')}
+                style={t.glow ? { filter: `drop-shadow(${t.glow})` } : undefined}
+              />
+            </>
+          )}
+          {g.points.map((p) =>
+            p.live || g.single ? (
+              <g
+                key={p.date}
+                data-live={p.live || undefined}
+                className={draw ? 'chart-dot-in' : undefined}
+              >
+                <circle cx={p.x} cy={p.y} r={8} className={t.halo} />
+                <circle cx={p.x} cy={p.y} r={4} className={t.dot} />
+              </g>
+            ) : null,
+          )}
+          {first ? (
+            <text
+              x={first.x}
+              y={height - 6}
+              textAnchor={g.single ? 'middle' : 'start'}
+              className="fill-label-secondary text-[11px]"
             >
-              <circle cx={p.x} cy={p.y} r={8} className={t.halo} />
-              <circle cx={p.x} cy={p.y} r={4} className={t.dot} />
-            </g>
-          ) : null,
-        )}
-        {first ? (
-          <text
-            x={first.x}
-            y={height - 6}
-            textAnchor={g.single ? 'middle' : 'start'}
-            className="fill-label-secondary text-[11px]"
-          >
-            {fmtDay(first.date)}
-          </text>
-        ) : null}
-        {last && !g.single ? (
-          <text
-            x={last.x}
-            y={height - 6}
-            textAnchor="end"
-            className="fill-label-secondary text-[11px]"
-          >
-            {last.live ? 'Today' : fmtDay(last.date)}
-          </text>
-        ) : null}
-      </svg>
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Net worth</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((p) => (
-            <tr key={p.date}>
-              <th scope="row">{fmtDay(p.date)}</th>
-              <td>
-                <Amount value={p.value} currency={currency} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              {fmtDay(first.date)}
+            </text>
+          ) : null}
+          {last && !g.single ? (
+            <text
+              x={last.x}
+              y={height - 6}
+              textAnchor="end"
+              className="fill-label-secondary text-[11px]"
+            >
+              {last.live ? 'Today' : fmtDay(last.date)}
+            </text>
+          ) : null}
+        </svg>
+        {/* The wrapper clips it: a bare sr-only table ignores width:1px and widens the page. */}
+        <div className="sr-only">
+          <table>
+            <caption>{label}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Net worth</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((p) => (
+                <tr key={p.date}>
+                  <th scope="row">{fmtDay(p.date)}</th>
+                  <td>
+                    <Amount value={p.value} currency={currency} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

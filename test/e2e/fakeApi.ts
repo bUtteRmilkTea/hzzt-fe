@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { PALETTE } from '../../src/shared/ui/palette'
+import { analytics, breakdown, calendar, overview } from '../msw/dashboard'
 import { metas } from '../msw/investments'
 
 /**
@@ -398,8 +399,23 @@ export async function installFakeApi(
         investments: { value: '0', cost: '0', unrealizedPl: '0', unrealizedPlPct: null },
       })
     }
-    if (req.method() === 'GET' && /^\/spaces\/[^/]+\/net-worth\/history$/.test(path))
-      return json(200, { currency: 'IDR', range: '1M', points: [] })
+    if (req.method() === 'GET' && /^\/spaces\/[^/]+\/net-worth\/history$/.test(path)) {
+      // 12 rising points, so the line chart has something to draw.
+      const points = Array.from({ length: 12 }, (_, i) => ({
+        date: `2026-11-${String(i + 1).padStart(2, '0')}`,
+        netWorth: String(1000000 + i * 90000 + (i % 3) * 40000),
+      }))
+      return json(200, { currency: 'IDR', range: '1M', changePct: '8.40', points })
+    }
+    const dash =
+      /^\/spaces\/[^/]+\/dashboard\/(overview|category-breakdown|analytics|calendar)$/.exec(path)
+    if (dash && req.method() === 'GET') {
+      const name = dash[1]
+      if (name === 'overview') return json(200, overview())
+      if (name === 'category-breakdown') return json(200, breakdown())
+      if (name === 'analytics') return json(200, analytics())
+      return json(200, calendar(new URL(req.url()).searchParams.get('month') ?? '2026-11'))
+    }
     const assetRoute = /^\/spaces\/[^/]+\/manual-assets(?:\/([^/]+))?(?:\/(settlements))?$/.exec(
       path,
     )

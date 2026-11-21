@@ -49,9 +49,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :root:not([data-motion="on"]) *,
+  :root:not([data-motion="on"]) *::before,
+  :root:not([data-motion="on"]) *::after {
     /* biome-ignore lint/complexity/noImportantStyles: must beat component transitions for reduced motion */
     animation-duration: 0.001ms !important;
     /* biome-ignore lint/complexity/noImportantStyles: must beat component transitions for reduced motion */
@@ -128,17 +128,23 @@
 
 /* Delayed chart animations would otherwise leave elements hidden for their delay. */
 @media (prefers-reduced-motion: reduce) {
-  .chart-line-draw,
-  .chart-area-in,
-  .chart-dot-in,
-  .chart-bar,
-  .chart-slice {
+  :root:not([data-motion="on"]) .chart-line-draw,
+  :root:not([data-motion="on"]) .chart-area-in,
+  :root:not([data-motion="on"]) .chart-dot-in,
+  :root:not([data-motion="on"]) .chart-bar,
+  :root:not([data-motion="on"]) .chart-slice {
     /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over the chart classes */
     animation: none !important;
   }
-  .chart-line-draw {
+  :root:not([data-motion="on"]) .chart-line-draw {
     stroke-dasharray: none;
   }
+}
+
+/* D-F20: a chart waits (frozen on its first frame) until it has been on screen once. */
+[data-inview="false"]
+  :is(.chart-line-draw, .chart-area-in, .chart-dot-in, .chart-bar, .chart-slice) {
+  animation-play-state: paused;
 }
 
 /* Card hover and press (plan: motion obvious). Transform and shadow only, so nothing reflows. */
@@ -176,12 +182,12 @@
   animation-delay: calc(min(var(--i, 0), 12) * 45ms);
 }
 @media (prefers-reduced-motion: reduce) {
-  .stagger-in {
+  :root:not([data-motion="on"]) .stagger-in {
     /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win */
     animation: none !important;
   }
-  .card-interactive:hover,
-  .card-interactive:active {
+  :root:not([data-motion="on"]) .card-interactive:hover,
+  :root:not([data-motion="on"]) .card-interactive:active {
     transform: none;
   }
 }

@@ -1,4 +1,5 @@
 import { toDecimal } from '@/shared/money'
+import { useGrow } from '@/shared/motion/useGrow'
 
 const clamp = (n: number) => Math.min(100, Math.max(0, n))
 /** Bar geometry only (pixels and percents), never displayed: the figures shown come from the server. */
@@ -17,8 +18,10 @@ export function TargetBar({
   targetPct: string | null
   label: string
 }) {
+  const [growRef, grown] = useGrow(pctWidth(actualPct))
   return (
     <div
+      ref={growRef}
       role="img"
       aria-label={
         targetPct
@@ -29,8 +32,8 @@ export function TargetBar({
       className="relative h-1.5 w-full rounded-full bg-surface-3"
     >
       <div
-        className="h-full rounded-full bg-chart-1"
-        style={{ width: `${pctWidth(actualPct)}%` }}
+        className="h-full rounded-full bg-chart-1 transition-[width] duration-700 ease-out"
+        style={{ width: `${grown}%` }}
       />
       {targetPct ? (
         <div

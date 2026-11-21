@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useInView } from '@/shared/motion/useInView'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 import { type BarGroup, barGeometry } from './geometry'
@@ -18,6 +19,7 @@ const MARGIN = { top: 8, right: 8, bottom: 28, left: 8 }
 /** Income and expense side by side per bucket. Bucket labels are drawn exactly as the server sent them. */
 export function BarChart({ groups, currency, label, height = 180, draw }: BarChartProps) {
   const { ref, width } = useChartWidth()
+  const [viewRef, seen] = useInView(Boolean(draw))
   const empty = groups.length === 0 || groups.every((g) => g.income === '0' && g.expense === '0')
   if (empty)
     return (
@@ -29,78 +31,83 @@ export function BarChart({ groups, currency, label, height = 180, draw }: BarCha
   const dense = groups.length > 8
 
   return (
-    <div ref={ref} className="w-full" data-testid="bar-chart">
-      <svg width={width} height={height} role="img" aria-label={label} className="block">
-        <title>{label}</title>
-        <line
-          x1={MARGIN.left}
-          x2={width - MARGIN.right}
-          y1={g.baseline}
-          y2={g.baseline}
-          className="stroke-border-strong"
-        />
-        {g.bars.map((b, i) => (
-          <rect
-            key={`${b.label}-${b.kind}`}
-            data-kind={b.kind}
-            style={draw ? ({ '--i': Math.floor(i / 2) } as CSSProperties) : undefined}
-            x={b.x}
-            y={b.y}
-            width={Math.max(0, b.width)}
-            height={b.height}
-            rx={3}
-            className={cn(
-              b.kind === 'income' ? 'fill-positive' : 'fill-negative',
-              draw && 'chart-bar',
-            )}
+    <div ref={viewRef} data-inview={draw ? seen : undefined} className="w-full">
+      <div ref={ref} className="w-full" data-testid="bar-chart">
+        <svg width={width} height={height} role="img" aria-label={label} className="block">
+          <title>{label}</title>
+          <line
+            x1={MARGIN.left}
+            x2={width - MARGIN.right}
+            y1={g.baseline}
+            y2={g.baseline}
+            className="stroke-border-strong"
           />
-        ))}
-        {g.labels.map((l) => (
-          <text
-            key={l.label}
-            x={l.x}
-            y={height - 8}
-            textAnchor="middle"
-            className={
-              dense ? 'fill-label-secondary text-[9px]' : 'fill-label-secondary text-[11px]'
-            }
-          >
-            {l.label}
-          </text>
-        ))}
-      </svg>
-      {/* The legend names the two series, so colour is never the only cue. */}
-      <ul className="mt-2 flex justify-center gap-4 text-sm text-label-secondary">
-        <li className="flex items-center gap-2">
-          <span aria-hidden className="size-3 rounded-sm bg-positive" /> Income
-        </li>
-        <li className="flex items-center gap-2">
-          <span aria-hidden className="size-3 rounded-sm bg-negative" /> Expense
-        </li>
-      </ul>
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Period</th>
-            <th scope="col">Income</th>
-            <th scope="col">Expense</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groups.map((b) => (
-            <tr key={b.label}>
-              <th scope="row">{b.label}</th>
-              <td>
-                <Amount value={b.income} currency={currency} />
-              </td>
-              <td>
-                <Amount value={b.expense} currency={currency} />
-              </td>
-            </tr>
+          {g.bars.map((b, i) => (
+            <rect
+              key={`${b.label}-${b.kind}`}
+              data-kind={b.kind}
+              style={draw ? ({ '--i': Math.floor(i / 2) } as CSSProperties) : undefined}
+              x={b.x}
+              y={b.y}
+              width={Math.max(0, b.width)}
+              height={b.height}
+              rx={3}
+              className={cn(
+                b.kind === 'income' ? 'fill-positive' : 'fill-negative',
+                draw && 'chart-bar',
+              )}
+            />
           ))}
-        </tbody>
-      </table>
+          {g.labels.map((l) => (
+            <text
+              key={l.label}
+              x={l.x}
+              y={height - 8}
+              textAnchor="middle"
+              className={
+                dense ? 'fill-label-secondary text-[9px]' : 'fill-label-secondary text-[11px]'
+              }
+            >
+              {l.label}
+            </text>
+          ))}
+        </svg>
+        {/* The legend names the two series, so colour is never the only cue. */}
+        <ul className="mt-2 flex justify-center gap-4 text-sm text-label-secondary">
+          <li className="flex items-center gap-2">
+            <span aria-hidden className="size-3 rounded-sm bg-positive" /> Income
+          </li>
+          <li className="flex items-center gap-2">
+            <span aria-hidden className="size-3 rounded-sm bg-negative" /> Expense
+          </li>
+        </ul>
+        {/* The wrapper clips it: a bare sr-only table ignores width:1px and widens the page. */}
+        <div className="sr-only">
+          <table>
+            <caption>{label}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Period</th>
+                <th scope="col">Income</th>
+                <th scope="col">Expense</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((b) => (
+                <tr key={b.label}>
+                  <th scope="row">{b.label}</th>
+                  <td>
+                    <Amount value={b.income} currency={currency} />
+                  </td>
+                  <td>
+                    <Amount value={b.expense} currency={currency} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

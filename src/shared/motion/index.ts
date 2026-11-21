@@ -16,6 +16,9 @@ const INSTANT = { duration: 0 } as const
  * reduced motion. Use for anything that moves under a finger.
  */
 export function useSpring(name: SpringName) {
-  const reduced = useReducedMotion()
+  const osReduced = useReducedMotion()
+  const reduced =
+    osReduced &&
+    !(typeof document !== 'undefined' && document.documentElement.dataset.motion === 'on')
   return reduced ? INSTANT : springs[name]
 }

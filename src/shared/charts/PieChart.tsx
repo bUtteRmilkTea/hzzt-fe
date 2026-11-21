@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useInView } from '@/shared/motion/useInView'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 import { donutGeometry } from './geometry'
@@ -61,6 +62,7 @@ export function PieChart({
   layout = 'stack',
   draw,
 }: PieChartProps) {
+  const [viewRef, seen] = useInView(Boolean(draw))
   const pcts = allocatePct(slices.map((s) => s.amount))
   const pctOf = (i: number) => slices[i]?.pct ?? (pcts[i] as string)
   const r = size / 2 - 2
@@ -74,6 +76,8 @@ export function PieChart({
 
   return (
     <div
+      ref={viewRef}
+      data-inview={draw ? seen : undefined}
       className={cn(
         'flex gap-4',
         compact || layout === 'row' ? 'items-center' : 'flex-col items-center',
