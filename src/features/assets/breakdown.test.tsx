@@ -7,7 +7,7 @@ import { btc, list, metas, sharedIn, valuation } from '../../../test/msw/investm
 import { server } from '../../../test/msw/server'
 import { bank, cash, walletList } from '../../../test/msw/wallets'
 import { renderApp } from '../../../test/renderApp'
-import { manualSlices } from './breakdown'
+import { assetMixSlices } from './breakdown'
 
 const NW = `${BASE}/spaces/s-1/net-worth`
 
@@ -90,21 +90,26 @@ describe('shared investment access (S6)', () => {
   })
 })
 
-describe('manualSlices (F27)', () => {
-  it('draws only base-currency items, counts the rest, and skips zero values', () => {
-    const r = manualSlices(
-      [
-        { id: 'a', name: 'A', currency: 'IDR', currentValue: '100.50' },
-        { id: 'b', name: 'B', currency: 'USD', currentValue: '10' },
-        { id: 'c', name: 'C', currency: 'IDR', currentValue: '0' },
-        { id: 'd', name: 'D', currency: 'IDR', currentValue: '50' },
-      ],
-      'IDR',
-    )
-    expect(r.slices).toEqual([
-      { key: 'a', name: 'A', amount: '100.50' },
-      { key: 'd', name: 'D', amount: '50' },
+describe('assetMixSlices (F30)', () => {
+  it('has the five groups in order, debt as its own slice, and skips zero and absent ones', () => {
+    const all = assetMixSlices(summary())
+    expect(all.map((x) => x.name)).toEqual([
+      'Cash',
+      'Investments',
+      'Fixed assets',
+      'Money owed to you',
+      'Debt',
     ])
-    expect(r.skipped).toBe(1)
+    expect(all.map((x) => x.amount)).toEqual([
+      '30000000',
+      '40000000',
+      '50000000',
+      '5000000',
+      '30000000',
+    ])
+    const some = assetMixSlices(
+      summary({ liabilities: '0', receivables: undefined, investments: null as never }),
+    )
+    expect(some.map((x) => x.name)).toEqual(['Cash', 'Fixed assets'])
   })
 })

@@ -10,7 +10,7 @@ import {
 import type { WalletDTO } from '@/shared/api/wallets'
 import type { PieSlice } from '@/shared/charts'
 import { allocatePct } from '@/shared/charts/pct'
-import { toDecimal, toMoneyString } from '@/shared/money'
+import { toDecimal } from '@/shared/money'
 import type { BreakdownGroup } from './AssetBreakdownList'
 
 const WALLET_TYPES: Array<{ type: string; title: string }> = [
@@ -130,24 +130,25 @@ export function capEach(groups: readonly BreakdownGroup[], max: number): Breakdo
 }
 
 /**
- * Pie slices for a manual-asset section: one per item. The server gives no base-currency value
- * per item, so only items already in the base currency are drawn (no client-side FX); the rest
- * are counted in `skipped`.
+ * The one pie of the Assets page: how the five groups compare. Every figure is the server's
+ * (already in the base currency), so there is no client sum and no FX. Debt is a slice of its own,
+ * so the shares are of the gross total, not of net worth. Zero or absent groups are left out.
  */
-export function manualSlices(
-  items: ReadonlyArray<{ id?: string; name?: string; currency?: string; currentValue?: unknown }>,
-  baseCurrency: string,
-): { slices: PieSlice[]; skipped: number } {
-  const slices: PieSlice[] = []
-  let skipped = 0
-  for (const a of items) {
-    const amount = toMoneyString(a.currentValue as never)
-    if (a.currency !== baseCurrency) {
-      skipped += 1
-      continue
-    }
-    if (!toDecimal(amount).greaterThan(0)) continue
-    slices.push({ key: a.id as string, name: a.name ?? '', amount })
-  }
-  return { slices, skipped }
+export function assetMixSlices(s: {
+  cash?: string | null | undefined
+  investments?: { value?: string | null | undefined } | null | undefined
+  fixedAssets?: string | null | undefined
+  receivables?: string | null | undefined
+  liabilities?: string | null | undefined
+}): PieSlice[] {
+  const rows: Array<[string, string, string | null | undefined]> = [
+    ['cash', 'Cash', s.cash],
+    ['investments', 'Investments', s.investments?.value],
+    ['fixed', 'Fixed assets', s.fixedAssets],
+    ['owed', 'Money owed to you', s.receivables],
+    ['debt', 'Debt', s.liabilities],
+  ]
+  return rows.flatMap(([key, name, amount]) =>
+    amount && toDecimal(amount).greaterThan(0) ? [{ key, name, amount }] : [],
+  )
 }

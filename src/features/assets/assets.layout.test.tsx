@@ -137,34 +137,30 @@ describe('assets layout (F12)', () => {
     expect(body?.getAttribute('data-state')).toBe(wasOpen ? 'closed' : 'open')
   })
 
-  it('shows a pie in a section with several items, none with a single item', async () => {
-    server.use(
-      http.get(`${BASE}/spaces/s-1/manual-assets`, ({ request }) => {
-        const kind = new URL(request.url).searchParams.get('kind')
-        return HttpResponse.json(
-          kind === 'LIABILITY'
-            ? assetList(
-                'LIABILITY',
-                [
-                  debt,
-                  { ...debt, id: 'd2', name: 'Car loan' },
-                  { ...debt, id: 'd3', name: 'Card' },
-                ],
-                '90000000',
-              )
-            : assetList(kind as never, [house], '50000000'),
-        )
-      }),
-    )
+  it('has one combined pie of the five groups, and none inside any section', async () => {
     renderApp('/s/s-1/assets')
-    const debtRegion = await screen.findByRole('region', { name: 'Debt' })
-    expect(await within(debtRegion).findByTestId('section-pie')).toBeInTheDocument()
+    const hero = await screen.findByRole('region', { name: 'Net worth' })
+    const mix = await within(hero).findByTestId('asset-mix')
+    const legend = within(mix).getByRole('list', {
+      name: 'Share of gross total by asset group legend',
+    })
     expect(
-      within(debtRegion).getByRole('list', { name: 'Debt split by item legend' }),
-    ).toBeInTheDocument()
-    const fixed = screen.getByRole('region', { name: 'Fixed assets' })
-    await within(fixed).findByText('Apartment')
-    expect(within(fixed).queryByTestId('section-pie')).not.toBeInTheDocument()
+      within(legend)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent),
+    ).toEqual([
+      expect.stringContaining('Cash'),
+      expect.stringContaining('Investments'),
+      expect.stringContaining('Fixed assets'),
+      expect.stringContaining('Money owed to you'),
+      expect.stringContaining('Debt'),
+    ])
+    expect(screen.getAllByTestId('pie-chart')).toHaveLength(1)
+    expect(screen.queryByTestId('section-pie')).not.toBeInTheDocument()
+    for (const name of ['Cash', 'Fixed assets', 'Debt', 'Investments', 'Money owed to you'])
+      expect(
+        within(screen.getByRole('region', { name })).queryByTestId('pie-chart'),
+      ).not.toBeInTheDocument()
   })
 
   it('lists at most 5 investments inline, with a link to open all of them', async () => {

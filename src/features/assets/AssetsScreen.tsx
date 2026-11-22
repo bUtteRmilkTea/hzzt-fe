@@ -3,10 +3,8 @@ import { ArrowUpRight, ChevronDown, Plus, Wallet } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { useInvestments, useInvestmentTypes } from '@/features/investments/hooks'
-import { categorySlices, topSlices } from '@/features/investments/valuation'
-import { walletPieSlices } from '@/features/wallets/pie'
 import { useWallets } from '@/shared/api/wallets'
-import { LineChart } from '@/shared/charts'
+import { LineChart, PieChart } from '@/shared/charts'
 import { toMoneyString } from '@/shared/money'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
@@ -16,15 +14,12 @@ import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
 import { Skeleton } from '@/shared/ui/Skeleton'
-import { SplitSwitch } from '@/shared/ui/SplitSwitch'
 import { TwoColumn } from '@/shared/ui/TwoColumn'
-import { useSplitMode } from '@/shared/ui/useSplitMode'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { AssetBreakdownList } from './AssetBreakdownList'
-import { accountGroups, capEach, cashGroups, manualSlices } from './breakdown'
+import { accountGroups, assetMixSlices, capEach, cashGroups } from './breakdown'
 import { useManualAssets, useNetWorthHistory, useNetWorthSummary } from './hooks'
 import { KINDS, type KindMeta } from './kinds'
-import { SectionPie } from './SectionPie'
 
 /** "3 items": just the count. Shown while a section is collapsed. */
 export function collapsedSummary(count: number): string {
@@ -38,7 +33,6 @@ function Section({
   currency,
   action,
   summary,
-  chart,
   children,
 }: {
   title: string
@@ -47,8 +41,6 @@ function Section({
   action?: ReactNode
   /** Shown under the title while collapsed. */
   summary?: string
-  /** A pie (or anything) shown first inside the open section. */
-  chart?: ReactNode
   children: ReactNode
 }) {
   const [open, setOpen] = useState(true)
@@ -89,10 +81,7 @@ function Section({
         {action}
       </div>
       <Collapsible open={open}>
-        <div className="flex flex-col gap-2 border-t border-border p-4">
-          {chart}
-          {children}
-        </div>
+        <div className="flex flex-col gap-2 border-t border-border p-4">{children}</div>
       </Collapsible>
     </section>
   )
@@ -107,15 +96,6 @@ function ManualSection({ meta, currency }: { meta: KindMeta; currency: string })
       total={list.data?.total.amount ?? '0'}
       currency={list.data?.total.currency || currency}
       summary={collapsedSummary(list.data?.items.length ?? 0)}
-      chart={
-        list.data ? (
-          <SectionPie
-            {...manualSlices(list.data.items, list.data.total.currency || currency)}
-            currency={list.data.total.currency || currency}
-            label={`${meta.section} split by item`}
-          />
-        ) : null
-      }
       action={
         <Button variant="ghost" size="icon" aria-label={meta.addLabel} asChild>
           <Link
@@ -194,26 +174,18 @@ export function AssetsScreen() {
   const types = useInvestmentTypes()
   const typeLabel = (assetType: string) =>
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
-  const [invMode, setInvMode] = useSplitMode('assets-investments-pie-mode')
   const s = summary.data
   const change = history.data?.changePct
   const currency = s?.currency || space.baseCurrency
+  // Cash-only spaces have one group, so no pie.
+  const mix = s && !cashOnly ? assetMixSlices(s) : []
 
-  const cashSlices = walletPieSlices(wallets.data, space.baseCurrency)
   const cash = s ? (
     <Section
       title="Cash"
       total={s.cash}
       currency={currency}
       summary={collapsedSummary(wallets.data?.items.length ?? 0)}
-      chart={
-        <SectionPie
-          slices={cashSlices}
-          currency={currency}
-          label="Cash split by wallet"
-          skipped={(wallets.data?.items.length ?? 0) - cashSlices.length}
-        />
-      }
       action={
         <Button variant="ghost" size="icon" aria-label="Open wallets" asChild>
           <Link to="/s/$spaceId/wallets" params={{ spaceId: space.id }} title="Open wallets">
@@ -235,32 +207,12 @@ export function AssetsScreen() {
 
   const allInvestmentGroups = accountGroups(investments.data?.items ?? [], typeLabel, space.id)
   const investmentRows = allInvestmentGroups.flatMap((g) => g.rows)
-  const invSlices =
-    invMode === 'class'
-      ? categorySlices(investments.data?.items ?? [], typeLabel)
-      : topSlices(investments.data?.items ?? [])
   const investmentsSection = s ? (
     <Section
       title="Investments"
       total={s.investments?.value ?? '0'}
       currency={currency}
       summary={collapsedSummary(investmentRows.length)}
-      chart={
-        <div className="flex flex-col gap-3">
-          {investmentRows.length > 1 ? (
-            <SplitSwitch value={invMode} onValueChange={setInvMode} className="w-full sm:w-fit" />
-          ) : null}
-          <SectionPie
-            slices={invSlices}
-            currency={currency}
-            label={
-              invMode === 'class'
-                ? 'Investments split by asset class'
-                : 'Investments split by investment'
-            }
-          />
-        </div>
-      }
       action={
         <Button variant="ghost" size="icon" aria-label="Open investments" asChild>
           <Link
@@ -323,40 +275,64 @@ export function AssetsScreen() {
         <>
           <section
             aria-label={cashOnly ? 'Cash total' : 'Net worth'}
-            className={cn(cardClass, 'flex flex-col gap-3')}
+            className={cn(
+              cardClass,
+              mix.length > 1 &&
+                'grid items-center gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]',
+              mix.length <= 1 && 'flex flex-col gap-3',
+            )}
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <div>
-                <p className="text-sm text-label-secondary">{cashOnly ? 'Cash' : 'Net worth'}</p>
-                <p className="text-3xl font-medium">
-                  <Amount value={s.netWorth} currency={currency} animate />
+            <div className="flex min-w-0 flex-col gap-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div>
+                  <p className="text-sm text-label-secondary">{cashOnly ? 'Cash' : 'Net worth'}</p>
+                  <p className="text-3xl font-medium">
+                    <Amount value={s.netWorth} currency={currency} animate />
+                  </p>
+                </div>
+                {change !== null && change !== undefined ? (
+                  <span
+                    data-testid="networth-change"
+                    className={cn(
+                      'tabular text-sm font-medium',
+                      change.startsWith('-') ? 'text-negative' : 'text-positive',
+                    )}
+                  >
+                    {change.startsWith('-') ? '' : '+'}
+                    {change}% in the last month
+                  </span>
+                ) : null}
+              </div>
+              <LineChart
+                draw
+                loading={history.isPending}
+                height={180}
+                data={(history.data?.points ?? []).map((p) => ({
+                  date: p.date,
+                  value: p.netWorth,
+                  live: p.live,
+                }))}
+                currency={history.data?.currency || currency}
+                label="Net worth over the last month"
+              />
+            </div>
+            {mix.length > 1 ? (
+              <div data-testid="asset-mix" className="flex min-w-0 flex-col gap-2">
+                <h2 className="text-base font-medium">Share of gross total</h2>
+                <PieChart
+                  donut
+                  draw
+                  layout="row"
+                  size={140}
+                  slices={mix}
+                  currency={currency}
+                  label="Share of gross total by asset group"
+                />
+                <p className="text-xs text-label-tertiary">
+                  Debt counts as its own slice. Net worth subtracts it.
                 </p>
               </div>
-              {change !== null && change !== undefined ? (
-                <span
-                  data-testid="networth-change"
-                  className={cn(
-                    'tabular text-sm font-medium',
-                    change.startsWith('-') ? 'text-negative' : 'text-positive',
-                  )}
-                >
-                  {change.startsWith('-') ? '' : '+'}
-                  {change}% in the last month
-                </span>
-              ) : null}
-            </div>
-            <LineChart
-              draw
-              loading={history.isPending}
-              height={180}
-              data={(history.data?.points ?? []).map((p) => ({
-                date: p.date,
-                value: p.netWorth,
-                live: p.live,
-              }))}
-              currency={history.data?.currency || currency}
-              label="Net worth over the last month"
-            />
+            ) : null}
           </section>
           <WarningsStrip warnings={s.warnings} />
 
