@@ -5,6 +5,7 @@ import {
   Suspense,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -27,12 +28,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
   const [everShown, setEverShown] = useState(false)
   const nextId = useRef(0)
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>())
+
+  // A toast timer that outlives the provider would set state after unmount (in tests, after the
+  // DOM is torn down, which fails the whole run with "window is not defined").
+  useEffect(() => {
+    const pending = timers.current
+    return () => {
+      for (const t of pending) clearTimeout(t)
+      pending.clear()
+    }
+  }, [])
 
   const show = useCallback((message: string, tone: ToastTone = 'default') => {
     const id = nextId.current++
     setEverShown(true)
     setItems((prev) => [...prev, { id, message, tone }])
-    setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), DURATION_MS)
+    const timer = setTimeout(() => {
+      timers.current.delete(timer)
+      setItems((prev) => prev.filter((t) => t.id !== id))
+    }, DURATION_MS)
+    timers.current.add(timer)
   }, [])
 
   const api = useMemo(() => ({ show }), [show])
