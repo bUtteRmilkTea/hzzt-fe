@@ -22,7 +22,26 @@ const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
  * over `duration` ms, then returns `target` exactly. When `enabled` is false, or the user
  * prefers reduced motion, it is just `target`.
  */
-export function useCountUp(target: string, enabled: boolean, duration = COUNT_UP_MS): string {
+/**
+ * How long a change takes: a small nudge is quick, a big swing takes longer (400 to 900 ms). The
+ * first view always takes the full COUNT_UP_MS. `ratio` is |change| relative to the larger value.
+ */
+export function countDuration(from: string, to: string): number {
+  const a = toDecimal(from)
+  const b = toDecimal(to)
+  const top = a.abs().gt(b.abs()) ? a.abs() : b.abs()
+  if (top.isZero()) return COUNT_UP_MS
+  const ratio = Math.min(1, b.minus(a).abs().div(top).toNumber())
+  return Math.round(400 + 500 * ratio)
+}
+
+export function useCountUp(
+  target: string,
+  enabled: boolean,
+  duration?: number,
+  /** Hold the first frame until the number has been on screen (D-F20). */
+  startWhen = true,
+): string {
   const [shown, setShown] = useState(enabled && !prefersReducedMotion() ? '0' : target)
   const shownRef = useRef(shown)
   shownRef.current = shown
@@ -32,19 +51,21 @@ export function useCountUp(target: string, enabled: boolean, duration = COUNT_UP
       setShown(target)
       return
     }
+    if (!startWhen) return
     const from = shownRef.current
     if (from === target) return
+    const ms = duration ?? (from === '0' ? COUNT_UP_MS : countDuration(from, target))
     let raf = 0
     let start: number | undefined
     const frame = (now: number) => {
       start ??= now
-      const t = Math.min(1, (now - start) / duration)
+      const t = Math.min(1, (now - start) / ms)
       setShown(interpolateMoney(from, target, easeOutCubic(t)))
       if (t < 1) raf = requestAnimationFrame(frame)
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
-  }, [target, enabled, duration])
+  }, [target, enabled, duration, startWhen])
 
   return shown
 }

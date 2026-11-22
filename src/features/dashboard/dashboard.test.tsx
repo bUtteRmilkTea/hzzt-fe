@@ -195,7 +195,7 @@ describe('net worth chart', () => {
     install()
     renderApp('/s/s-1')
     const chart = await screen.findByTestId('line-chart')
-    const table = chart.querySelector('table.sr-only') as HTMLElement
+    const table = chart.querySelector('.sr-only table') as HTMLElement
     expect(table).toBeInTheDocument()
     expect(within(table).getAllByRole('row')).toHaveLength(3) // header + 2 points
     expect(table).toHaveTextContent('IDR 95,000,000')

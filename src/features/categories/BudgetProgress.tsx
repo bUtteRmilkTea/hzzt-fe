@@ -1,4 +1,5 @@
 import { Decimal } from '@/shared/money'
+import { useGrow } from '@/shared/motion/useGrow'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 
@@ -30,9 +31,11 @@ export function BudgetProgress({
   currency,
 }: BudgetProgressProps) {
   const over = isOverBudget(usedPct)
+  const [growRef, grown] = useGrow(barWidth(usedPct))
   return (
     <div className="flex flex-col gap-1.5">
       <div
+        ref={growRef}
         role="progressbar"
         aria-label="Budget used"
         aria-valuemin={0}
@@ -43,9 +46,9 @@ export function BudgetProgress({
       >
         <div
           data-over={over || undefined}
-          style={{ width: `${barWidth(usedPct)}%` }}
+          style={{ width: `${grown}%` }}
           className={cn(
-            'h-full rounded-full transition-[width] duration-300',
+            'h-full rounded-full transition-[width] duration-700 ease-out',
             over ? 'bg-negative' : 'bg-accent',
           )}
         />

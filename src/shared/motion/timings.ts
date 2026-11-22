@@ -5,8 +5,10 @@ export const BAR_GROW_MS = 500
 export const BAR_STAGGER_MS = 40
 export const DONUT_SWEEP_MS = 700
 
-/** True when the user asked the OS for less motion. Safe where matchMedia is missing (SSR, jsdom). */
+/** True when motion should be skipped: the OS asks for it and the user has not chosen "Always play". */
 export function prefersReducedMotion(): boolean {
+  if (typeof document !== 'undefined' && document.documentElement.dataset.motion === 'on')
+    return false
   return (
     typeof window !== 'undefined' &&
     typeof window.matchMedia === 'function' &&

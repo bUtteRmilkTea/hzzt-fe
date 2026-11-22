@@ -1,4 +1,5 @@
 import { type FormatOptions, format, signOf } from '@/shared/money'
+import { useInView } from '@/shared/motion/useInView'
 import { cn } from './cn'
 import { usePrivacy } from './privacy'
 import { useCountUp } from './useCountUp'
@@ -35,7 +36,8 @@ export function Amount({
 }: AmountProps) {
   const { masked } = usePrivacy()
   // Hooks run before the masked early return. While masked the hook is disabled, so no frame is computed.
-  const shown = useCountUp(value, Boolean(animate) && !masked)
+  const [viewRef, seen] = useInView(Boolean(animate) && !masked)
+  const shown = useCountUp(value, Boolean(animate) && !masked, undefined, seen)
 
   if (masked) {
     return (
@@ -62,7 +64,7 @@ export function Amount({
     // what screen readers and copy/paste get. The counting frame is painted by CSS from `data-frame`
     // on top of it, so no intermediate figure is ever part of the page text.
     return (
-      <span className={cn('tabular relative inline-block', toneClass, className)}>
+      <span ref={viewRef} className={cn('tabular relative inline-block', toneClass, className)}>
         <span className="opacity-0">{finalText}</span>
         <span
           aria-hidden

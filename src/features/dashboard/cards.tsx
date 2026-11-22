@@ -73,7 +73,8 @@ export function OverviewCard({ period }: { period: Period }) {
   const o = q.data
   return (
     <div className="flex flex-col gap-3" data-testid="overview">
-      <div className="grid grid-cols-2 gap-3">
+      {/* One column where the cell would be narrower than "IDR 5,000,000" (phones, and the 4/12 desktop rail). */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <StatCard
           label="Expenses"
           value={<Amount animate value={o.expense} currency={o.currency || space.baseCurrency} />}

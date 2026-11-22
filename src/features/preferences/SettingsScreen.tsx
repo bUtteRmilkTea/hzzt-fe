@@ -1,10 +1,47 @@
+import { useState } from 'react'
 import { usePreferences } from '@/app/providers/PreferencesProvider'
 import { useSpace } from '@/app/providers/SpaceProvider'
+import {
+  type MotionPref,
+  readMotionPref,
+  systemReducesMotion,
+  writeMotionPref,
+} from '@/shared/motion/motionPref'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { SettingsGroup, SettingsRow } from '@/shared/ui/SettingsRow'
 import { Switch } from '@/shared/ui/Switch'
+
+/** Shows whether the OS is silencing animations, and lets the user play them anyway (this device only). */
+function MotionSetting() {
+  const [pref, setPref] = useState<MotionPref>(readMotionPref)
+  const osReduces = systemReducesMotion()
+  return (
+    <div className="flex flex-col gap-3 px-4 py-3" data-testid="motion-setting">
+      <span>Animations</span>
+      <SegmentedControl
+        aria-label="Animations"
+        value={pref}
+        onValueChange={(v) => {
+          setPref(v)
+          writeMotionPref(v)
+        }}
+        options={[
+          { value: 'system', label: 'Follow system' },
+          { value: 'on', label: 'Always play' },
+        ]}
+      />
+      <p className="text-sm text-label-secondary" data-testid="motion-status">
+        {osReduces
+          ? pref === 'on'
+            ? 'Your system asks for reduced motion, but animations are playing because you chose Always play.'
+            : 'Your system asks for reduced motion, so animations are off. Choose Always play to see them.'
+          : 'Animations are on.'}
+      </p>
+    </div>
+  )
+}
 
 export function SettingsScreen() {
   const { preferences, update } = usePreferences()
@@ -36,6 +73,7 @@ export function SettingsScreen() {
             onCheckedChange={(hideAmounts) => update({ hideAmounts })}
           />
         </SettingsRow>
+        <MotionSetting />
         <div className="flex flex-col gap-3 px-4 py-3">
           <span>Keyboard</span>
           <SegmentedControl
