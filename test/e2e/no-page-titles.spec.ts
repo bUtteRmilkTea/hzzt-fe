@@ -50,6 +50,7 @@ for (const vp of [
         balance: '0',
         sortOrder: 0,
         isFavorite: false,
+        cardStyle: {},
       })
       await page.setViewportSize(vp)
       await page.goto('/s/s-1/wallets/w-1')
