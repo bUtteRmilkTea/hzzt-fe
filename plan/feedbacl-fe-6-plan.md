@@ -73,9 +73,9 @@ Run them in order. F24 first, because it touches every screen and shifts every l
 - [x] F25-T04 Tests (vitest only; Playwright skipped by request, so the 1440 px and 390 px header check is still to do)
 
 **F26**
-- [ ] F26-T01 Category slice builder (`categorySlices`)
-- [ ] F26-T02 Shared `SplitSwitch` and the Investments pie toggle
-- [ ] F26-T03 Tests
+- [x] F26-T01 Category slice builder (`categorySlices`)
+- [x] F26-T02 Shared `SplitSwitch` and the Investments pie toggle
+- [x] F26-T03 Tests (vitest only; the Playwright redraw and layout-jump checks were skipped by request and are still to do)
 
 **F27**
 - [ ] F27-T01 `SectionPie` component and slice builders for manual assets
