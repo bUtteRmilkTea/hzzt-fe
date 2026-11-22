@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
-import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { applyServerError } from '@/features/auth/useServerErrors'
@@ -25,6 +25,7 @@ import { Select } from '@/shared/ui/Select'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { useToast } from '@/shared/ui/Toast'
+import { WalletCard } from '@/shared/ui/WalletCard'
 import { WALLET_TYPES } from './CreateWalletSheet'
 import { type DisplayPrefs, prefsOf, useWalletDisplay } from './display'
 import { useInvalidateMoney, useWallet, useWalletTransactions, type WalletDTO } from './hooks'
@@ -43,7 +44,7 @@ export function EditWalletScreen() {
   const wallet = useWallet(space.id, id)
 
   return (
-    <Page width="form" gap={8}>
+    <Page width="wide" gap={8}>
       <PageHeader title="Edit wallet" />
       {wallet.isPending ? (
         <Skeleton className="h-64" />
@@ -53,17 +54,54 @@ export function EditWalletScreen() {
           action={<Button onClick={() => void wallet.refetch()}>Try again</Button>}
         />
       ) : (
-        <>
-          <DetailsForm key={wallet.data.id} wallet={wallet.data} />
-          <DisplaySection wallet={wallet.data} />
-          <AdjustBalance wallet={wallet.data} />
-        </>
+        <EditLayout key={wallet.data.id} wallet={wallet.data} />
       )}
     </Page>
   )
 }
 
-function DetailsForm({ wallet }: { wallet: WalletDTO }) {
+/** The form and balance adjustment on the left; a live card preview and display options on the right. */
+function EditLayout({ wallet }: { wallet: WalletDTO }) {
+  // What the card would look like with the form's current values (the saved wallet until the user types).
+  const [preview, setPreview] = useState<Partial<Values>>({})
+  return (
+    <div
+      data-testid="edit-wallet-layout"
+      className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-10"
+    >
+      <div className="flex min-w-0 flex-col gap-8">
+        <DetailsForm wallet={wallet} onPreview={setPreview} />
+        <AdjustBalance wallet={wallet} />
+      </div>
+      <aside
+        aria-label="Preview"
+        className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-4"
+        data-testid="wallet-preview"
+      >
+        <WalletCard
+          size="compact"
+          name={preview.name ?? wallet.name ?? ''}
+          icon={preview.icon ?? wallet.icon ?? '💳'}
+          balance={wallet.balance ?? '0'}
+          currency={preview.currency ?? wallet.currency ?? ''}
+          type={preview.type ?? wallet.type ?? 'OTHER'}
+          cardStyle={wallet.cardStyle}
+          isFavorite={wallet.isFavorite}
+          display={prefsOf(wallet)}
+        />
+        <DisplaySection wallet={wallet} />
+      </aside>
+    </div>
+  )
+}
+
+function DetailsForm({
+  wallet,
+  onPreview,
+}: {
+  wallet: WalletDTO
+  onPreview?: (v: Partial<Values>) => void
+}) {
   const { space } = useSpace()
   const toast = useToast()
   const invalidateMoney = useInvalidateMoney(space.id)
@@ -96,6 +134,12 @@ function DetailsForm({ wallet }: { wallet: WalletDTO }) {
       currency: wallet.currency ?? space.baseCurrency,
     },
   })
+
+  // Feed the live preview beside the form.
+  const watched = useWatch({ control })
+  useEffect(() => {
+    onPreview?.(watched as Partial<Values>)
+  }, [watched, onPreview])
 
   const save = useMutation({
     mutationFn: async (v: Values) => {

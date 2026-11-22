@@ -13,6 +13,7 @@ import { Input } from '@/shared/ui/Input'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
+import { SettingsCol, SettingsGrid } from '@/shared/ui/SettingsGrid'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
 import { useCurrencies, useManualRates } from './hooks'
@@ -30,45 +31,50 @@ export function CurrencyScreen() {
   const currencies = useCurrencies()
 
   return (
-    <Page width="form" gap={8}>
+    <Page width="wide" gap={8}>
       <PageHeader title="Currency" backToSettings />
-      <Card>
-        <p className="text-sm text-label-secondary">Base currency</p>
-        <p className="text-lg font-semibold">{space.baseCurrency}</p>
-        <p className="mt-1 text-sm text-label-secondary">
-          {space.autoFxConversion
-            ? 'Exchange rates update automatically.'
-            : 'Automatic conversion is off. Set your own rates below.'}
-        </p>
-      </Card>
+      <SettingsGrid>
+        <SettingsCol>
+          <Card>
+            <p className="text-sm text-label-secondary">Base currency</p>
+            <p className="text-lg font-semibold">{space.baseCurrency}</p>
+            <p className="mt-1 text-sm text-label-secondary">
+              {space.autoFxConversion
+                ? 'Exchange rates update automatically.'
+                : 'Automatic conversion is off. Set your own rates below.'}
+            </p>
+          </Card>
 
-      {space.autoFxConversion ? null : <ManualRates canEdit={isOwner} />}
-
-      <section aria-labelledby="supported-heading" className="flex flex-col gap-3">
-        <h2 id="supported-heading" className="text-lg font-semibold">
-          Supported currencies
-        </h2>
-        {currencies.isPending ? (
-          <Skeleton className="h-32" />
-        ) : currencies.isError ? (
-          <EmptyState
-            title="Couldn't load currencies"
-            action={<Button onClick={() => void currencies.refetch()}>Try again</Button>}
-          />
-        ) : (
-          <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-1">
-            {currencies.data.map((c) => (
-              <li key={c.code} className="flex items-center justify-between gap-3 px-4 py-3">
-                <span>
-                  <span className="font-medium">{c.code}</span>{' '}
-                  <span className="text-label-secondary">{c.name}</span>
-                </span>
-                <span className="text-label-secondary">{c.symbol}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          {space.autoFxConversion ? null : <ManualRates canEdit={isOwner} />}
+        </SettingsCol>
+        <SettingsCol>
+          <section aria-labelledby="supported-heading" className="flex flex-col gap-3">
+            <h2 id="supported-heading" className="text-lg font-semibold">
+              Supported currencies
+            </h2>
+            {currencies.isPending ? (
+              <Skeleton className="h-32" />
+            ) : currencies.isError ? (
+              <EmptyState
+                title="Couldn't load currencies"
+                action={<Button onClick={() => void currencies.refetch()}>Try again</Button>}
+              />
+            ) : (
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface-1">
+                {currencies.data.map((c) => (
+                  <li key={c.code} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <span>
+                      <span className="font-medium">{c.code}</span>{' '}
+                      <span className="text-label-secondary">{c.name}</span>
+                    </span>
+                    <span className="text-label-secondary">{c.symbol}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </SettingsCol>
+      </SettingsGrid>
     </Page>
   )
 }

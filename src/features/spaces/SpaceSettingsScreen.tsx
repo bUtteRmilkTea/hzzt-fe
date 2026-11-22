@@ -15,6 +15,7 @@ import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Select } from '@/shared/ui/Select'
+import { SettingsCol, SettingsGrid } from '@/shared/ui/SettingsGrid'
 import { Switch } from '@/shared/ui/Switch'
 import { useToast } from '@/shared/ui/Toast'
 import { useCurrencies, useInvalidateSpaces } from './hooks'
@@ -45,12 +46,18 @@ function defaults(space: ActiveSpace): Values {
 export function SpaceSettingsScreen() {
   const { space, isOwner } = useSpace()
   return (
-    <Page width="form" gap={8}>
+    <Page width="wide" gap={8}>
       <PageHeader title="Space" backToSettings />
-      {/* Remount on a space switch so the form never shows another space's values. */}
-      <SpaceForm key={space.id} space={space} isOwner={isOwner} />
-      <MembersSection />
-      {isOwner ? <InvitationSection /> : null}
+      <SettingsGrid>
+        <SettingsCol>
+          {/* Remount on a space switch so the form never shows another space's values. */}
+          <SpaceForm key={space.id} space={space} isOwner={isOwner} />
+        </SettingsCol>
+        <SettingsCol>
+          <MembersSection />
+          {isOwner ? <InvitationSection /> : null}
+        </SettingsCol>
+      </SettingsGrid>
     </Page>
   )
 }

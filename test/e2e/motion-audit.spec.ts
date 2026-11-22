@@ -95,23 +95,26 @@ test.describe('motion in a real browser (F16)', () => {
     seed(api)
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.setViewportSize({ width: 1440, height: 1400 }) // tall: every card is in view
+    await page.addInitScript(() => {
+      const rec: number[] = []
+      ;(window as unknown as { __dash: number[] }).__dash = rec
+      const t0 = performance.now()
+      const tick = () => {
+        const el = document.querySelector('.chart-line-draw')
+        if (el) rec.push(Number.parseFloat(getComputedStyle(el).strokeDashoffset))
+        if (performance.now() - t0 < 8000) requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+    })
     await page.goto('/s/s-1')
     await expect(page.locator('.chart-line-draw').first()).toBeAttached()
-    // Record the dash offset on every frame inside the page, so a slow machine cannot miss the motion.
-    const offsets = await page.evaluate(
-      () =>
-        new Promise<number[]>((resolve) => {
-          const out: number[] = []
-          const t0 = performance.now()
-          const tick = () => {
-            const el = document.querySelector('.chart-line-draw')
-            if (el) out.push(Number.parseFloat(getComputedStyle(el).strokeDashoffset))
-            if (performance.now() - t0 < 2000) requestAnimationFrame(tick)
-            else resolve(out)
-          }
-          tick()
-        }),
-    )
+    // The recorder started at document start; wait until the line has finished (offset 0).
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __dash: number[] }).__dash.at(-1)), {
+        timeout: 6000,
+      })
+      .toBe(0)
+    const offsets = await page.evaluate(() => (window as unknown as { __dash: number[] }).__dash)
     expect(offsets.length).toBeGreaterThan(5)
     expect(Math.max(...offsets)).toBeGreaterThan(0.05) // started undrawn
     expect(offsets.some((o, i) => i > 0 && o < (offsets[i - 1] ?? 0))).toBe(true) // moved

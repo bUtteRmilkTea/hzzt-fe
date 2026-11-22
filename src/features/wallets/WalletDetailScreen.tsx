@@ -8,6 +8,7 @@ import { errorMessage, toAppError } from '@/shared/api/errors'
 import { periodFromSearch, periodToSearch } from '@/shared/period'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
+import { Card } from '@/shared/ui/Card'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
@@ -21,6 +22,13 @@ import { WalletCard } from '@/shared/ui/WalletCard'
 import { prefsOf } from './display'
 import { useInvalidateMoney, useWallet, useWalletTransactions } from './hooks'
 import { TopUpSheet } from './TopUpSheet'
+
+const TYPE_LABELS: Record<string, string> = {
+  BANK: 'Bank',
+  E_WALLET: 'E-wallet',
+  CASH: 'Cash',
+  OTHER: 'Other',
+}
 
 const rowBtn =
   'flex min-h-12 w-full items-center gap-3 rounded-md px-3 text-left hover:bg-surface-3'
@@ -84,13 +92,13 @@ export function WalletDetailScreen() {
 
   if (wallet.isPending)
     return (
-      <Page width="form">
+      <Page width="wide">
         <Skeleton className="aspect-[1.7/1]" />
       </Page>
     )
   if (wallet.isError || !wallet.data) {
     return (
-      <Page width="form">
+      <Page width="wide">
         <EmptyState
           title="Couldn't load this wallet"
           description={wallet.isError ? errorMessage(wallet.error) : undefined}
@@ -104,7 +112,7 @@ export function WalletDetailScreen() {
   const currency = w.currency ?? ''
 
   return (
-    <Page width="form" gap={5}>
+    <Page width="wide" gap={5}>
       <PageHeader
         title={w.name ?? 'Wallet'}
         action={
@@ -140,27 +148,6 @@ export function WalletDetailScreen() {
               className="font-semibold text-label lg:text-2xl"
             />
           </p>
-          {w.reserved && w.reserved !== '0' ? (
-            <div
-              className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 px-4 py-3 text-sm"
-              data-testid="reserve-lines"
-            >
-              <p className="flex justify-between">
-                <span className="text-label-secondary">Reserved for goals</span>
-                <Amount value={w.reserved} currency={currency} />
-              </p>
-              <p className="flex justify-between">
-                <span className="text-label-secondary">Available</span>
-                <Amount value={w.available ?? '0'} currency={currency} className="font-semibold" />
-              </p>
-              {/* A warning, never an error: spending can take a wallet below what is reserved in it. */}
-              {w.overReserved ? (
-                <p role="status" className="pt-1 text-warning">
-                  This wallet has less than is reserved in it.
-                </p>
-              ) : null}
-            </div>
-          ) : null}
           <div className="flex gap-3">
             <Button className="flex-1" onClick={() => setTopUp(true)}>
               <Plus aria-hidden className="size-5" />
@@ -184,68 +171,114 @@ export function WalletDetailScreen() {
         </div>
       </div>
 
-      <section aria-labelledby="txn-heading" className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="txn-heading" className="text-lg font-semibold">
-            Transactions
-          </h2>
-          <PeriodPicker
-            value={period}
-            onChange={(p) =>
-              navigate({
-                to: '/s/$spaceId/wallets/$id',
-                params: { spaceId: space.id, id },
-                search: periodToSearch(p),
-                replace: true,
-              })
-            }
-          />
-        </div>
-
-        {txns.isPending ? (
-          <div className="flex flex-col gap-2" aria-busy="true">
-            <Skeleton className="h-14" />
-            <Skeleton className="h-14" />
+      <div className="grid items-start gap-6 xl:grid-cols-12 xl:gap-8">
+        <section
+          aria-labelledby="txn-heading"
+          className="flex min-w-0 flex-col gap-2 xl:col-span-8"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="txn-heading" className="text-lg font-semibold">
+              Transactions
+            </h2>
+            <PeriodPicker
+              value={period}
+              onChange={(p) =>
+                navigate({
+                  to: '/s/$spaceId/wallets/$id',
+                  params: { spaceId: space.id, id },
+                  search: periodToSearch(p),
+                  replace: true,
+                })
+              }
+            />
           </div>
-        ) : txns.isError ? (
-          <EmptyState
-            title="Couldn't load transactions"
-            action={<Button onClick={() => void txns.refetch()}>Try again</Button>}
-          />
-        ) : groups.length === 0 ? (
-          <EmptyState title="No transactions in this period" description="Try a longer period." />
-        ) : (
-          <>
-            {groups.map(([day, items]) => (
-              <div key={day}>
-                <DayGroupHeader date={day} />
-                <ul className="divide-y divide-border">
-                  {items.map((t) => (
-                    <li key={t.id}>
-                      <Link
-                        to="/s/$spaceId/transactions/$id"
-                        params={{ spaceId: space.id, id: t.id as string }}
-                        className="block"
-                      >
-                        <TransactionRow transaction={t} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-            {txns.hasNextPage ? (
-              <Button
-                variant="secondary"
-                disabled={txns.isFetchingNextPage}
-                onClick={() => void txns.fetchNextPage()}
-              >
-                {txns.isFetchingNextPage ? 'Loading…' : 'Load more'}
-              </Button>
-            ) : null}
-          </>
-        )}
-      </section>
+
+          {txns.isPending ? (
+            <div className="flex flex-col gap-2" aria-busy="true">
+              <Skeleton className="h-14" />
+              <Skeleton className="h-14" />
+            </div>
+          ) : txns.isError ? (
+            <EmptyState
+              title="Couldn't load transactions"
+              action={<Button onClick={() => void txns.refetch()}>Try again</Button>}
+            />
+          ) : groups.length === 0 ? (
+            <EmptyState title="No transactions in this period" description="Try a longer period." />
+          ) : (
+            <>
+              {groups.map(([day, items]) => (
+                <div key={day}>
+                  <DayGroupHeader date={day} />
+                  <ul className="divide-y divide-border">
+                    {items.map((t) => (
+                      <li key={t.id}>
+                        <Link
+                          to="/s/$spaceId/transactions/$id"
+                          params={{ spaceId: space.id, id: t.id as string }}
+                          className="block"
+                        >
+                          <TransactionRow transaction={t} />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              {txns.hasNextPage ? (
+                <Button
+                  variant="secondary"
+                  disabled={txns.isFetchingNextPage}
+                  onClick={() => void txns.fetchNextPage()}
+                >
+                  {txns.isFetchingNextPage ? 'Loading…' : 'Load more'}
+                </Button>
+              ) : null}
+            </>
+          )}
+        </section>
+
+        <aside
+          aria-label="Wallet details"
+          data-testid="wallet-side"
+          className="flex min-w-0 flex-col gap-4 xl:sticky xl:top-4 xl:col-span-4"
+        >
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-lg font-semibold">Details</h2>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+              <dt className="text-label-secondary">Type</dt>
+              <dd className="text-right">{TYPE_LABELS[w.type ?? 'OTHER'] ?? w.type}</dd>
+              <dt className="text-label-secondary">Currency</dt>
+              <dd className="text-right">{currency}</dd>
+              <dt className="text-label-secondary">Balance</dt>
+              <dd className="text-right">
+                <Amount value={w.balance ?? '0'} currency={currency} />
+              </dd>
+            </dl>
+          </Card>
+          {w.reserved && w.reserved !== '0' ? (
+            <div
+              className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 px-4 py-3 text-sm"
+              data-testid="reserve-lines"
+            >
+              <p className="flex justify-between">
+                <span className="text-label-secondary">Reserved for goals</span>
+                <Amount value={w.reserved} currency={currency} />
+              </p>
+              <p className="flex justify-between">
+                <span className="text-label-secondary">Available</span>
+                <Amount value={w.available ?? '0'} currency={currency} className="font-semibold" />
+              </p>
+              {/* A warning, never an error: spending can take a wallet below what is reserved in it. */}
+              {w.overReserved ? (
+                <p role="status" className="pt-1 text-warning">
+                  This wallet has less than is reserved in it.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </aside>
+      </div>
 
       <SheetShell open={menu} onOpenChange={setMenu} title="Wallet options">
         <ul className="flex flex-col">
