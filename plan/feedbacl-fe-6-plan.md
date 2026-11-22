@@ -78,9 +78,9 @@ Run them in order. F24 first, because it touches every screen and shifts every l
 - [x] F26-T03 Tests (vitest only; the Playwright redraw and layout-jump checks were skipped by request and are still to do)
 
 **F27**
-- [ ] F27-T01 `SectionPie` component and slice builders for manual assets
-- [ ] F27-T02 Pie in each Assets section
-- [ ] F27-T03 Tests
+- [x] F27-T01 `SectionPie` component and slice builders for manual assets
+- [x] F27-T02 Pie in each Assets section
+- [x] F27-T03 Tests (vitest only; the Playwright fit and overflow checks were skipped by request and are still to do)
 
 **F28**
 - [ ] F28-T01 Install dnd-kit and build `SortableList`

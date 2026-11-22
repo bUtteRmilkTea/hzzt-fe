@@ -137,6 +137,36 @@ describe('assets layout (F12)', () => {
     expect(body?.getAttribute('data-state')).toBe(wasOpen ? 'closed' : 'open')
   })
 
+  it('shows a pie in a section with several items, none with a single item', async () => {
+    server.use(
+      http.get(`${BASE}/spaces/s-1/manual-assets`, ({ request }) => {
+        const kind = new URL(request.url).searchParams.get('kind')
+        return HttpResponse.json(
+          kind === 'LIABILITY'
+            ? assetList(
+                'LIABILITY',
+                [
+                  debt,
+                  { ...debt, id: 'd2', name: 'Car loan' },
+                  { ...debt, id: 'd3', name: 'Card' },
+                ],
+                '90000000',
+              )
+            : assetList(kind as never, [house], '50000000'),
+        )
+      }),
+    )
+    renderApp('/s/s-1/assets')
+    const debtRegion = await screen.findByRole('region', { name: 'Debt' })
+    expect(await within(debtRegion).findByTestId('section-pie')).toBeInTheDocument()
+    expect(
+      within(debtRegion).getByRole('list', { name: 'Debt split by item legend' }),
+    ).toBeInTheDocument()
+    const fixed = screen.getByRole('region', { name: 'Fixed assets' })
+    await within(fixed).findByText('Apartment')
+    expect(within(fixed).queryByTestId('section-pie')).not.toBeInTheDocument()
+  })
+
   it('lists at most 5 investments inline, with a link to open all of them', async () => {
     renderApp('/s/s-1/assets')
     const inv = await screen.findByRole('region', { name: 'Investments' })

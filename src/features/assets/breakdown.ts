@@ -8,8 +8,9 @@ import {
   wrapperOf,
 } from '@/features/investments/valuation'
 import type { WalletDTO } from '@/shared/api/wallets'
+import type { PieSlice } from '@/shared/charts'
 import { allocatePct } from '@/shared/charts/pct'
-import { toDecimal } from '@/shared/money'
+import { toDecimal, toMoneyString } from '@/shared/money'
 import type { BreakdownGroup } from './AssetBreakdownList'
 
 const WALLET_TYPES: Array<{ type: string; title: string }> = [
@@ -126,4 +127,27 @@ export function capEach(groups: readonly BreakdownGroup[], max: number): Breakdo
   return groups.map((g) =>
     g.rows.length > max ? { ...g, rows: g.rows.slice(0, max), more: g.rows.length - max } : g,
   )
+}
+
+/**
+ * Pie slices for a manual-asset section: one per item. The server gives no base-currency value
+ * per item, so only items already in the base currency are drawn (no client-side FX); the rest
+ * are counted in `skipped`.
+ */
+export function manualSlices(
+  items: ReadonlyArray<{ id?: string; name?: string; currency?: string; currentValue?: unknown }>,
+  baseCurrency: string,
+): { slices: PieSlice[]; skipped: number } {
+  const slices: PieSlice[] = []
+  let skipped = 0
+  for (const a of items) {
+    const amount = toMoneyString(a.currentValue as never)
+    if (a.currency !== baseCurrency) {
+      skipped += 1
+      continue
+    }
+    if (!toDecimal(amount).greaterThan(0)) continue
+    slices.push({ key: a.id as string, name: a.name ?? '', amount })
+  }
+  return { slices, skipped }
 }
