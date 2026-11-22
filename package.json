@@ -16,7 +16,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "size": "node scripts/check-bundle.mjs",
-    "gen:api": "swagger2openapi --yaml --patch api/swagger.yaml -o api/openapi.yaml && pnpm --package=typescript@5.9.3 --package=openapi-typescript@7.13.0 dlx openapi-typescript api/openapi.yaml -o src/shared/api/schema.d.ts",
+    "gen:api": "swagger2openapi --yaml --patch api/swagger.yaml -o api/openapi.yaml && pnpm --package=typescript@5.9.3 --package=openapi-typescript@7.13.0 dlx openapi-typescript api/openapi.yaml -o src/shared/api/schema.d.ts && biome format --write api/openapi.yaml",
     "sync:api": "cp ../hzzt/docs/swagger.yaml api/swagger.yaml && pnpm gen:api"
   },
   "dependencies": {
