@@ -22,7 +22,7 @@ export function PageHeader({ title, backToSettings, action }: PageHeaderProps) {
             <ChevronLeft aria-hidden className="size-6" />
           </Link>
         ) : null}
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <h1 className="text-xl font-medium">{title}</h1>
       </div>
       {action}
     </div>

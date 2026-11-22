@@ -55,7 +55,7 @@ export function MembersSection() {
   return (
     <section aria-labelledby="members-heading" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
-        <h2 id="members-heading" className="text-lg font-semibold">
+        <h2 id="members-heading" className="text-lg font-medium">
           Members
         </h2>
         <span className="text-sm text-label-secondary">

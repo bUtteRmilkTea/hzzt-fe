@@ -119,7 +119,7 @@ export function InvestmentDetailScreen() {
       {f && v ? (
         <Card className="flex flex-col" data-testid="valuation">
           <p className="text-sm text-label-secondary">{sharedIn ? 'Your share' : 'Value'}</p>
-          <p className="pb-2 text-3xl font-semibold">
+          <p className="pb-2 text-3xl font-medium">
             <Amount animate value={f.value} currency={f.currency} />
           </p>
           <Line label="Cost basis">

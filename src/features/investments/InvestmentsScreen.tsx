@@ -77,7 +77,7 @@ export function InvestmentsScreen() {
           >
             <div className="flex min-w-0 flex-col gap-1 lg:w-2/5">
               <p className="text-sm text-label-secondary">Portfolio value</p>
-              <p className="text-3xl font-semibold">
+              <p className="text-3xl font-medium">
                 <Amount
                   animate
                   value={list.data.summary.totalValue}

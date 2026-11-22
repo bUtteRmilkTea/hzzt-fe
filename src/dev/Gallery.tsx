@@ -45,7 +45,7 @@ export function Gallery() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
-      <h1 className="text-xl font-semibold">Component gallery</h1>
+      <h1 className="text-xl font-medium">Component gallery</h1>
 
       <Section title="Theme">
         <SegmentedControl
@@ -80,7 +80,7 @@ export function Gallery() {
               onCheckedChange={setHideAmounts}
             />
           </div>
-          <div className="text-2xl font-semibold">
+          <div className="text-2xl font-medium">
             <Amount value="1234567.5" currency="IDR" animate />
           </div>
           <Amount value="-42.1" currency="USD" tone="auto" signDisplay="always" />

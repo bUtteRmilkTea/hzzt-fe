@@ -41,7 +41,7 @@ This addendum extends `docs/frontend-plan.md` and follows `plan/feedbacl-fe-4-pl
 | ID | Decision | Status | Recommended |
 | --- | --- | --- | --- |
 | D-F29 | Which simple animation for the auth background | Done | All three looks are built and chosen by one variable, `VITE_AUTH_BG` in `.env` (`blobs`, `grid` or `sweep`; default `blobs`; a typo falls back to `blobs`). Restart the dev server or rebuild after changing it |
-| D-F30 | Which typeface | **Open** | Inter variable, already self-hosted, made the primary face (not a fallback). Use the `ss01`/`cv11` stylistic sets for single-storey `a`, tighter tracking on headings (about `-0.02em`), and lighter weights (`font-medium` for headings, `font-normal` for body). Alternatives that need a new file: Geist or Manrope. Note: nothing in `plan/` names a typeface, so this reads "like the plan" as "modern, minimal, restrained" (`plan.md` C3). Tell me if you meant a specific font |
+| D-F30 | Which typeface | Done | Inter variable, already self-hosted, now the primary face. Lighter weights (`font-medium` titles, semibold set to 560) and tight heading tracking. The `cv11` single-storey `a` was dropped: the bundled file does not contain it. Getting it needs the full Inter file (or Geist), which is a new asset, so it is left for you to decide |
 | D-F31 | Auth layout grouping | Proposed | One centred group, `max-w-5xl`, two columns with a `gap-12 lg:gap-16`. Left: HZZT mark, card scene and tagline. Right: the form in a `max-w-sm` column. Below 1024 px the scene is hidden as today |
 | D-F32 | Card style layout from 1024 px | Done | Left column: type switch, the controls for the chosen mode, then Cancel and Apply (a sticky bottom bar, so Apply is always reachable). Right column (about 26rem, sticky): the live card preview. Apply moved left of the original idea so the DOM and tab order stay preview, controls, buttons. Below 1024 px: one column as before |
 
@@ -65,10 +65,10 @@ Run them in order. They are independent of each other, so any order works once D
 - [x] F22-T04 Tests (unit for the resolver and each look; `auth-split` and new `auth-background` specs in real Chromium; each look also checked in the browser in light and dark)
 
 **F23**
-- [ ] F23-T01 Font tokens
-- [ ] F23-T02 Weight and tracking pass
-- [ ] F23-T03 Money and numerals check
-- [ ] F23-T04 Tests and plan update
+- [x] F23-T01 Font tokens (Inter leads `--font-sans`, antialiased smoothing. `cv11` was tried and dropped: the bundled latin file has no such feature, so it changed nothing)
+- [x] F23-T02 Weight and tracking pass (every title-size `font-semibold` is now `font-medium`; `h1` to `h3` get `-0.02em`; `--font-weight-semibold` is 560 so the rest is a firm medium)
+- [x] F23-T03 Money and numerals check (digits stay tabular, amounts unchanged, no overflow at 390 px on Home, Wallets, Wallet detail and Settings)
+- [x] F23-T04 Tests and plan update (`test/e2e/typography.spec.ts` in real Chromium; `plan.md` C3, Fonts row and Appendix B updated. Lighthouse re-run is still to do, see section 5. Also hardened `density.spec.ts` to measure the resting layout, because the staggered entry animation made its 1 px check flaky)
 
 ### F21: Card style fills the page
 

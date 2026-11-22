@@ -23,7 +23,7 @@ const button =
 function RootError({ error }: ErrorComponentProps) {
   return (
     <div className={card}>
-      <h2 className="text-lg font-semibold">Something went wrong</h2>
+      <h2 className="text-lg font-medium">Something went wrong</h2>
       <p className="max-w-xs text-sm text-label-secondary">
         {error instanceof Error && error.message ? error.message : 'An unexpected error occurred.'}
       </p>
@@ -37,7 +37,7 @@ function RootError({ error }: ErrorComponentProps) {
 function NotFound() {
   return (
     <div className={card}>
-      <h2 className="text-lg font-semibold">Page not found</h2>
+      <h2 className="text-lg font-medium">Page not found</h2>
       <Link to="/" className={button}>
         Go home
       </Link>

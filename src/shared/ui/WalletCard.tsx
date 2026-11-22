@@ -67,7 +67,7 @@ export function WalletCard({
         {display?.hideType ? null : (
           <p className="text-xs opacity-80">{TYPE_LABEL[type] ?? type}</p>
         )}
-        <Amount value={balance} currency={currency} className="text-xl font-semibold" />
+        <Amount value={balance} currency={currency} className="text-xl font-medium" />
       </div>
     </div>
   )

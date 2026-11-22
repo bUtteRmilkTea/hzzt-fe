@@ -32,7 +32,7 @@ const Card = ({
 }) => (
   <section aria-label={title} className={cn(cardClass, 'flex flex-col gap-3 lg:gap-4')}>
     <div className="flex items-center justify-between gap-3">
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2 className="text-lg font-medium">{title}</h2>
       {action}
     </div>
     {children}
@@ -118,7 +118,7 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
           <Amount
             value={summary.data.netWorth}
             currency={summary.data.currency || space.baseCurrency}
-            className="text-3xl font-semibold lg:text-4xl"
+            className="text-3xl font-medium lg:text-4xl"
             animate
           />
           {change !== null && change !== undefined ? (

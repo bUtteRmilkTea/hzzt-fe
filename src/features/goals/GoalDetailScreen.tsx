@@ -141,7 +141,7 @@ export function GoalDetailScreen() {
         />
         <div className="flex flex-col gap-0.5">
           {achieved ? <p className="font-semibold text-positive">Goal achieved</p> : null}
-          <p className="text-xl font-semibold">
+          <p className="text-xl font-medium">
             <Amount animate value={g.progress ?? '0'} currency={currency} />
           </p>
           <p className="text-sm text-label-secondary">
@@ -172,7 +172,7 @@ export function GoalDetailScreen() {
       ) : null}
 
       <section aria-labelledby="alloc" className="flex flex-col gap-3">
-        <h2 id="alloc" className="text-lg font-semibold">
+        <h2 id="alloc" className="text-lg font-medium">
           Reserved in wallets
         </h2>
         {wallets.isPending ? (

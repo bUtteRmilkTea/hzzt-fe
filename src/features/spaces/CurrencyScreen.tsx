@@ -37,7 +37,7 @@ export function CurrencyScreen() {
         <SettingsCol>
           <Card>
             <p className="text-sm text-label-secondary">Base currency</p>
-            <p className="text-lg font-semibold">{space.baseCurrency}</p>
+            <p className="text-lg font-medium">{space.baseCurrency}</p>
             <p className="mt-1 text-sm text-label-secondary">
               {space.autoFxConversion
                 ? 'Exchange rates update automatically.'
@@ -49,7 +49,7 @@ export function CurrencyScreen() {
         </SettingsCol>
         <SettingsCol>
           <section aria-labelledby="supported-heading" className="flex flex-col gap-3">
-            <h2 id="supported-heading" className="text-lg font-semibold">
+            <h2 id="supported-heading" className="text-lg font-medium">
               Supported currencies
             </h2>
             {currencies.isPending ? (
@@ -117,7 +117,7 @@ function ManualRates({ canEdit }: { canEdit: boolean }) {
 
   return (
     <section aria-labelledby="manual-heading" className="flex flex-col gap-3">
-      <h2 id="manual-heading" className="text-lg font-semibold">
+      <h2 id="manual-heading" className="text-lg font-medium">
         Manual exchange rates
       </h2>
 

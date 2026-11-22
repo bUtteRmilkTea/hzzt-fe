@@ -78,8 +78,8 @@
   --bar-stagger: 40ms;
 
   /* Type */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter var", "Segoe UI", Roboto, sans-serif;
+  /* One face on every OS (F23, D-F30): self-hosted Inter leads, the system font only covers the swap. */
+  --font-sans: "Inter var", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;
@@ -163,6 +163,8 @@
   --shadow-card: var(--shadow-card);
 
   --font-sans: var(--font-sans);
+  /* Restrained weights: "semibold" is a firm medium, never a heavy 600. */
+  --font-weight-semibold: 560;
 
   --text-xs: var(--text-xs);
   --text-sm: var(--text-sm);

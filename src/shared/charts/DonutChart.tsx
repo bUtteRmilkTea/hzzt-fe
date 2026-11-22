@@ -82,7 +82,7 @@ export function DonutChart({
               />
             )
           })}
-          <text textAnchor="middle" y={-2} className="fill-label text-2xl font-semibold">
+          <text textAnchor="middle" y={-2} className="fill-label text-2xl font-medium">
             {centreText}
           </text>
           <text textAnchor="middle" y={16} className="fill-label-secondary text-[11px]">

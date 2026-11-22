@@ -96,14 +96,9 @@ export function CategoryPanel({
   return (
     <section aria-label={label} className={cn(cardClass, 'flex flex-col gap-3')}>
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold">{label}</h2>
+        <h2 className="text-lg font-medium">{label}</h2>
         {currency ? (
-          <Amount
-            animate
-            value={group.value}
-            currency={currency}
-            className="text-lg font-semibold"
-          />
+          <Amount animate value={group.value} currency={currency} className="text-lg font-medium" />
         ) : null}
       </div>
       {group.wrappers.map((w) => (

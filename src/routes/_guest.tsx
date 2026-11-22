@@ -28,7 +28,7 @@ function GuestLayout() {
       <div className="mx-auto grid min-h-dvh max-w-5xl items-center gap-12 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-16">
         <AuthPanel className="hidden lg:flex" />
         <div className="mx-auto w-full max-w-sm">
-          <p className="mb-8 text-center text-2xl font-semibold lg:hidden">HZZT</p>
+          <p className="mb-8 text-center text-2xl font-medium lg:hidden">HZZT</p>
           <Outlet />
         </div>
       </div>

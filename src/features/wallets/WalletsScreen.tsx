@@ -27,7 +27,7 @@ function TotalCard({ value, currency }: { value: string; currency: string }) {
   return (
     <Card>
       <p className="text-sm text-label-secondary">Total balance</p>
-      <p className="text-3xl font-semibold lg:text-4xl" data-testid="wallets-total">
+      <p className="text-3xl font-medium lg:text-4xl" data-testid="wallets-total">
         <Amount animate value={value} currency={currency} />
       </p>
     </Card>
@@ -121,7 +121,7 @@ export function WalletsScreen() {
   return (
     <Page>
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Wallets</h1>
+        <h1 className="text-xl font-medium">Wallets</h1>
         <div className="flex gap-2">
           {wallets.data && wallets.data.items.length > 1 ? (
             <Button variant="ghost" size="sm" onClick={() => setReordering((r) => !r)}>

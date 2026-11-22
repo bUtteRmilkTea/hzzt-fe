@@ -33,13 +33,13 @@ export function HistorySummaryRail({ period }: { period: Period }) {
         <dl className="grid grid-cols-2 gap-3 border-b border-border pb-4">
           <div>
             <dt className="text-sm text-label-secondary">In</dt>
-            <dd className="text-lg font-semibold">
+            <dd className="text-lg font-medium">
               <Amount animate value={overview.data.income} currency={currency} tone="auto" />
             </dd>
           </div>
           <div>
             <dt className="text-sm text-label-secondary">Out</dt>
-            <dd className="text-lg font-semibold">
+            <dd className="text-lg font-medium">
               <Amount animate value={overview.data.expense} currency={currency} tone="expense" />
             </dd>
           </div>

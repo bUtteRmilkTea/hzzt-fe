@@ -72,7 +72,7 @@ function CalculatorInput({ value, onChange, currency, id, invalid, ...rest }: Mo
         )}
       >
         <span className="text-sm text-label-tertiary">{currency}</span>
-        <span className="text-2xl font-semibold">{display(expr) || '0'}</span>
+        <span className="text-2xl font-medium">{display(expr) || '0'}</span>
         {preview ? <span className="text-sm text-label-secondary">= {preview}</span> : null}
       </output>
       <div className="grid grid-cols-4 gap-2">
@@ -83,7 +83,7 @@ function CalculatorInput({ value, onChange, currency, id, invalid, ...rest }: Mo
             aria-label={k.aria}
             onClick={() => press(k.key)}
             className={cn(
-              'flex min-h-12 items-center justify-center rounded-md text-lg font-semibold transition-transform duration-100 active:scale-95',
+              'flex min-h-12 items-center justify-center rounded-md text-lg font-medium transition-transform duration-100 active:scale-95',
               k.kind === 'num' && 'bg-surface-3 text-label',
               k.kind === 'fn' && 'bg-surface-3 text-label-secondary',
               k.kind === 'op' && 'bg-surface-3 text-accent',

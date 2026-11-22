@@ -37,7 +37,7 @@ export function AuthPanel({ className }: { className?: string }) {
       data-testid="auth-panel"
       className={cn('relative flex flex-col gap-10', className)}
     >
-      <p className="text-2xl font-semibold">HZZT</p>
+      <p className="text-2xl font-medium">HZZT</p>
 
       <div className="relative w-full max-w-md">
         <div className="auth-card rounded-xl border border-border bg-surface-2 p-6 shadow-card">
@@ -49,7 +49,7 @@ export function AuthPanel({ className }: { className?: string }) {
                 animate
                 value="128450000"
                 currency="IDR"
-                className="text-3xl font-semibold"
+                className="text-3xl font-medium"
               />
             )}
           </Loop>
@@ -82,7 +82,7 @@ export function AuthPanel({ className }: { className?: string }) {
       </div>
 
       <div>
-        <p className="text-2xl font-semibold xl:text-3xl">Know where your money goes.</p>
+        <p className="text-2xl font-medium xl:text-3xl">Know where your money goes.</p>
         <p className="mt-2 max-w-sm text-label-secondary">
           Wallets, spending, investments and goals in one calm place.
         </p>
