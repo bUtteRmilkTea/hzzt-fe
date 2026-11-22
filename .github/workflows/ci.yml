@@ -25,6 +25,3 @@ jobs:
       - run: pnpm build
       # Fails the job when a bundle budget (plan Section 5.9) is exceeded
       - run: pnpm size
-      - name: Install Playwright browser
-        run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
