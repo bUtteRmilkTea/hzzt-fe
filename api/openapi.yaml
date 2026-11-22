@@ -1980,7 +1980,7 @@ paths:
       tags:
         - investments
     post:
-      description: "The body is validated by `assetType` (see GET /investment-types).
+      description: 'The body is validated by `assetType` (see GET /investment-types).
         ID_STOCK takes `details.lots` and derives quantity = lots × 100. CRYPTO
         checks `details.stakedQuantity` <= quantity. `priceMode: AUTO` is
         accepted for CRYPTO, US_STOCK and GLOBAL_ETF and answers 422
@@ -1991,9 +1991,9 @@ paths:
         exact ticker (422 INSTRUMENT_NOT_FOUND if none matches). Without a
         market price the manual price is used. Optional `funding: {walletId,
         amount?}` pays for the initial position from a wallet: it creates a BUY
-        titled \"Initial position {symbol}\" (wallet debited quantity ×
-        avgBuyPrice + fees, converted to the wallet's currency unless `amount`
-        is given) in the same database transaction."
+        titled "Initial position {symbol}" (wallet debited quantity ×
+        avgBuyPrice + fees, converted to the wallet''s currency unless `amount`
+        is given) in the same database transaction.'
       parameters:
         - description: Space ID
           in: path
