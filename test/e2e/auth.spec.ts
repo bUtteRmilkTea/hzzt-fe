@@ -94,7 +94,7 @@ test('a signed-out visit to a protected page redirects to login and returns afte
 
 test('sign out returns to the login screen and stays signed out after reload', async ({ page }) => {
   await installFakeApi(page, { signedIn: true })
-  await page.goto('/settings/profile')
+  await page.goto('/settings') // Sign out lives in Settings (F18-T03)
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
   await page.reload()

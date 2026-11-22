@@ -1,4 +1,11 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router'
 import { Settings } from 'lucide-react'
 import { AppLockProvider } from '@/app/providers/AppLockProvider'
 import { PreferencesProvider } from '@/app/providers/PreferencesProvider'
@@ -6,6 +13,7 @@ import { SpaceProvider, useSpace } from '@/app/providers/SpaceProvider'
 import { Splash } from '@/app/Splash'
 import { RevealAmountsButton } from '@/features/preferences/RevealAmountsButton'
 import { SpaceSwitcher } from '@/features/spaces/SpaceSwitcher'
+import { returnToFor } from '@/features/transactions/returnTo'
 import { MotionRoot } from '@/shared/motion/MotionRoot'
 import { AppShell } from '@/shared/ui/AppShell'
 import { Button } from '@/shared/ui/Button'
@@ -54,17 +62,20 @@ function AuthedLayout() {
 function Shell() {
   const { space } = useSpace()
   const navigate = useNavigate()
+  const router = useRouter()
   return (
     <MotionRoot>
       <AppShell
         spaceId={space.id}
-        onAdd={() =>
-          navigate({
+        onAdd={() => {
+          // Remember where the user was, so Cancel and Save come back here (not to History).
+          const returnTo = returnToFor(router.state.location)
+          void navigate({
             to: '/s/$spaceId/transactions/new',
             params: { spaceId: space.id },
-            search: { type: 'EXPENSE' },
+            search: { type: 'EXPENSE', ...(returnTo ? { returnTo } : {}) },
           })
-        }
+        }}
         header={
           <>
             <SpaceSwitcher />

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePreferences } from '@/app/providers/PreferencesProvider'
+import { useSession } from '@/app/providers/SessionProvider'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import {
   type MotionPref,
@@ -7,6 +8,7 @@ import {
   systemReducesMotion,
   writeMotionPref,
 } from '@/shared/motion/motionPref'
+import { Button } from '@/shared/ui/Button'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
@@ -44,6 +46,7 @@ function MotionSetting() {
 }
 
 export function SettingsScreen() {
+  const { logout } = useSession()
   const { preferences, update } = usePreferences()
   const { space } = useSpace()
   return (
@@ -87,6 +90,9 @@ export function SettingsScreen() {
           />
         </div>
       </SettingsGroup>
+      <Button variant="secondary" block onClick={() => void logout()}>
+        Sign out
+      </Button>
       <p className="text-center text-sm text-label-tertiary">HZZT v{__APP_VERSION__}</p>
     </Page>
   )

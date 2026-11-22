@@ -383,27 +383,49 @@ describe('goals card (F15-T02)', () => {
     ...over,
   })
 
-  it('shows at most 3 active goals with progress, and skips achieved ones', async () => {
+  const withGoals = (items: unknown[]) =>
+    server.use(http.get(`${BASE}/spaces/s-1/goals`, () => HttpResponse.json({ items })))
+
+  it('shows at most 3 active goals with progress, skips achieved ones, and offers View more', async () => {
     install()
-    server.use(
-      http.get(`${BASE}/spaces/s-1/goals`, () =>
-        HttpResponse.json({
-          items: [
-            goal(1),
-            goal(2, { achievedAt: '2026-11-01T00:00:00Z' }),
-            goal(3),
-            goal(4),
-            goal(5),
-          ],
-        }),
-      ),
-    )
+    withGoals([goal(1), goal(2, { achievedAt: '2026-11-01T00:00:00Z' }), goal(3), goal(4), goal(5)])
     renderApp('/s/s-1')
     const list = await screen.findByTestId('goals-list')
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
     expect(within(list).queryByText(/Goal 2/)).not.toBeInTheDocument()
     expect(within(list).getAllByRole('progressbar', { name: 'Goal progress' })).toHaveLength(3)
-    expect(screen.getByRole('link', { name: 'View all' })).toBeInTheDocument()
+    // 4 active goals (1, 3, 4, 5) means more than 3, so the button shows.
+    const more = screen.getByRole('link', { name: 'View more' })
+    expect(more).toHaveAttribute('href', '/s/s-1/goals')
+    expect(screen.queryByRole('link', { name: 'View all' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [1, 'one goal'],
+    [2, 'two goals'],
+    [3, 'exactly three goals'],
+  ])('shows no button for %s active goal(s) (%s), and no View all', async (n) => {
+    install()
+    withGoals(Array.from({ length: n }, (_, i) => goal(i + 1)))
+    renderApp('/s/s-1')
+    const list = await screen.findByTestId('goals-list')
+    expect(within(list).getAllByRole('listitem')).toHaveLength(n)
+    expect(screen.queryByRole('link', { name: 'View more' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'View all' })).not.toBeInTheDocument()
+  })
+
+  it('achieved goals do not count toward the limit', async () => {
+    install()
+    withGoals([
+      goal(1),
+      goal(2),
+      goal(3),
+      goal(4, { achievedAt: '2026-11-01T00:00:00Z' }),
+      goal(5, { achievedAt: '2026-11-01T00:00:00Z' }),
+    ])
+    renderApp('/s/s-1')
+    await screen.findByTestId('goals-list')
+    expect(screen.queryByRole('link', { name: 'View more' })).not.toBeInTheDocument()
   })
 
   it('shows an empty state with one action when there are no goals', async () => {
