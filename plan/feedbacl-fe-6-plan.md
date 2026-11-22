@@ -67,10 +67,10 @@ Run them in order. F24 first, because it touches every screen and shifts every l
 - [x] F24-T04 Tests (headings by role pass in vitest. `test/e2e/no-page-titles.spec.ts` is written but NOT run: Playwright was skipped by request, so the browser check is still to do)
 
 **F25**
-- [ ] F25-T01 Cash and Investments actions become icon buttons
-- [ ] F25-T02 Collapsed summary shows the count only
-- [ ] F25-T03 Collapsible broker and exchange groups
-- [ ] F25-T04 Tests
+- [x] F25-T01 Cash and Investments actions become icon buttons
+- [x] F25-T02 Collapsed summary shows the count only
+- [x] F25-T03 Collapsible broker and exchange groups
+- [x] F25-T04 Tests (vitest only; Playwright skipped by request, so the 1440 px and 390 px header check is still to do)
 
 **F26**
 - [ ] F26-T01 Category slice builder (`categorySlices`)

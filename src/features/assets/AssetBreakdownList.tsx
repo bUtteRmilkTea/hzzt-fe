@@ -1,6 +1,9 @@
 import { Link, type LinkProps } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { type ReactNode, useState } from 'react'
 import { Amount } from '@/shared/ui/Amount'
+import { Collapsible } from '@/shared/ui/Collapsible'
+import { cn } from '@/shared/ui/cn'
 import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 
 export interface BreakdownRow {
@@ -66,43 +69,94 @@ function Row({ row }: { row: BreakdownRow }) {
   )
 }
 
+function GroupBlock({
+  group: g,
+  collapsible,
+  defaultOpen,
+}: {
+  group: BreakdownGroup
+  collapsible: boolean
+  defaultOpen: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  // A group with one row has nothing to hide.
+  const toggles = collapsible && g.title !== undefined && g.rows.length > 1
+  const bodyId = `group-${g.key}`.replace(/\W+/g, '-')
+  const titleClass =
+    'flex items-baseline justify-between px-2 text-sm font-semibold tracking-wide text-label-secondary uppercase'
+  const rows = (
+    <ul className="flex flex-col">
+      {g.rows.map((r, i) => (
+        <li key={r.key} className={STAGGER} style={staggerStyle(i)}>
+          <Row row={r} />
+        </li>
+      ))}
+    </ul>
+  )
+  return (
+    <div className="flex flex-col gap-1">
+      {g.title ? (
+        toggles ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={bodyId}
+            onClick={() => setOpen((o) => !o)}
+            className={cn(titleClass, 'min-h-10 items-center text-left')}
+          >
+            <span className="flex items-center gap-1">
+              <ChevronDown
+                aria-hidden
+                className={cn('size-4 shrink-0 transition-transform', !open && '-rotate-90')}
+              />
+              <h2>{g.title}</h2>
+            </span>
+            {g.total ? <Amount value={g.total.value} currency={g.total.currency} /> : null}
+          </button>
+        ) : (
+          <div className={titleClass}>
+            <h2>{g.title}</h2>
+            {g.total ? <Amount value={g.total.value} currency={g.total.currency} /> : null}
+          </div>
+        )
+      ) : null}
+      {g.subtitle ? <p className="px-2 text-xs text-label-tertiary">{g.subtitle}</p> : null}
+      {toggles ? (
+        <Collapsible open={open} id={bodyId}>
+          {rows}
+        </Collapsible>
+      ) : (
+        rows
+      )}
+      {g.more && (!toggles || open) ? (
+        <p className="px-2 text-sm text-label-secondary" data-testid="group-more">
+          +{g.more} more
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 /**
- * The rows inside one section of the Assets page: optional sub-groups (a wallet type, an
- * investment category) each with a title and total, then name, balance and PnL per row.
+ * The rows inside one section of the Assets page: optional sub-groups (a wallet type, a broker)
+ * each with a title and total, then name, balance and PnL per row. With `collapsible`, a group
+ * with several rows is a dropdown: the first group starts open, the rest closed.
  */
 export function AssetBreakdownList({
   groups,
   empty,
+  collapsible = false,
 }: {
   groups: readonly BreakdownGroup[]
   empty?: ReactNode
+  collapsible?: boolean
 }) {
   const nonEmpty = groups.filter((g) => g.rows.length > 0)
   if (nonEmpty.length === 0) return empty ? (empty as React.ReactElement) : null
   return (
     <div className="flex flex-col gap-3">
-      {nonEmpty.map((g) => (
-        <div key={g.key} className="flex flex-col gap-1">
-          {g.title ? (
-            <div className="flex items-baseline justify-between px-2 text-sm font-semibold tracking-wide text-label-secondary uppercase">
-              <h2>{g.title}</h2>
-              {g.total ? <Amount value={g.total.value} currency={g.total.currency} /> : null}
-            </div>
-          ) : null}
-          {g.subtitle ? <p className="px-2 text-xs text-label-tertiary">{g.subtitle}</p> : null}
-          <ul className="flex flex-col">
-            {g.rows.map((r, i) => (
-              <li key={r.key} className={STAGGER} style={staggerStyle(i)}>
-                <Row row={r} />
-              </li>
-            ))}
-          </ul>
-          {g.more ? (
-            <p className="px-2 text-sm text-label-secondary" data-testid="group-more">
-              +{g.more} more
-            </p>
-          ) : null}
-        </div>
+      {nonEmpty.map((g, i) => (
+        <GroupBlock key={g.key} group={g} collapsible={collapsible} defaultOpen={i === 0} />
       ))}
     </div>
   )

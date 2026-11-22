@@ -82,7 +82,7 @@ describe('asset page', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     // Collapsed content stays mounted (for the height transition) but is inert, so it cannot be focused or read.
     expect(within(fixed).getByText('Apartment').closest('[inert]')).not.toBeNull()
-    expect(within(fixed).getByTestId('section-summary')).toHaveTextContent('1 item · Apartment')
+    expect(within(fixed).getByTestId('section-summary')).toHaveTextContent(/^1 item$/)
   })
 
   it('shows warnings for items left out for lack of a rate', async () => {
