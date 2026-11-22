@@ -10,16 +10,18 @@ export function SettingsRow({
   label,
   value,
   to,
+  params,
   children,
 }: {
   label: string
   value?: string
   to?: LinkProps['to']
+  params?: LinkProps['params']
   children?: ReactNode
 }) {
   if (to) {
     return (
-      <Link to={to} className={`${rowClass} hover:bg-surface-3`}>
+      <Link to={to} {...(params ? { params } : {})} className={`${rowClass} hover:bg-surface-3`}>
         <span>{label}</span>
         <span className="flex items-center gap-2 text-label-secondary">
           {value}

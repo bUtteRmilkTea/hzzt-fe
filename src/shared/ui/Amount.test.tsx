@@ -50,4 +50,13 @@ describe('Amount', () => {
     expect(screen.getByText('-$5.00')).toHaveClass('text-negative')
     expect(screen.getByText('+$5.00')).toHaveClass('text-positive')
   })
+
+  it('tone="expense" is always red, tone="auto" colours by sign', () => {
+    const { rerender } = render(<Amount value="12" currency="USD" tone="expense" />)
+    expect(screen.getByText('$12.00')).toHaveClass('text-negative')
+    rerender(<Amount value="12" currency="USD" tone="auto" />)
+    expect(screen.getByText('$12.00')).toHaveClass('text-positive')
+    rerender(<Amount value="-12" currency="USD" tone="auto" />)
+    expect(screen.getByText('-$12.00')).toHaveClass('text-negative')
+  })
 })

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest'
+import { configure } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { resetSessionBoot } from '@/app/providers/SessionProvider'
 import { resetClientState } from '@/shared/api/client'
@@ -6,6 +7,9 @@ import { installMatchMedia, setMedia } from './matchMedia'
 import { server } from './msw/server'
 
 installMatchMedia()
+
+// Lazily imported routes are transformed on first use, which can take over a second.
+configure({ asyncUtilTimeout: 5000 })
 
 // Vaul and Radix expect these browser APIs.
 class ResizeObserverStub {

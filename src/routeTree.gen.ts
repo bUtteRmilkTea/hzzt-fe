@@ -18,6 +18,7 @@ import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as GuestResetPasswordRouteImport } from './routes/_guest/reset-password'
 import { Route as AuthedInvitationsCodeRouteImport } from './routes/_authed/invitations/$code'
+import { Route as AuthedInvitationsSharedRouteImport } from './routes/_authed/invitations/shared'
 import { Route as AuthedSSpaceIdRouteRouteImport } from './routes/_authed/s/$spaceId/route'
 import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
 import { Route as AuthedSettingsCurrencyRouteImport } from './routes/_authed/settings/currency'
@@ -25,9 +26,26 @@ import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/sett
 import { Route as AuthedSettingsSecurityRouteImport } from './routes/_authed/settings/security'
 import { Route as AuthedSettingsSpaceRouteImport } from './routes/_authed/settings/space'
 import { Route as AuthedSSpaceIdIndexRouteImport } from './routes/_authed/s/$spaceId/index'
-import { Route as AuthedSSpaceIdAssetsRouteImport } from './routes/_authed/s/$spaceId/assets'
-import { Route as AuthedSSpaceIdHistoryRouteImport } from './routes/_authed/s/$spaceId/history'
-import { Route as AuthedSSpaceIdWalletsRouteImport } from './routes/_authed/s/$spaceId/wallets'
+import { Route as AuthedSSpaceIdCategoriesRouteImport } from './routes/_authed/s/$spaceId/categories'
+import { Route as AuthedSSpaceIdHistoryRouteRouteImport } from './routes/_authed/s/$spaceId/history/route'
+import { Route as AuthedSSpaceIdAssetsIndexRouteImport } from './routes/_authed/s/$spaceId/assets/index'
+import { Route as AuthedSSpaceIdAssetsNewRouteImport } from './routes/_authed/s/$spaceId/assets/new'
+import { Route as AuthedSSpaceIdGoalsIndexRouteImport } from './routes/_authed/s/$spaceId/goals/index'
+import { Route as AuthedSSpaceIdGoalsIdRouteImport } from './routes/_authed/s/$spaceId/goals/$id'
+import { Route as AuthedSSpaceIdGoalsNewRouteImport } from './routes/_authed/s/$spaceId/goals/new'
+import { Route as AuthedSSpaceIdHistoryFiltersRouteImport } from './routes/_authed/s/$spaceId/history/filters'
+import { Route as AuthedSSpaceIdInvestmentsIndexRouteImport } from './routes/_authed/s/$spaceId/investments/index'
+import { Route as AuthedSSpaceIdInvestmentsNewRouteImport } from './routes/_authed/s/$spaceId/investments/new'
+import { Route as AuthedSSpaceIdTransactionsIdRouteImport } from './routes/_authed/s/$spaceId/transactions/$id'
+import { Route as AuthedSSpaceIdTransactionsNewRouteImport } from './routes/_authed/s/$spaceId/transactions/new'
+import { Route as AuthedSSpaceIdWalletsIndexRouteImport } from './routes/_authed/s/$spaceId/wallets/index'
+import { Route as AuthedSSpaceIdAssetsIdIndexRouteImport } from './routes/_authed/s/$spaceId/assets/$id/index'
+import { Route as AuthedSSpaceIdAssetsIdEditRouteImport } from './routes/_authed/s/$spaceId/assets/$id/edit'
+import { Route as AuthedSSpaceIdInvestmentsIdIndexRouteImport } from './routes/_authed/s/$spaceId/investments/$id/index'
+import { Route as AuthedSSpaceIdInvestmentsIdSharingRouteImport } from './routes/_authed/s/$spaceId/investments/$id/sharing'
+import { Route as AuthedSSpaceIdWalletsIdIndexRouteImport } from './routes/_authed/s/$spaceId/wallets/$id/index'
+import { Route as AuthedSSpaceIdWalletsIdCardRouteImport } from './routes/_authed/s/$spaceId/wallets/$id/card'
+import { Route as AuthedSSpaceIdWalletsIdEditRouteImport } from './routes/_authed/s/$spaceId/wallets/$id/edit'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -72,6 +90,11 @@ const AuthedInvitationsCodeRoute = AuthedInvitationsCodeRouteImport.update({
   path: '/invitations/$code',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedInvitationsSharedRoute = AuthedInvitationsSharedRouteImport.update({
+  id: '/invitations/shared',
+  path: '/invitations/shared',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedSSpaceIdRouteRoute = AuthedSSpaceIdRouteRouteImport.update({
   id: '/s/$spaceId',
   path: '/s/$spaceId',
@@ -107,21 +130,123 @@ const AuthedSSpaceIdIndexRoute = AuthedSSpaceIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedSSpaceIdRouteRoute,
 } as any)
-const AuthedSSpaceIdAssetsRoute = AuthedSSpaceIdAssetsRouteImport.update({
-  id: '/assets',
-  path: '/assets',
+const AuthedSSpaceIdCategoriesRoute =
+  AuthedSSpaceIdCategoriesRouteImport.update({
+    id: '/categories',
+    path: '/categories',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdHistoryRouteRoute =
+  AuthedSSpaceIdHistoryRouteRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdAssetsIndexRoute =
+  AuthedSSpaceIdAssetsIndexRouteImport.update({
+    id: '/assets/',
+    path: '/assets/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdAssetsNewRoute = AuthedSSpaceIdAssetsNewRouteImport.update({
+  id: '/assets/new',
+  path: '/assets/new',
   getParentRoute: () => AuthedSSpaceIdRouteRoute,
 } as any)
-const AuthedSSpaceIdHistoryRoute = AuthedSSpaceIdHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
+const AuthedSSpaceIdGoalsIndexRoute =
+  AuthedSSpaceIdGoalsIndexRouteImport.update({
+    id: '/goals/',
+    path: '/goals/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdGoalsIdRoute = AuthedSSpaceIdGoalsIdRouteImport.update({
+  id: '/goals/$id',
+  path: '/goals/$id',
   getParentRoute: () => AuthedSSpaceIdRouteRoute,
 } as any)
-const AuthedSSpaceIdWalletsRoute = AuthedSSpaceIdWalletsRouteImport.update({
-  id: '/wallets',
-  path: '/wallets',
+const AuthedSSpaceIdGoalsNewRoute = AuthedSSpaceIdGoalsNewRouteImport.update({
+  id: '/goals/new',
+  path: '/goals/new',
   getParentRoute: () => AuthedSSpaceIdRouteRoute,
 } as any)
+const AuthedSSpaceIdHistoryFiltersRoute =
+  AuthedSSpaceIdHistoryFiltersRouteImport.update({
+    id: '/filters',
+    path: '/filters',
+    getParentRoute: () => AuthedSSpaceIdHistoryRouteRoute,
+  } as any)
+const AuthedSSpaceIdInvestmentsIndexRoute =
+  AuthedSSpaceIdInvestmentsIndexRouteImport.update({
+    id: '/investments/',
+    path: '/investments/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdInvestmentsNewRoute =
+  AuthedSSpaceIdInvestmentsNewRouteImport.update({
+    id: '/investments/new',
+    path: '/investments/new',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdTransactionsIdRoute =
+  AuthedSSpaceIdTransactionsIdRouteImport.update({
+    id: '/transactions/$id',
+    path: '/transactions/$id',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdTransactionsNewRoute =
+  AuthedSSpaceIdTransactionsNewRouteImport.update({
+    id: '/transactions/new',
+    path: '/transactions/new',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdWalletsIndexRoute =
+  AuthedSSpaceIdWalletsIndexRouteImport.update({
+    id: '/wallets/',
+    path: '/wallets/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdAssetsIdIndexRoute =
+  AuthedSSpaceIdAssetsIdIndexRouteImport.update({
+    id: '/assets/$id/',
+    path: '/assets/$id/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdAssetsIdEditRoute =
+  AuthedSSpaceIdAssetsIdEditRouteImport.update({
+    id: '/assets/$id/edit',
+    path: '/assets/$id/edit',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdInvestmentsIdIndexRoute =
+  AuthedSSpaceIdInvestmentsIdIndexRouteImport.update({
+    id: '/investments/$id/',
+    path: '/investments/$id/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdInvestmentsIdSharingRoute =
+  AuthedSSpaceIdInvestmentsIdSharingRouteImport.update({
+    id: '/investments/$id/sharing',
+    path: '/investments/$id/sharing',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdWalletsIdIndexRoute =
+  AuthedSSpaceIdWalletsIdIndexRouteImport.update({
+    id: '/wallets/$id/',
+    path: '/wallets/$id/',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdWalletsIdCardRoute =
+  AuthedSSpaceIdWalletsIdCardRouteImport.update({
+    id: '/wallets/$id/card',
+    path: '/wallets/$id/card',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
+const AuthedSSpaceIdWalletsIdEditRoute =
+  AuthedSSpaceIdWalletsIdEditRouteImport.update({
+    id: '/wallets/$id/edit',
+    path: '/wallets/$id/edit',
+    getParentRoute: () => AuthedSSpaceIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
@@ -132,15 +257,33 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof GuestResetPasswordRoute
   '/s/$spaceId': typeof AuthedSSpaceIdRouteRouteWithChildren
   '/invitations/$code': typeof AuthedInvitationsCodeRoute
+  '/invitations/shared': typeof AuthedInvitationsSharedRoute
   '/settings/currency': typeof AuthedSettingsCurrencyRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/security': typeof AuthedSettingsSecurityRoute
   '/settings/space': typeof AuthedSettingsSpaceRoute
   '/settings/': typeof AuthedSettingsIndexRoute
-  '/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsRoute
-  '/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRoute
-  '/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsRoute
+  '/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRouteRouteWithChildren
+  '/s/$spaceId/categories': typeof AuthedSSpaceIdCategoriesRoute
   '/s/$spaceId/': typeof AuthedSSpaceIdIndexRoute
+  '/s/$spaceId/assets/new': typeof AuthedSSpaceIdAssetsNewRoute
+  '/s/$spaceId/goals/$id': typeof AuthedSSpaceIdGoalsIdRoute
+  '/s/$spaceId/goals/new': typeof AuthedSSpaceIdGoalsNewRoute
+  '/s/$spaceId/history/filters': typeof AuthedSSpaceIdHistoryFiltersRoute
+  '/s/$spaceId/investments/new': typeof AuthedSSpaceIdInvestmentsNewRoute
+  '/s/$spaceId/transactions/$id': typeof AuthedSSpaceIdTransactionsIdRoute
+  '/s/$spaceId/transactions/new': typeof AuthedSSpaceIdTransactionsNewRoute
+  '/s/$spaceId/assets/': typeof AuthedSSpaceIdAssetsIndexRoute
+  '/s/$spaceId/goals/': typeof AuthedSSpaceIdGoalsIndexRoute
+  '/s/$spaceId/investments/': typeof AuthedSSpaceIdInvestmentsIndexRoute
+  '/s/$spaceId/wallets/': typeof AuthedSSpaceIdWalletsIndexRoute
+  '/s/$spaceId/assets/$id/edit': typeof AuthedSSpaceIdAssetsIdEditRoute
+  '/s/$spaceId/investments/$id/sharing': typeof AuthedSSpaceIdInvestmentsIdSharingRoute
+  '/s/$spaceId/wallets/$id/card': typeof AuthedSSpaceIdWalletsIdCardRoute
+  '/s/$spaceId/wallets/$id/edit': typeof AuthedSSpaceIdWalletsIdEditRoute
+  '/s/$spaceId/assets/$id/': typeof AuthedSSpaceIdAssetsIdIndexRoute
+  '/s/$spaceId/investments/$id/': typeof AuthedSSpaceIdInvestmentsIdIndexRoute
+  '/s/$spaceId/wallets/$id/': typeof AuthedSSpaceIdWalletsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/_gallery': typeof GalleryRoute
@@ -150,15 +293,33 @@ export interface FileRoutesByTo {
   '/register': typeof GuestRegisterRoute
   '/reset-password': typeof GuestResetPasswordRoute
   '/invitations/$code': typeof AuthedInvitationsCodeRoute
+  '/invitations/shared': typeof AuthedInvitationsSharedRoute
   '/settings/currency': typeof AuthedSettingsCurrencyRoute
   '/settings/profile': typeof AuthedSettingsProfileRoute
   '/settings/security': typeof AuthedSettingsSecurityRoute
   '/settings/space': typeof AuthedSettingsSpaceRoute
   '/settings': typeof AuthedSettingsIndexRoute
-  '/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsRoute
-  '/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRoute
-  '/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsRoute
+  '/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRouteRouteWithChildren
+  '/s/$spaceId/categories': typeof AuthedSSpaceIdCategoriesRoute
   '/s/$spaceId': typeof AuthedSSpaceIdIndexRoute
+  '/s/$spaceId/assets/new': typeof AuthedSSpaceIdAssetsNewRoute
+  '/s/$spaceId/goals/$id': typeof AuthedSSpaceIdGoalsIdRoute
+  '/s/$spaceId/goals/new': typeof AuthedSSpaceIdGoalsNewRoute
+  '/s/$spaceId/history/filters': typeof AuthedSSpaceIdHistoryFiltersRoute
+  '/s/$spaceId/investments/new': typeof AuthedSSpaceIdInvestmentsNewRoute
+  '/s/$spaceId/transactions/$id': typeof AuthedSSpaceIdTransactionsIdRoute
+  '/s/$spaceId/transactions/new': typeof AuthedSSpaceIdTransactionsNewRoute
+  '/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsIndexRoute
+  '/s/$spaceId/goals': typeof AuthedSSpaceIdGoalsIndexRoute
+  '/s/$spaceId/investments': typeof AuthedSSpaceIdInvestmentsIndexRoute
+  '/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsIndexRoute
+  '/s/$spaceId/assets/$id/edit': typeof AuthedSSpaceIdAssetsIdEditRoute
+  '/s/$spaceId/investments/$id/sharing': typeof AuthedSSpaceIdInvestmentsIdSharingRoute
+  '/s/$spaceId/wallets/$id/card': typeof AuthedSSpaceIdWalletsIdCardRoute
+  '/s/$spaceId/wallets/$id/edit': typeof AuthedSSpaceIdWalletsIdEditRoute
+  '/s/$spaceId/assets/$id': typeof AuthedSSpaceIdAssetsIdIndexRoute
+  '/s/$spaceId/investments/$id': typeof AuthedSSpaceIdInvestmentsIdIndexRoute
+  '/s/$spaceId/wallets/$id': typeof AuthedSSpaceIdWalletsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -172,15 +333,33 @@ export interface FileRoutesById {
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/s/$spaceId': typeof AuthedSSpaceIdRouteRouteWithChildren
   '/_authed/invitations/$code': typeof AuthedInvitationsCodeRoute
+  '/_authed/invitations/shared': typeof AuthedInvitationsSharedRoute
   '/_authed/settings/currency': typeof AuthedSettingsCurrencyRoute
   '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
   '/_authed/settings/security': typeof AuthedSettingsSecurityRoute
   '/_authed/settings/space': typeof AuthedSettingsSpaceRoute
   '/_authed/settings/': typeof AuthedSettingsIndexRoute
-  '/_authed/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsRoute
-  '/_authed/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRoute
-  '/_authed/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsRoute
+  '/_authed/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRouteRouteWithChildren
+  '/_authed/s/$spaceId/categories': typeof AuthedSSpaceIdCategoriesRoute
   '/_authed/s/$spaceId/': typeof AuthedSSpaceIdIndexRoute
+  '/_authed/s/$spaceId/assets/new': typeof AuthedSSpaceIdAssetsNewRoute
+  '/_authed/s/$spaceId/goals/$id': typeof AuthedSSpaceIdGoalsIdRoute
+  '/_authed/s/$spaceId/goals/new': typeof AuthedSSpaceIdGoalsNewRoute
+  '/_authed/s/$spaceId/history/filters': typeof AuthedSSpaceIdHistoryFiltersRoute
+  '/_authed/s/$spaceId/investments/new': typeof AuthedSSpaceIdInvestmentsNewRoute
+  '/_authed/s/$spaceId/transactions/$id': typeof AuthedSSpaceIdTransactionsIdRoute
+  '/_authed/s/$spaceId/transactions/new': typeof AuthedSSpaceIdTransactionsNewRoute
+  '/_authed/s/$spaceId/assets/': typeof AuthedSSpaceIdAssetsIndexRoute
+  '/_authed/s/$spaceId/goals/': typeof AuthedSSpaceIdGoalsIndexRoute
+  '/_authed/s/$spaceId/investments/': typeof AuthedSSpaceIdInvestmentsIndexRoute
+  '/_authed/s/$spaceId/wallets/': typeof AuthedSSpaceIdWalletsIndexRoute
+  '/_authed/s/$spaceId/assets/$id/edit': typeof AuthedSSpaceIdAssetsIdEditRoute
+  '/_authed/s/$spaceId/investments/$id/sharing': typeof AuthedSSpaceIdInvestmentsIdSharingRoute
+  '/_authed/s/$spaceId/wallets/$id/card': typeof AuthedSSpaceIdWalletsIdCardRoute
+  '/_authed/s/$spaceId/wallets/$id/edit': typeof AuthedSSpaceIdWalletsIdEditRoute
+  '/_authed/s/$spaceId/assets/$id/': typeof AuthedSSpaceIdAssetsIdIndexRoute
+  '/_authed/s/$spaceId/investments/$id/': typeof AuthedSSpaceIdInvestmentsIdIndexRoute
+  '/_authed/s/$spaceId/wallets/$id/': typeof AuthedSSpaceIdWalletsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -193,15 +372,33 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/s/$spaceId'
     | '/invitations/$code'
+    | '/invitations/shared'
     | '/settings/currency'
     | '/settings/profile'
     | '/settings/security'
     | '/settings/space'
     | '/settings/'
-    | '/s/$spaceId/assets'
     | '/s/$spaceId/history'
-    | '/s/$spaceId/wallets'
+    | '/s/$spaceId/categories'
     | '/s/$spaceId/'
+    | '/s/$spaceId/assets/new'
+    | '/s/$spaceId/goals/$id'
+    | '/s/$spaceId/goals/new'
+    | '/s/$spaceId/history/filters'
+    | '/s/$spaceId/investments/new'
+    | '/s/$spaceId/transactions/$id'
+    | '/s/$spaceId/transactions/new'
+    | '/s/$spaceId/assets/'
+    | '/s/$spaceId/goals/'
+    | '/s/$spaceId/investments/'
+    | '/s/$spaceId/wallets/'
+    | '/s/$spaceId/assets/$id/edit'
+    | '/s/$spaceId/investments/$id/sharing'
+    | '/s/$spaceId/wallets/$id/card'
+    | '/s/$spaceId/wallets/$id/edit'
+    | '/s/$spaceId/assets/$id/'
+    | '/s/$spaceId/investments/$id/'
+    | '/s/$spaceId/wallets/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/_gallery'
@@ -211,15 +408,33 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/invitations/$code'
+    | '/invitations/shared'
     | '/settings/currency'
     | '/settings/profile'
     | '/settings/security'
     | '/settings/space'
     | '/settings'
-    | '/s/$spaceId/assets'
     | '/s/$spaceId/history'
-    | '/s/$spaceId/wallets'
+    | '/s/$spaceId/categories'
     | '/s/$spaceId'
+    | '/s/$spaceId/assets/new'
+    | '/s/$spaceId/goals/$id'
+    | '/s/$spaceId/goals/new'
+    | '/s/$spaceId/history/filters'
+    | '/s/$spaceId/investments/new'
+    | '/s/$spaceId/transactions/$id'
+    | '/s/$spaceId/transactions/new'
+    | '/s/$spaceId/assets'
+    | '/s/$spaceId/goals'
+    | '/s/$spaceId/investments'
+    | '/s/$spaceId/wallets'
+    | '/s/$spaceId/assets/$id/edit'
+    | '/s/$spaceId/investments/$id/sharing'
+    | '/s/$spaceId/wallets/$id/card'
+    | '/s/$spaceId/wallets/$id/edit'
+    | '/s/$spaceId/assets/$id'
+    | '/s/$spaceId/investments/$id'
+    | '/s/$spaceId/wallets/$id'
   id:
     | '__root__'
     | '/_authed'
@@ -232,15 +447,33 @@ export interface FileRouteTypes {
     | '/_authed/'
     | '/_authed/s/$spaceId'
     | '/_authed/invitations/$code'
+    | '/_authed/invitations/shared'
     | '/_authed/settings/currency'
     | '/_authed/settings/profile'
     | '/_authed/settings/security'
     | '/_authed/settings/space'
     | '/_authed/settings/'
-    | '/_authed/s/$spaceId/assets'
     | '/_authed/s/$spaceId/history'
-    | '/_authed/s/$spaceId/wallets'
+    | '/_authed/s/$spaceId/categories'
     | '/_authed/s/$spaceId/'
+    | '/_authed/s/$spaceId/assets/new'
+    | '/_authed/s/$spaceId/goals/$id'
+    | '/_authed/s/$spaceId/goals/new'
+    | '/_authed/s/$spaceId/history/filters'
+    | '/_authed/s/$spaceId/investments/new'
+    | '/_authed/s/$spaceId/transactions/$id'
+    | '/_authed/s/$spaceId/transactions/new'
+    | '/_authed/s/$spaceId/assets/'
+    | '/_authed/s/$spaceId/goals/'
+    | '/_authed/s/$spaceId/investments/'
+    | '/_authed/s/$spaceId/wallets/'
+    | '/_authed/s/$spaceId/assets/$id/edit'
+    | '/_authed/s/$spaceId/investments/$id/sharing'
+    | '/_authed/s/$spaceId/wallets/$id/card'
+    | '/_authed/s/$spaceId/wallets/$id/edit'
+    | '/_authed/s/$spaceId/assets/$id/'
+    | '/_authed/s/$spaceId/investments/$id/'
+    | '/_authed/s/$spaceId/wallets/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -314,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedInvitationsCodeRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/invitations/shared': {
+      id: '/_authed/invitations/shared'
+      path: '/invitations/shared'
+      fullPath: '/invitations/shared'
+      preLoaderRoute: typeof AuthedInvitationsSharedRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/s/$spaceId': {
       id: '/_authed/s/$spaceId'
       path: '/s/$spaceId'
@@ -363,42 +603,208 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSSpaceIdIndexRouteImport
       parentRoute: typeof AuthedSSpaceIdRouteRoute
     }
-    '/_authed/s/$spaceId/assets': {
-      id: '/_authed/s/$spaceId/assets'
-      path: '/assets'
-      fullPath: '/s/$spaceId/assets'
-      preLoaderRoute: typeof AuthedSSpaceIdAssetsRouteImport
+    '/_authed/s/$spaceId/categories': {
+      id: '/_authed/s/$spaceId/categories'
+      path: '/categories'
+      fullPath: '/s/$spaceId/categories'
+      preLoaderRoute: typeof AuthedSSpaceIdCategoriesRouteImport
       parentRoute: typeof AuthedSSpaceIdRouteRoute
     }
     '/_authed/s/$spaceId/history': {
       id: '/_authed/s/$spaceId/history'
       path: '/history'
       fullPath: '/s/$spaceId/history'
-      preLoaderRoute: typeof AuthedSSpaceIdHistoryRouteImport
+      preLoaderRoute: typeof AuthedSSpaceIdHistoryRouteRouteImport
       parentRoute: typeof AuthedSSpaceIdRouteRoute
     }
-    '/_authed/s/$spaceId/wallets': {
-      id: '/_authed/s/$spaceId/wallets'
+    '/_authed/s/$spaceId/assets/': {
+      id: '/_authed/s/$spaceId/assets/'
+      path: '/assets'
+      fullPath: '/s/$spaceId/assets/'
+      preLoaderRoute: typeof AuthedSSpaceIdAssetsIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/assets/new': {
+      id: '/_authed/s/$spaceId/assets/new'
+      path: '/assets/new'
+      fullPath: '/s/$spaceId/assets/new'
+      preLoaderRoute: typeof AuthedSSpaceIdAssetsNewRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/goals/': {
+      id: '/_authed/s/$spaceId/goals/'
+      path: '/goals'
+      fullPath: '/s/$spaceId/goals/'
+      preLoaderRoute: typeof AuthedSSpaceIdGoalsIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/goals/$id': {
+      id: '/_authed/s/$spaceId/goals/$id'
+      path: '/goals/$id'
+      fullPath: '/s/$spaceId/goals/$id'
+      preLoaderRoute: typeof AuthedSSpaceIdGoalsIdRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/goals/new': {
+      id: '/_authed/s/$spaceId/goals/new'
+      path: '/goals/new'
+      fullPath: '/s/$spaceId/goals/new'
+      preLoaderRoute: typeof AuthedSSpaceIdGoalsNewRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/history/filters': {
+      id: '/_authed/s/$spaceId/history/filters'
+      path: '/filters'
+      fullPath: '/s/$spaceId/history/filters'
+      preLoaderRoute: typeof AuthedSSpaceIdHistoryFiltersRouteImport
+      parentRoute: typeof AuthedSSpaceIdHistoryRouteRoute
+    }
+    '/_authed/s/$spaceId/investments/': {
+      id: '/_authed/s/$spaceId/investments/'
+      path: '/investments'
+      fullPath: '/s/$spaceId/investments/'
+      preLoaderRoute: typeof AuthedSSpaceIdInvestmentsIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/investments/new': {
+      id: '/_authed/s/$spaceId/investments/new'
+      path: '/investments/new'
+      fullPath: '/s/$spaceId/investments/new'
+      preLoaderRoute: typeof AuthedSSpaceIdInvestmentsNewRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/transactions/$id': {
+      id: '/_authed/s/$spaceId/transactions/$id'
+      path: '/transactions/$id'
+      fullPath: '/s/$spaceId/transactions/$id'
+      preLoaderRoute: typeof AuthedSSpaceIdTransactionsIdRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/transactions/new': {
+      id: '/_authed/s/$spaceId/transactions/new'
+      path: '/transactions/new'
+      fullPath: '/s/$spaceId/transactions/new'
+      preLoaderRoute: typeof AuthedSSpaceIdTransactionsNewRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/wallets/': {
+      id: '/_authed/s/$spaceId/wallets/'
       path: '/wallets'
-      fullPath: '/s/$spaceId/wallets'
-      preLoaderRoute: typeof AuthedSSpaceIdWalletsRouteImport
+      fullPath: '/s/$spaceId/wallets/'
+      preLoaderRoute: typeof AuthedSSpaceIdWalletsIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/assets/$id/': {
+      id: '/_authed/s/$spaceId/assets/$id/'
+      path: '/assets/$id'
+      fullPath: '/s/$spaceId/assets/$id/'
+      preLoaderRoute: typeof AuthedSSpaceIdAssetsIdIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/assets/$id/edit': {
+      id: '/_authed/s/$spaceId/assets/$id/edit'
+      path: '/assets/$id/edit'
+      fullPath: '/s/$spaceId/assets/$id/edit'
+      preLoaderRoute: typeof AuthedSSpaceIdAssetsIdEditRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/investments/$id/': {
+      id: '/_authed/s/$spaceId/investments/$id/'
+      path: '/investments/$id'
+      fullPath: '/s/$spaceId/investments/$id/'
+      preLoaderRoute: typeof AuthedSSpaceIdInvestmentsIdIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/investments/$id/sharing': {
+      id: '/_authed/s/$spaceId/investments/$id/sharing'
+      path: '/investments/$id/sharing'
+      fullPath: '/s/$spaceId/investments/$id/sharing'
+      preLoaderRoute: typeof AuthedSSpaceIdInvestmentsIdSharingRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/wallets/$id/': {
+      id: '/_authed/s/$spaceId/wallets/$id/'
+      path: '/wallets/$id'
+      fullPath: '/s/$spaceId/wallets/$id/'
+      preLoaderRoute: typeof AuthedSSpaceIdWalletsIdIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/wallets/$id/card': {
+      id: '/_authed/s/$spaceId/wallets/$id/card'
+      path: '/wallets/$id/card'
+      fullPath: '/s/$spaceId/wallets/$id/card'
+      preLoaderRoute: typeof AuthedSSpaceIdWalletsIdCardRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/wallets/$id/edit': {
+      id: '/_authed/s/$spaceId/wallets/$id/edit'
+      path: '/wallets/$id/edit'
+      fullPath: '/s/$spaceId/wallets/$id/edit'
+      preLoaderRoute: typeof AuthedSSpaceIdWalletsIdEditRouteImport
       parentRoute: typeof AuthedSSpaceIdRouteRoute
     }
   }
 }
 
+interface AuthedSSpaceIdHistoryRouteRouteChildren {
+  AuthedSSpaceIdHistoryFiltersRoute: typeof AuthedSSpaceIdHistoryFiltersRoute
+}
+
+const AuthedSSpaceIdHistoryRouteRouteChildren: AuthedSSpaceIdHistoryRouteRouteChildren =
+  {
+    AuthedSSpaceIdHistoryFiltersRoute: AuthedSSpaceIdHistoryFiltersRoute,
+  }
+
+const AuthedSSpaceIdHistoryRouteRouteWithChildren =
+  AuthedSSpaceIdHistoryRouteRoute._addFileChildren(
+    AuthedSSpaceIdHistoryRouteRouteChildren,
+  )
+
 interface AuthedSSpaceIdRouteRouteChildren {
-  AuthedSSpaceIdAssetsRoute: typeof AuthedSSpaceIdAssetsRoute
-  AuthedSSpaceIdHistoryRoute: typeof AuthedSSpaceIdHistoryRoute
-  AuthedSSpaceIdWalletsRoute: typeof AuthedSSpaceIdWalletsRoute
+  AuthedSSpaceIdHistoryRouteRoute: typeof AuthedSSpaceIdHistoryRouteRouteWithChildren
+  AuthedSSpaceIdCategoriesRoute: typeof AuthedSSpaceIdCategoriesRoute
   AuthedSSpaceIdIndexRoute: typeof AuthedSSpaceIdIndexRoute
+  AuthedSSpaceIdAssetsNewRoute: typeof AuthedSSpaceIdAssetsNewRoute
+  AuthedSSpaceIdGoalsIdRoute: typeof AuthedSSpaceIdGoalsIdRoute
+  AuthedSSpaceIdGoalsNewRoute: typeof AuthedSSpaceIdGoalsNewRoute
+  AuthedSSpaceIdInvestmentsNewRoute: typeof AuthedSSpaceIdInvestmentsNewRoute
+  AuthedSSpaceIdTransactionsIdRoute: typeof AuthedSSpaceIdTransactionsIdRoute
+  AuthedSSpaceIdTransactionsNewRoute: typeof AuthedSSpaceIdTransactionsNewRoute
+  AuthedSSpaceIdAssetsIndexRoute: typeof AuthedSSpaceIdAssetsIndexRoute
+  AuthedSSpaceIdGoalsIndexRoute: typeof AuthedSSpaceIdGoalsIndexRoute
+  AuthedSSpaceIdInvestmentsIndexRoute: typeof AuthedSSpaceIdInvestmentsIndexRoute
+  AuthedSSpaceIdWalletsIndexRoute: typeof AuthedSSpaceIdWalletsIndexRoute
+  AuthedSSpaceIdAssetsIdEditRoute: typeof AuthedSSpaceIdAssetsIdEditRoute
+  AuthedSSpaceIdInvestmentsIdSharingRoute: typeof AuthedSSpaceIdInvestmentsIdSharingRoute
+  AuthedSSpaceIdWalletsIdCardRoute: typeof AuthedSSpaceIdWalletsIdCardRoute
+  AuthedSSpaceIdWalletsIdEditRoute: typeof AuthedSSpaceIdWalletsIdEditRoute
+  AuthedSSpaceIdAssetsIdIndexRoute: typeof AuthedSSpaceIdAssetsIdIndexRoute
+  AuthedSSpaceIdInvestmentsIdIndexRoute: typeof AuthedSSpaceIdInvestmentsIdIndexRoute
+  AuthedSSpaceIdWalletsIdIndexRoute: typeof AuthedSSpaceIdWalletsIdIndexRoute
 }
 
 const AuthedSSpaceIdRouteRouteChildren: AuthedSSpaceIdRouteRouteChildren = {
-  AuthedSSpaceIdAssetsRoute: AuthedSSpaceIdAssetsRoute,
-  AuthedSSpaceIdHistoryRoute: AuthedSSpaceIdHistoryRoute,
-  AuthedSSpaceIdWalletsRoute: AuthedSSpaceIdWalletsRoute,
+  AuthedSSpaceIdHistoryRouteRoute: AuthedSSpaceIdHistoryRouteRouteWithChildren,
+  AuthedSSpaceIdCategoriesRoute: AuthedSSpaceIdCategoriesRoute,
   AuthedSSpaceIdIndexRoute: AuthedSSpaceIdIndexRoute,
+  AuthedSSpaceIdAssetsNewRoute: AuthedSSpaceIdAssetsNewRoute,
+  AuthedSSpaceIdGoalsIdRoute: AuthedSSpaceIdGoalsIdRoute,
+  AuthedSSpaceIdGoalsNewRoute: AuthedSSpaceIdGoalsNewRoute,
+  AuthedSSpaceIdInvestmentsNewRoute: AuthedSSpaceIdInvestmentsNewRoute,
+  AuthedSSpaceIdTransactionsIdRoute: AuthedSSpaceIdTransactionsIdRoute,
+  AuthedSSpaceIdTransactionsNewRoute: AuthedSSpaceIdTransactionsNewRoute,
+  AuthedSSpaceIdAssetsIndexRoute: AuthedSSpaceIdAssetsIndexRoute,
+  AuthedSSpaceIdGoalsIndexRoute: AuthedSSpaceIdGoalsIndexRoute,
+  AuthedSSpaceIdInvestmentsIndexRoute: AuthedSSpaceIdInvestmentsIndexRoute,
+  AuthedSSpaceIdWalletsIndexRoute: AuthedSSpaceIdWalletsIndexRoute,
+  AuthedSSpaceIdAssetsIdEditRoute: AuthedSSpaceIdAssetsIdEditRoute,
+  AuthedSSpaceIdInvestmentsIdSharingRoute:
+    AuthedSSpaceIdInvestmentsIdSharingRoute,
+  AuthedSSpaceIdWalletsIdCardRoute: AuthedSSpaceIdWalletsIdCardRoute,
+  AuthedSSpaceIdWalletsIdEditRoute: AuthedSSpaceIdWalletsIdEditRoute,
+  AuthedSSpaceIdAssetsIdIndexRoute: AuthedSSpaceIdAssetsIdIndexRoute,
+  AuthedSSpaceIdInvestmentsIdIndexRoute: AuthedSSpaceIdInvestmentsIdIndexRoute,
+  AuthedSSpaceIdWalletsIdIndexRoute: AuthedSSpaceIdWalletsIdIndexRoute,
 }
 
 const AuthedSSpaceIdRouteRouteWithChildren =
@@ -408,6 +814,7 @@ interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedSSpaceIdRouteRoute: typeof AuthedSSpaceIdRouteRouteWithChildren
   AuthedInvitationsCodeRoute: typeof AuthedInvitationsCodeRoute
+  AuthedInvitationsSharedRoute: typeof AuthedInvitationsSharedRoute
   AuthedSettingsCurrencyRoute: typeof AuthedSettingsCurrencyRoute
   AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
   AuthedSettingsSecurityRoute: typeof AuthedSettingsSecurityRoute
@@ -419,6 +826,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedSSpaceIdRouteRoute: AuthedSSpaceIdRouteRouteWithChildren,
   AuthedInvitationsCodeRoute: AuthedInvitationsCodeRoute,
+  AuthedInvitationsSharedRoute: AuthedInvitationsSharedRoute,
   AuthedSettingsCurrencyRoute: AuthedSettingsCurrencyRoute,
   AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
   AuthedSettingsSecurityRoute: AuthedSettingsSecurityRoute,

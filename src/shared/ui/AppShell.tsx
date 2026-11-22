@@ -50,11 +50,11 @@ function NavLink({
         'group flex items-center text-label-secondary transition-colors duration-150 [&.active]:text-label',
         layout === 'tab'
           ? 'min-h-12 min-w-12 flex-1 flex-col justify-center gap-0.5 text-xs font-medium'
-          : 'min-h-11 gap-3 rounded-md px-3 text-base font-medium hover:bg-surface-3 [&.active]:bg-surface-3',
+          : 'min-h-11 justify-center gap-3 rounded-md px-3 text-base font-medium hover:bg-surface-3 xl:justify-start [&.active]:bg-surface-3',
       )}
     >
       <Icon aria-hidden className="size-6 group-[.active]:text-accent" />
-      <span>{item.label}</span>
+      <span className={cn(layout === 'side' && 'sr-only xl:not-sr-only')}>{item.label}</span>
     </Link>
   )
 }
@@ -72,11 +72,11 @@ function AddButton({ onAdd, layout }: { onAdd: () => void; layout: 'tab' | 'side
         'flex items-center justify-center bg-accent text-accent-label shadow-card',
         layout === 'tab'
           ? 'mx-1 size-14 shrink-0 rounded-full'
-          : 'min-h-11 w-full gap-2 rounded-full font-semibold',
+          : 'min-h-11 w-full gap-2 rounded-full px-0 font-semibold',
       )}
     >
       <Plus aria-hidden className="size-6" />
-      {layout === 'side' ? <span>Add</span> : null}
+      {layout === 'side' ? <span className="sr-only xl:not-sr-only">Add</span> : null}
     </m.button>
   )
 }
@@ -88,8 +88,11 @@ export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
   if (isDesktop) {
     return (
       <div className="min-h-dvh">
-        <aside className="fixed inset-y-0 left-0 flex w-60 flex-col gap-2 border-r border-border bg-surface-1 p-4">
-          <p className="px-3 pt-2 pb-4 text-lg font-semibold">HZZT</p>
+        <aside className="fixed inset-y-0 left-0 flex w-16 flex-col gap-2 border-r border-border bg-surface-1 p-2 xl:w-60 xl:p-4">
+          <p className="px-3 pt-2 pb-4 text-center text-lg font-semibold xl:text-left">
+            <span className="xl:hidden">H</span>
+            <span className="hidden xl:inline">HZZT</span>
+          </p>
           <nav aria-label="Primary" className="flex flex-col gap-1">
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.label} item={item} layout="side" spaceId={spaceId} />
@@ -99,7 +102,7 @@ export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
             <AddButton onAdd={onAdd} layout="side" />
           </div>
         </aside>
-        <div className="ml-60 min-h-dvh">
+        <div className="ml-16 min-h-dvh xl:ml-60">
           {header ? (
             <header className="flex items-center justify-between gap-3 border-b border-border px-8 py-3">
               {header}

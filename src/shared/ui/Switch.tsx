@@ -12,8 +12,8 @@ export function Switch({ className, ...props }: ComponentProps<typeof RadixSwitc
       )}
       {...props}
     >
-      <span className="absolute inset-x-0 top-1/2 h-[31px] -translate-y-1/2 rounded-full bg-surface-3 transition-colors duration-150 [[data-state=checked]>&]:bg-positive" />
-      <RadixSwitch.Thumb className="pointer-events-none absolute left-[5px] size-[27px] rounded-full bg-white shadow-card transition-transform duration-150 data-[state=checked]:translate-x-[22px]" />
+      <span className="absolute inset-x-0 top-1/2 h-[31px] -translate-y-1/2 rounded-full bg-surface-3 transition-colors duration-150 [[data-state=checked]>&]:bg-accent" />
+      <RadixSwitch.Thumb className="pointer-events-none absolute left-[5px] size-[27px] rounded-full bg-label shadow-card transition-transform duration-150 data-[state=checked]:translate-x-[22px] data-[state=checked]:bg-bg" />
     </RadixSwitch.Root>
   )
 }

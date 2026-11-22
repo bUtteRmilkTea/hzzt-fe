@@ -33,7 +33,7 @@ function Harness() {
 
 describe.each([
   ['mobile bottom sheet', false],
-  ['desktop dialog', true],
+  ['desktop side drawer', true],
 ])('SheetShell as %s', (_name, desktop) => {
   beforeEach(() => setMedia({ desktop }))
 
@@ -68,5 +68,21 @@ describe.each([
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true), {
       timeout: 4000,
     })
+  })
+})
+
+describe('SheetShell breakpoints (S2)', () => {
+  it('uses a bottom sheet between 768 and 1023px and a right drawer from 1024px', async () => {
+    const user = userEvent.setup()
+    setMedia({ desktop: true, wide: false })
+    const { unmount } = render(<Harness />)
+    await user.click(screen.getByText('open'))
+    const sheet = await screen.findByRole('dialog')
+    expect(sheet.className).toContain('bottom-0')
+    unmount()
+    setMedia({ desktop: true, wide: true })
+    render(<Harness />)
+    await user.click(screen.getByText('open'))
+    expect((await screen.findByRole('dialog')).className).toContain('right-0')
   })
 })

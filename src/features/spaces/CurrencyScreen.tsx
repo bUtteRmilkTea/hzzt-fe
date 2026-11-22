@@ -29,7 +29,7 @@ export function CurrencyScreen() {
   const currencies = useCurrencies()
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-8">
+    <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <PageHeader title="Currency" backToSettings />
       <Card>
         <p className="text-sm text-label-secondary">Base currency</p>

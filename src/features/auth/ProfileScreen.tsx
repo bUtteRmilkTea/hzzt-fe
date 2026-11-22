@@ -49,7 +49,7 @@ type PasswordValues = z.infer<typeof passwordSchema>
 
 export function ProfileScreen() {
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-8">
+    <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <PageHeader title="Profile" backToSettings />
       <ProfileForm />
       <ChangePasswordForm />

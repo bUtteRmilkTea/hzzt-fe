@@ -4,6 +4,7 @@ import { cn } from './cn'
 interface Option<T extends string> {
   value: T
   label: string
+  disabled?: boolean
 }
 
 interface SegmentedControlProps<T extends string> {
@@ -34,7 +35,8 @@ export function SegmentedControl<T extends string>({
         <ToggleGroup.Item
           key={o.value}
           value={o.value}
-          className="min-h-9 flex-1 rounded-full px-3 text-sm font-semibold text-label-secondary transition-colors duration-150 data-[state=on]:bg-surface-1 data-[state=on]:text-label data-[state=on]:shadow-card"
+          disabled={o.disabled}
+          className="min-h-9 flex-1 rounded-full px-3 text-sm font-semibold text-label-secondary transition-colors duration-150 data-[state=on]:bg-surface-1 data-[state=on]:text-label data-[state=on]:shadow-card disabled:cursor-not-allowed disabled:opacity-40"
         >
           {o.label}
         </ToggleGroup.Item>

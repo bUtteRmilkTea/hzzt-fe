@@ -1,6 +1,7 @@
 import createClient, { type Middleware } from 'openapi-fetch'
+import { isOffline } from '@/shared/pwa/online'
 import { API_BASE_URL } from './env'
-import { AppError, normalizeError, toAppError } from './errors'
+import { AppError, normalizeError, OFFLINE_ERROR, toAppError } from './errors'
 import type { components, paths } from './schema'
 
 type AuthResponse = components['schemas']['auth.AuthResponse']
@@ -78,6 +79,10 @@ function withBearer(request: Request): Request {
  * refreshes once (single-flight) and retries the original request once.
  */
 async function apiFetch(input: Request): Promise<Response> {
+  // Offline writes are out of scope: refuse with a clear message instead of queueing them.
+  if (isOffline() && input.method !== 'GET') {
+    throw new AppError({ code: OFFLINE_ERROR, message: 'Offline', status: 0 })
+  }
   const retryCopy = input.clone()
   let res: Response
   try {

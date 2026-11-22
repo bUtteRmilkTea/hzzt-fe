@@ -69,10 +69,10 @@ Everything the backend lists as out of scope, plus: offline write queueing, a de
 | D-F09 | Component source | Resolved | shadcn/ui components copied into the repo and restyled to our tokens, not installed as a dependency | F1 |
 | D-F10 | Money type on the client | Resolved | `decimal.js-light` everywhere money is parsed or computed. `Number` is banned for money by an ESLint-equivalent Biome rule plus review (Section 5.2) | F1 |
 | D-F11 | Form library | Resolved | React Hook Form + Zod, with Zod discriminated unions mirroring the backend's per-type payloads | F1 |
-| D-F12 | Error reporting | Recommended | Sentry browser SDK, lazy-loaded, behind an env flag. Decide at F10 | F10 |
-| D-F13 | Hosting | Recommended | Static hosting on the same site as the API (Cloudflare Pages, Netlify or Vercel). Must match the backend's D-02 choice | F10 |
+| D-F12 | Error reporting | Resolved (F10) | Sentry browser SDK, behind `VITE_SENTRY_DSN`, loaded lazily as its own `sentry-*` chunk (about 139 KB gzip, only fetched when enabled). It is not a route chunk, so it has its own 150 KB limit instead of the 60 KB route budget. Events are scrubbed and carry the `requestId` | F10 |
+| D-F13 | Hosting | **Still open** | Recommended: static hosting on the same site as the API (Cloudflare Pages, Netlify or Vercel), matching the backend's D-02. F10 ships host-neutral files (`_headers`, `_redirects`) that Cloudflare Pages and Netlify read as they are, with Vercel notes in the README. The host itself is your decision | F10 |
 
-D-F13 needs your input before the phase that depends on them starts. Everything else is settled unless you reopen it.
+D-F13 (hosting) is still your decision; F10's files work on Cloudflare Pages and Netlify without it. Everything else is settled unless you reopen it.
 
 ## 3. Tech stack
 
@@ -324,13 +324,13 @@ F0 and F1 need no backend at all, so you can start today. From F3 onward each ph
 | F1 | Design system, app shell and primitives | F0 | — | Done (local e2e skipped, CI runs it; mobile sheet focus trap and drag-dismiss verified only by e2e, not jsdom) |
 | F2 | API client, auth and session | F0, F1 | P2 | Done (local e2e skipped, CI runs it; `openapi-react-query` not used, plain `openapi-fetch` + TanStack Query) |
 | F3 | Spaces, settings, preferences and app lock | F2 | P3, P4, P5 | Done (local e2e skipped, CI runs it; Goals and Categories rows in Settings arrive with F8 and F6) |
-| F4 | Wallets and the card style editor | F3 | P7 | Backlog |
-| F6 | Categories and budgets | F3 | P6, P8 | Backlog |
-| F5 | Transactions, filters and transfers | F4, F6 | P8, P9 | Backlog |
-| F7 | Investments | F5 | P10 to P14 | Backlog |
-| F8 | Assets, net worth and goals | F7 | P15, P16 | Backlog |
-| F9 | Dashboard and charts | F5, F8 | P17 | Backlog |
-| F10 | PWA, hardening and deployment | all | P19 | Backlog |
+| F4 | Wallets and the card style editor | F3 | P7 | Done (local e2e skipped, CI runs it; PeriodPicker built here, not in F5; reorder uses up/down buttons; Transfer action added in F5) |
+| F6 | Categories and budgets | F3 | P6, P8 | Done (local e2e skipped, CI runs it; built before F5 as the dependency table orders it; reorder uses up/down buttons) |
+| F5 | Transactions, filters and transfers | F4, F6 | P8, P9 | Done (local e2e skipped, CI runs it; transfer to an investment is stubbed out until F7) |
+| F7 | Investments | F5 | P10 to P14 | Done (local e2e skipped, CI runs it; detail has no related-transactions list: the transactions API has no investment filter) |
+| F8 | Assets, net worth and goals | F7 | P15, P16 | Done (local e2e skipped, CI runs it; the net-worth chart arrives with F9) |
+| F9 | Dashboard and charts | F5, F8 | P17 | Done (local e2e skipped, CI runs it; the Home account card is gone, sign-out is on Profile) |
+| F10 | PWA, hardening and deployment | all | P19 | Review (code complete and tested; unmeasured here: Lighthouse >= 90, Android install and the seeded-backend full flow; D-F13 host still undecided; local e2e skipped, CI runs it) |
 
 **Milestones.** MF1 Foundation (F0 to F2), MF2 Money core (F3 to F6), MF3 Investments and net worth (F7, F8), MF4 Production (F9, F10).
 

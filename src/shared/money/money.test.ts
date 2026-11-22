@@ -1,4 +1,13 @@
-import { applyKey, evaluate, format, minorUnits, parseInput, signOf, toDecimal } from './index'
+import {
+  applyKey,
+  displayDigits,
+  evaluate,
+  format,
+  minorUnits,
+  parseInput,
+  signOf,
+  toDecimal,
+} from './index'
 
 describe('minorUnits', () => {
   it('knows IDR 0, USD 2, JPY 0, KWD 3', () => {
@@ -104,5 +113,29 @@ describe('applyKey', () => {
   })
   it('keeps the buffer when = cannot evaluate', () => {
     expect(press(['5', '/', '0', '='])).toBe('5/0')
+  })
+})
+
+describe('display digits (S0)', () => {
+  it('IDR and JPY show 0 decimals, USD/EUR 2, KWD capped at 2', () => {
+    expect(displayDigits('IDR')).toBe(0)
+    expect(displayDigits('jpy')).toBe(0)
+    expect(displayDigits('USD')).toBe(2)
+    expect(displayDigits('EUR')).toBe(2)
+    expect(displayDigits('KWD')).toBe(2)
+    expect(format('1.2345', 'KWD')).toBe('KWD\u00a01.23')
+    expect(format('1234.5', 'JPY')).toMatch(/1,235$/)
+    expect(format('1500000.6', 'IDR')).toMatch(/1,500,001$/)
+  })
+  it('caps compact at 2 fraction digits', () => {
+    expect(format('1234567', 'USD', { compact: true })).toBe('$1.23M')
+  })
+  it('handles negative and large values', () => {
+    expect(format('-1234.567', 'EUR')).toBe('-€1,234.57')
+    expect(format('987654321098.76', 'USD')).toBe('$987,654,321,098.76')
+  })
+  it('parseInput uses the display digit rule', () => {
+    expect(parseInput('1.2345', 'KWD')).toBe('1.23')
+    expect(parseInput('10.5', 'JPY')).toBe('11')
   })
 })

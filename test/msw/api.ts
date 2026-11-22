@@ -73,6 +73,19 @@ export const anonHandlers = [
   ),
 ]
 
+export const emptySummary = {
+  currency: 'IDR',
+  netWorth: '0',
+  cash: '0',
+  trackingMode: 'FULL_NET_WORTH',
+  warnings: [],
+} satisfies S['networth.SummaryDTO']
+
+export const emptyWallets = {
+  items: [],
+  total: { total: '0' as unknown as number, currency: 'IDR', warnings: [] }, // the API sends a string
+} satisfies S['wallets.ListResponse']
+
 /** Signed-in handlers with overrides: who is active, which spaces exist, the preferences. */
 export function makeAuthedHandlers(
   opts: {
@@ -92,6 +105,23 @@ export function makeAuthedHandlers(
       HttpResponse.json(opts.preferences ?? defaultPreferences),
     ),
     http.get(`${BASE}/currencies`, () => HttpResponse.json(currencies)),
+    http.get(`${BASE}/spaces/:spaceId/wallets`, () => HttpResponse.json(emptyWallets)),
+    http.get(`${BASE}/spaces/:spaceId/investments/wrappers`, () =>
+      HttpResponse.json({ items: [] }),
+    ),
+    http.get(`${BASE}/spaces/:spaceId/transactions`, () => HttpResponse.json({ items: [] })),
+    http.get(`${BASE}/spaces/:spaceId/transactions/daily-summary`, () =>
+      HttpResponse.json({ currency: 'IDR', items: [], warnings: [] }),
+    ),
+    http.get(`${BASE}/spaces/:spaceId/categories`, () => HttpResponse.json([])),
+    http.get(`${BASE}/spaces/:spaceId/net-worth/summary`, () => HttpResponse.json(emptySummary)),
+    http.get(`${BASE}/spaces/:spaceId/net-worth/history`, () =>
+      HttpResponse.json({ currency: 'IDR', points: [], range: '1M' }),
+    ),
+    http.get(`${BASE}/spaces/:spaceId/manual-assets`, () =>
+      HttpResponse.json({ items: [], totals: {} }),
+    ),
+    http.get(`${BASE}/spaces/:spaceId/goals`, () => HttpResponse.json({ items: [] })),
   ]
 }
 
@@ -104,4 +134,18 @@ export const authedHandlers = [
   http.post(`${BASE}/spaces/:spaceId/activate`, () => new HttpResponse(null, { status: 204 })),
   http.get(`${BASE}/me/preferences`, () => HttpResponse.json(defaultPreferences)),
   http.get(`${BASE}/currencies`, () => HttpResponse.json(currencies)),
+  http.get(`${BASE}/spaces/:spaceId/wallets`, () => HttpResponse.json(emptyWallets)),
+  http.get(`${BASE}/spaces/:spaceId/transactions`, () => HttpResponse.json({ items: [] })),
+  http.get(`${BASE}/spaces/:spaceId/transactions/daily-summary`, () =>
+    HttpResponse.json({ currency: 'IDR', items: [], warnings: [] }),
+  ),
+  http.get(`${BASE}/spaces/:spaceId/categories`, () => HttpResponse.json([])),
+  http.get(`${BASE}/spaces/:spaceId/net-worth/summary`, () => HttpResponse.json(emptySummary)),
+  http.get(`${BASE}/spaces/:spaceId/net-worth/history`, () =>
+    HttpResponse.json({ currency: 'IDR', points: [], range: '1M' }),
+  ),
+  http.get(`${BASE}/spaces/:spaceId/manual-assets`, () =>
+    HttpResponse.json({ items: [], totals: {} }),
+  ),
+  http.get(`${BASE}/spaces/:spaceId/goals`, () => HttpResponse.json({ items: [] })),
 ]

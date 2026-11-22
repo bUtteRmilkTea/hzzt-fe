@@ -1,18 +1,25 @@
 import { usePreferences } from '@/app/providers/PreferencesProvider'
+import { useSpace } from '@/app/providers/SpaceProvider'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { SettingsGroup, SettingsRow } from '@/shared/ui/SettingsRow'
 import { Switch } from '@/shared/ui/Switch'
 
-// Goals and Categories rows are added by the phases that build those screens (F8, F6).
 export function SettingsScreen() {
   const { preferences, update } = usePreferences()
+  const { space } = useSpace()
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <PageHeader title="Settings" />
       <SettingsGroup>
         <SettingsRow label="Profile" to="/settings/profile" />
         <SettingsRow label="Space" to="/settings/space" />
+        <SettingsRow
+          label="Categories"
+          to="/s/$spaceId/categories"
+          params={{ spaceId: space.id }}
+        />
+        <SettingsRow label="Goals" to="/s/$spaceId/goals" params={{ spaceId: space.id }} />
         <SettingsRow label="Currency" to="/settings/currency" />
       </SettingsGroup>
       <SettingsGroup>

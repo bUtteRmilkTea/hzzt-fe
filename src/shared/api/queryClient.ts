@@ -45,7 +45,9 @@ export function createQueryClient(notify: (message: string) => void): QueryClien
         retry: shouldRetry,
         refetchOnWindowFocus: false, // turned on per query for money screens
       },
-      mutations: { retry: false },
+      // 'always': TanStack would otherwise PAUSE (queue) a write while offline. We refuse it with a clear
+      // message instead (the API client throws OFFLINE), so the mutation must run and fail immediately.
+      mutations: { retry: false, networkMode: 'always' },
     },
   })
 }

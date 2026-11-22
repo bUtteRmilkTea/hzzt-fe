@@ -44,7 +44,7 @@ function defaults(space: ActiveSpace): Values {
 export function SpaceSettingsScreen() {
   const { space, isOwner } = useSpace()
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-8">
+    <div className="mx-auto flex max-w-2xl flex-col gap-8">
       <PageHeader title="Space" backToSettings />
       {/* Remount on a space switch so the form never shows another space's values. */}
       <SpaceForm key={space.id} space={space} isOwner={isOwner} />

@@ -25,18 +25,15 @@ describe('pin helpers', () => {
 describe('settings index', () => {
   beforeEach(() => server.use(...makeAuthedHandlers()))
 
-  it('lists the supported items and omits ones that have no screen yet', async () => {
+  it('lists every supported item', async () => {
     renderApp('/settings')
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeInTheDocument()
-    for (const label of ['Profile', 'Space', 'Currency', 'App lock']) {
+    for (const label of ['Profile', 'Space', 'Categories', 'Goals', 'Currency', 'App lock']) {
       expect(screen.getByRole('link', { name: new RegExp(label) })).toBeInTheDocument()
     }
     expect(screen.getByRole('switch', { name: 'Hide amounts' })).toBeInTheDocument()
     expect(screen.getByRole('radiogroup', { name: 'Keyboard type' })).toBeInTheDocument()
     expect(screen.getByText(/HZZT v/)).toBeInTheDocument()
-    // Goals and Categories arrive with F8 and F6; absent, not disabled.
-    expect(screen.queryByText('Goals')).not.toBeInTheDocument()
-    expect(screen.queryByText('Categories')).not.toBeInTheDocument()
   })
 
   it('shows the current app lock state', async () => {

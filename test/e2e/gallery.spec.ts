@@ -74,7 +74,7 @@ test.describe('gallery (F1 acceptance)', () => {
     await expect(sheet).toBeHidden()
   })
 
-  test('desktop: sheet becomes a centred dialog', async ({ page }) => {
+  test('desktop (1024+): sheet becomes a right-side drawer', async ({ page }) => {
     await page.setViewportSize(DESKTOP)
     await page.goto('/_gallery')
     await page.getByRole('button', { name: 'Open sheet' }).click()
@@ -82,10 +82,9 @@ test.describe('gallery (F1 acceptance)', () => {
     await expect(dialog).toBeVisible()
     const box = await dialog.boundingBox()
     if (!box) throw new Error('dialog has no box')
-    const centreX = box.x + box.width / 2
-    // Centred in the viewport, not docked to the bottom edge.
-    expect(Math.abs(centreX - DESKTOP.width / 2)).toBeLessThan(4)
-    expect(box.y + box.height).toBeLessThan(DESKTOP.height)
+    // Docked to the right edge, full height.
+    expect(Math.abs(box.x + box.width - DESKTOP.width)).toBeLessThan(4)
+    expect(box.height).toBeGreaterThan(DESKTOP.height - 4)
   })
 
   test('layout has no horizontal overflow at 360px or 1280px', async ({ page }) => {

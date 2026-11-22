@@ -1,3 +1,4 @@
+import { reportApiError } from '@/shared/observability/sentry'
 import type { components } from './schema'
 
 type ErrorEnvelope = components['schemas']['httpx.ErrorEnvelope']
@@ -26,6 +27,7 @@ export class AppError extends Error {
 }
 
 export const NETWORK_ERROR = 'NETWORK_ERROR'
+export const OFFLINE_ERROR = 'OFFLINE'
 export const UNKNOWN_ERROR = 'UNKNOWN_ERROR'
 
 /**
@@ -89,6 +91,7 @@ export const ERROR_COPY: Record<string, string> = {
   MANUAL_ASSET_CURRENCY_LOCKED: "This item's currency cannot change after a settlement.",
   INSUFFICIENT_AVAILABLE_BALANCE: "The wallet doesn't have enough available balance.",
   [NETWORK_ERROR]: "Can't reach the server. Check your connection and try again.",
+  [OFFLINE_ERROR]: "You're offline. Reconnect to save changes.",
 }
 
 export const GENERIC_ERROR = 'Something went wrong. Please try again.'
@@ -144,4 +147,5 @@ export function fieldErrors(err: unknown): Record<string, string> {
 export function logError(err: unknown): void {
   const e = toAppError(err)
   console.error(`[api] ${e.code} (${e.status})`, { requestId: e.requestId })
+  reportApiError(e)
 }

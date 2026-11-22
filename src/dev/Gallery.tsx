@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTheme } from '@/app/providers/ThemeProvider'
+import { LineChart } from '@/shared/charts'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
@@ -81,6 +82,32 @@ export function Gallery() {
           </div>
           <Amount value="-42.1" currency="USD" tone="auto" signDisplay="always" />
           <Amount value="1250.005" currency="USD" tone="auto" signDisplay="always" />
+          <Amount value="19.99" currency="USD" tone="expense" signDisplay="always" />
+          <Amount value="1500000" currency="JPY" />
+          <Amount value="0.123456" currency="KWD" />
+        </Card>
+      </Section>
+
+      <Section title="Trend charts">
+        <Card className="flex flex-col gap-4">
+          <LineChart
+            label="Up trend"
+            currency="USD"
+            data={[
+              { date: '2026-11-01', value: '100' },
+              { date: '2026-11-02', value: '120' },
+              { date: '2026-11-03', value: '150' },
+            ]}
+          />
+          <LineChart
+            label="Down trend"
+            currency="USD"
+            data={[
+              { date: '2026-11-01', value: '150' },
+              { date: '2026-11-02', value: '120' },
+              { date: '2026-11-03', value: '100' },
+            ]}
+          />
         </Card>
       </Section>
 
