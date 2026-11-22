@@ -21,7 +21,7 @@ const REFRESH_COOLDOWN_S = 60
 
 function Line({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <p className="flex items-baseline justify-between gap-3 py-1 text-sm">
+    <p className="flex items-baseline justify-between gap-3 border-t border-border py-2 text-sm first:border-t-0">
       <span className="text-label-secondary">{label}</span>
       <span className="tabular text-right font-medium">{children}</span>
     </p>
@@ -117,10 +117,10 @@ export function InvestmentDetailScreen() {
       </p>
 
       {f && v ? (
-        <Card className="flex flex-col gap-1" data-testid="valuation">
+        <Card className="flex flex-col" data-testid="valuation">
           <p className="text-sm text-label-secondary">{sharedIn ? 'Your share' : 'Value'}</p>
-          <p className="text-2xl font-semibold">
-            <Amount value={f.value} currency={f.currency} />
+          <p className="pb-2 text-3xl font-semibold">
+            <Amount animate value={f.value} currency={f.currency} />
           </p>
           <Line label="Cost basis">
             <Amount value={f.cost} currency={f.currency} />

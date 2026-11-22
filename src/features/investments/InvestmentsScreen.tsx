@@ -8,9 +8,9 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
-import { Panel } from '@/shared/ui/PageGrid'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { TwoColumn } from '@/shared/ui/TwoColumn'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { CategoryPanel } from './CategoryPanel'
 import { useInvestments, useInvestmentTypes } from './hooks'
@@ -26,6 +26,16 @@ export function InvestmentsScreen() {
   const pieSlices = useMemo(() => topSlices(list.data?.items ?? []), [list.data])
   const label = (assetType: string) =>
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
+
+  const panel = (g: (typeof groups)[number]) => (
+    <CategoryPanel
+      key={g.key}
+      group={g}
+      label={label(g.assetType)}
+      spaceId={space.id}
+      targets={targets.data?.items ?? []}
+    />
+  )
 
   return (
     <Page>
@@ -61,34 +71,53 @@ export function InvestmentsScreen() {
         />
       ) : (
         <>
-          <Card data-testid="portfolio-summary">
-            <p className="text-sm text-label-secondary">Portfolio value</p>
-            <p className="text-2xl font-semibold">
-              <Amount
-                value={list.data.summary.totalValue}
-                currency={list.data.summary.currency || space.baseCurrency}
-              />
-            </p>
-            <p className="mt-1 flex flex-wrap justify-between gap-2 text-sm text-label-secondary">
-              <span>
-                Cost{' '}
+          <Card
+            data-testid="portfolio-summary"
+            className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
+          >
+            <div className="flex min-w-0 flex-col gap-1 lg:w-2/5">
+              <p className="text-sm text-label-secondary">Portfolio value</p>
+              <p className="text-3xl font-semibold">
                 <Amount
-                  value={list.data.summary.totalCost}
+                  animate
+                  value={list.data.summary.totalValue}
                   currency={list.data.summary.currency || space.baseCurrency}
                 />
-              </span>
-              <span>
-                <Amount
-                  value={list.data.summary.unrealizedPl}
+              </p>
+              <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-label-secondary">
+                <span data-testid="portfolio-pl" className="font-medium">
+                  <Amount
+                    value={list.data.summary.unrealizedPl}
+                    currency={list.data.summary.currency || space.baseCurrency}
+                    tone="auto"
+                    signDisplay="always"
+                  />
+                  {list.data.summary.unrealizedPlPct !== null ? (
+                    <> ({list.data.summary.unrealizedPlPct}%)</>
+                  ) : null}
+                </span>
+                <span>
+                  Cost{' '}
+                  <Amount
+                    value={list.data.summary.totalCost}
+                    currency={list.data.summary.currency || space.baseCurrency}
+                  />
+                </span>
+              </p>
+            </div>
+            {pieSlices.length > 0 ? (
+              <section aria-label="Portfolio split" className="min-w-0 lg:w-3/5">
+                <PieChart
+                  donut
+                  draw
+                  layout="row"
+                  size={152}
+                  slices={pieSlices}
                   currency={list.data.summary.currency || space.baseCurrency}
-                  tone="auto"
-                  signDisplay="always"
+                  label="Portfolio split by investment"
                 />
-                {list.data.summary.unrealizedPlPct !== null ? (
-                  <> ({list.data.summary.unrealizedPlPct}%)</>
-                ) : null}
-              </span>
-            </p>
+              </section>
+            ) : null}
           </Card>
           <WarningsStrip warnings={list.data.summary.warnings} />
 
@@ -105,29 +134,10 @@ export function InvestmentsScreen() {
               }
             />
           ) : (
-            <>
-              {pieSlices.length > 0 ? (
-                <Panel span={12} aria-label="Portfolio split">
-                  <h2 className="mb-3 text-base font-semibold">Split by investment</h2>
-                  <PieChart
-                    slices={pieSlices}
-                    currency={list.data.summary.currency || space.baseCurrency}
-                    label="Portfolio split by investment"
-                  />
-                </Panel>
-              ) : null}
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {groups.map((g) => (
-                  <CategoryPanel
-                    key={g.key}
-                    group={g}
-                    label={label(g.assetType)}
-                    spaceId={space.id}
-                    targets={targets.data?.items ?? []}
-                  />
-                ))}
-              </div>
-            </>
+            <TwoColumn
+              left={groups.filter((_, i) => i % 2 === 0).map((g) => panel(g))}
+              right={groups.filter((_, i) => i % 2 === 1).map((g) => panel(g))}
+            />
           )}
         </>
       )}

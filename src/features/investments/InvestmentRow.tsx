@@ -62,7 +62,7 @@ export function InvestmentRow({
     <Link
       to="/s/$spaceId/investments/$id"
       params={{ spaceId, id: i.id as string }}
-      className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 p-4"
+      className="flex flex-col gap-1 border-t border-border py-3 first:border-t-0"
     >
       <div className="flex items-center gap-3">
         <span aria-hidden className="text-2xl">

@@ -30,15 +30,15 @@
   --warning: #ffd60a;
   --transfer: #a3a3a3;
 
-  /* Chart ramp: monochrome greys */
-  --chart-1: #ffffff;
-  --chart-2: #d4d4d4;
-  --chart-3: #a3a3a3;
-  --chart-4: #7a7a7a;
-  --chart-5: #5c5c5c;
-  --chart-6: #444444;
-  --chart-7: #333333;
-  --chart-8: #262626;
+  /* Chart ramp: eight distinct hues, each at least 3:1 against surface-1 (tokens.contrast.test.ts) */
+  --chart-1: #60a5fa;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #f472b6;
+  --chart-5: #a78bfa;
+  --chart-6: #fb923c;
+  --chart-7: #22d3ee;
+  --chart-8: #a3e635;
 
   /* Radius */
   --r-sm: 10px;
@@ -108,14 +108,14 @@
   --glow-down: 0 0 6px color-mix(in srgb, var(--down) 35%, transparent);
   --warning: #8a6d00;
   --transfer: #525252;
-  --chart-1: #000000;
-  --chart-2: #2e2e2e;
-  --chart-3: #525252;
-  --chart-4: #737373;
-  --chart-5: #949494;
-  --chart-6: #b0b0b0;
-  --chart-7: #c8c8c8;
-  --chart-8: #dcdcdc;
+  --chart-1: #2563eb;
+  --chart-2: #047857;
+  --chart-3: #b45309;
+  --chart-4: #be185d;
+  --chart-5: #6d28d9;
+  --chart-6: #c2410c;
+  --chart-7: #0e7490;
+  --chart-8: #4d7c0f;
   --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.12);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.08);
   --chrome: rgb(255 255 255 / 0.72);

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 import { donutGeometry } from './geometry'
@@ -23,6 +24,12 @@ interface PieChartProps {
   showAmounts?: boolean
   selectedKey?: string | null
   onSelect?: (key: string) => void
+  /** Cut a hole in the middle: a donut. */
+  donut?: boolean
+  /** `row` puts the legend to the right of the chart; the default stacks it below. */
+  layout?: 'stack' | 'row'
+  /** Sweep the slices in, staggered. */
+  draw?: boolean
 }
 
 const RAMP = [
@@ -37,8 +44,9 @@ const RAMP = [
 ]
 
 /**
- * Monochrome pie with an accessible legend (index, name, percent, amount). Slices are told apart
- * by grey step and by the index in the legend; only the selected slice uses the up colour.
+ * Pie or donut with an accessible legend (index, name, percent, amount). Slice colours come from
+ * the `--chart-*` token ramp; the index in the legend means colour is never the only cue. Only the
+ * selected slice uses the up colour.
  */
 export function PieChart({
   slices,
@@ -49,11 +57,14 @@ export function PieChart({
   showAmounts = true,
   selectedKey,
   onSelect,
+  donut,
+  layout = 'stack',
+  draw,
 }: PieChartProps) {
   const pcts = allocatePct(slices.map((s) => s.amount))
   const pctOf = (i: number) => slices[i]?.pct ?? (pcts[i] as string)
   const r = size / 2 - 2
-  const arcs = donutGeometry(slices, r, 0)
+  const arcs = donutGeometry(slices, r, donut ? r * 0.6 : 0)
   const colorOf = (key: string) => {
     const i = slices.findIndex((s) => s.key === key)
     return RAMP[i % RAMP.length] as string
@@ -63,13 +74,17 @@ export function PieChart({
 
   return (
     <div
-      className={cn('flex gap-4', compact ? 'items-center' : 'flex-col items-center')}
+      className={cn(
+        'flex gap-4',
+        compact || layout === 'row' ? 'items-center' : 'flex-col items-center',
+        layout === 'row' && 'flex-col sm:flex-row',
+      )}
       data-testid="pie-chart"
     >
       <svg width={size} height={size} role="img" aria-label={label} className="block shrink-0">
         <title>{label}</title>
         <g transform={`translate(${size / 2},${size / 2})`}>
-          {arcs.map((a) => (
+          {arcs.map((a, i) => (
             <path
               key={a.key}
               d={a.path}
@@ -79,15 +94,19 @@ export function PieChart({
                 fill: selectedKey === a.key ? 'var(--up)' : colorOf(a.key),
                 stroke: 'var(--bg)',
                 strokeWidth: 1,
+                ...(draw ? ({ '--i': i } as CSSProperties) : {}),
               }}
               onClick={onSelect ? () => onSelect(a.key) : undefined}
-              className={onSelect ? 'cursor-pointer' : undefined}
+              className={cn(onSelect && 'cursor-pointer', draw && 'chart-slice')}
             />
           ))}
         </g>
       </svg>
       {compact ? null : (
-        <ul className="flex w-full flex-col gap-1" aria-label={`${label} legend`}>
+        <ul
+          className={cn('flex w-full flex-col gap-1', layout === 'row' && 'min-w-0 flex-1')}
+          aria-label={`${label} legend`}
+        >
           {slices.map((s, i) => {
             const body = (
               <>

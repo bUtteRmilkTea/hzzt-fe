@@ -61,3 +61,25 @@ describe.each(Object.entries(themes))('%s theme contrast (WCAG AA, 4.5:1 for tex
     expect(ratio(t['accent-label'] as string, t.down as string)).toBeGreaterThanOrEqual(4.5)
   })
 })
+
+describe.each(Object.entries(themes))('%s theme chart ramp', (_name, t) => {
+  const ramp = Array.from({ length: 8 }, (_, i) => t[`chart-${i + 1}`] as string)
+  it('has eight distinct colours', () => {
+    expect(new Set(ramp).size).toBe(8)
+  })
+  it.each(ramp.map((c, i) => [i + 1, c] as const))(
+    'slice %i is at least 3:1 against the card surface (WCAG 1.4.11)',
+    (_i, c) => {
+      expect(ratio(c, t['surface-1'] as string)).toBeGreaterThanOrEqual(3)
+    },
+  )
+  it('is a hue ramp, not greys', () => {
+    for (const c of ramp) {
+      const [r, g, b] = [1, 3, 5].map((k) => Number.parseInt(c.slice(k, k + 2), 16))
+      expect(
+        Math.max(r as number, g as number, b as number) -
+          Math.min(r as number, g as number, b as number),
+      ).toBeGreaterThan(60)
+    }
+  })
+})

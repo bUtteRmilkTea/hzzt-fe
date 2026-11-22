@@ -7,7 +7,7 @@ import { useCurrencies } from '@/features/spaces/hooks'
 import { errorMessage, fieldErrors } from '@/shared/api/errors'
 import { useWallets } from '@/shared/api/wallets'
 import { Button } from '@/shared/ui/Button'
-import { EmojiPicker } from '@/shared/ui/EmojiPicker'
+import { EmojiPopover } from '@/shared/ui/EmojiPopover'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
@@ -64,6 +64,55 @@ export function CreateInvestmentScreen() {
         </>
       )}
     </Page>
+  )
+}
+
+/** Two columns from 1024px (plan F13-T05); one column below. */
+const PAIR = 'grid grid-cols-1 gap-4 lg:grid-cols-2'
+
+/**
+ * A sticky card that echoes what has been typed, in the same style as a list row. It shows no
+ * computed totals: money is never computed in the client (plan 5.2, D-F17).
+ */
+function SummaryRail({
+  meta,
+  name,
+  symbol,
+  icon,
+  wrapper,
+}: {
+  meta: TypeMeta
+  name?: string | undefined
+  symbol?: string | undefined
+  icon?: string | undefined
+  wrapper?: string | undefined
+}) {
+  return (
+    <aside
+      aria-label="Summary"
+      data-testid="summary-rail"
+      className="sticky top-4 hidden flex-col gap-3 rounded-lg border border-border bg-surface-1 p-4 lg:flex"
+    >
+      <p className="text-sm text-label-secondary">{meta.label}</p>
+      <div className="flex items-center gap-3">
+        <span aria-hidden className="text-2xl">
+          {icon || meta.defaultIcon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium" data-testid="rail-name">
+            {name?.trim() || 'Name'}
+          </p>
+          <p className="truncate text-sm text-label-secondary" data-testid="rail-symbol">
+            {symbol?.trim() || 'Symbol'}
+          </p>
+        </div>
+      </div>
+      {wrapper?.trim() ? (
+        <p className="border-t border-border pt-3 text-sm text-label-secondary">
+          In <span className="font-medium text-label">{wrapper.trim()}</span>
+        </p>
+      ) : null}
+    </aside>
   )
 }
 
@@ -244,182 +293,208 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
     )
   }
 
-  return (
-    <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
-      {formError ? (
-        <p role="alert" className="text-sm text-negative">
-          {formError}
-        </p>
-      ) : null}
+  const watched = useWatch({ control }) as unknown as {
+    name?: string
+    symbol?: string
+    icon?: string
+    wrapper?: string
+  }
 
-      <div className="flex flex-col gap-2">
-        <Controller
-          control={control}
-          name="priceMode"
-          render={({ field }) => (
-            <SegmentedControl
-              aria-label="Pricing"
-              value={field.value}
-              onValueChange={(m) => {
-                field.onChange(m)
-                if (m === 'MANUAL') pick(null)
-              }}
-              options={[
-                { value: 'AUTO', label: 'Auto', disabled: !meta.supportsAutoPrice },
-                { value: 'MANUAL', label: 'Manual' },
-              ]}
+  return (
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
+        {formError ? (
+          <p role="alert" className="text-sm text-negative">
+            {formError}
+          </p>
+        ) : null}
+
+        <div className="flex flex-col gap-2">
+          <Controller
+            control={control}
+            name="priceMode"
+            render={({ field }) => (
+              <SegmentedControl
+                aria-label="Pricing"
+                value={field.value}
+                onValueChange={(m) => {
+                  field.onChange(m)
+                  if (m === 'MANUAL') pick(null)
+                }}
+                options={[
+                  { value: 'AUTO', label: 'Auto', disabled: !meta.supportsAutoPrice },
+                  { value: 'MANUAL', label: 'Manual' },
+                ]}
+              />
+            )}
+          />
+          {!meta.supportsAutoPrice ? (
+            <p className="text-sm text-label-secondary">
+              Automatic pricing isn't available for {meta.label?.toLowerCase()}, so enter the price
+              yourself.
+            </p>
+          ) : null}
+          {err.priceMode?.message ? (
+            <p role="alert" className="text-sm text-negative">
+              {err.priceMode.message}
+            </p>
+          ) : null}
+        </div>
+
+        {priceMode === 'AUTO' && meta.supportsAutoPrice ? (
+          <InstrumentSearch
+            kind={kindFor(meta.assetType as string)}
+            selected={instrument}
+            onSelect={pick}
+            error={err.instrumentId?.message}
+          />
+        ) : null}
+
+        <div className={PAIR}>
+          <div className="flex items-end gap-3">
+            <Controller
+              control={control}
+              name="icon"
+              render={({ field }) => (
+                <EmojiPopover label="Icon" value={field.value} onChange={field.onChange} />
+              )}
+            />
+            <Field label="Name" error={err.name?.message} className="min-w-0 flex-1">
+              <Input maxLength={60} {...register('name')} />
+            </Field>
+          </div>
+          <Field
+            label={`Symbol${meta.symbolRequired ? '' : ' (optional)'}`}
+            error={err.symbol?.message}
+          >
+            <Input maxLength={20} autoCapitalize="characters" {...register('symbol')} />
+          </Field>
+        </div>
+
+        <div className={PAIR}>
+          {lots ? (
+            <div className="flex flex-col gap-2">
+              {(meta.detailFields ?? []).filter((f) => f.name === 'lots').map(detailInput)}
+              <p className="text-sm text-label-secondary" data-testid="derived-shares">
+                {shares
+                  ? `= ${shares} shares (1 lot = ${meta.lotSize ?? 100} shares)`
+                  : `1 lot = ${meta.lotSize ?? 100} shares`}
+              </p>
+            </div>
+          ) : (
+            <Controller
+              control={control}
+              name="quantity"
+              render={({ field }) => (
+                <Field label="Quantity" error={err.quantity?.message}>
+                  <MoneyInput
+                    mode="numeric"
+                    value={field.value}
+                    onChange={field.onChange}
+                    currency={quote}
+                  />
+                </Field>
+              )}
             />
           )}
-        />
-        {!meta.supportsAutoPrice ? (
-          <p className="text-sm text-label-secondary">
-            Automatic pricing isn't available for {meta.label?.toLowerCase()}, so enter the price
-            yourself.
-          </p>
-        ) : null}
-        {err.priceMode?.message ? (
-          <p role="alert" className="text-sm text-negative">
-            {err.priceMode.message}
-          </p>
-        ) : null}
-      </div>
+          <Field label="Average buy price" error={err.avgBuyPrice?.message}>
+            <Input inputMode="decimal" {...register('avgBuyPrice')} />
+          </Field>
 
-      {priceMode === 'AUTO' && meta.supportsAutoPrice ? (
-        <InstrumentSearch
-          kind={kindFor(meta.assetType as string)}
-          selected={instrument}
-          onSelect={pick}
-          error={err.instrumentId?.message}
-        />
-      ) : null}
-
-      <Field label="Name" error={err.name?.message}>
-        <Input maxLength={60} {...register('name')} />
-      </Field>
-      <Field
-        label={`Symbol${meta.symbolRequired ? '' : ' (optional)'}`}
-        error={err.symbol?.message}
-      >
-        <Input maxLength={20} autoCapitalize="characters" {...register('symbol')} />
-      </Field>
-      <Controller
-        control={control}
-        name="icon"
-        render={({ field }) => (
-          <EmojiPicker label="Icon" value={field.value} onChange={field.onChange} />
-        )}
-      />
-
-      {lots ? (
-        <div className="flex flex-col gap-2">
-          {(meta.detailFields ?? []).filter((f) => f.name === 'lots').map(detailInput)}
-          <p className="text-sm text-label-secondary" data-testid="derived-shares">
-            {shares
-              ? `= ${shares} shares (1 lot = ${meta.lotSize ?? 100} shares)`
-              : `1 lot = ${meta.lotSize ?? 100} shares`}
-          </p>
-        </div>
-      ) : (
-        <Controller
-          control={control}
-          name="quantity"
-          render={({ field }) => (
-            <Field label="Quantity" error={err.quantity?.message}>
-              <MoneyInput
-                mode="numeric"
-                value={field.value}
-                onChange={field.onChange}
-                currency={quote}
-              />
+          {priceMode === 'MANUAL' ? (
+            <Field
+              label={meta.assetType === 'MUTUAL_FUND' ? 'Current NAV' : 'Current price'}
+              error={err.manualPrice?.message}
+            >
+              <Input inputMode="decimal" {...register('manualPrice')} />
             </Field>
+          ) : null}
+          <Field label="Fees (optional)" error={err.fees?.message}>
+            <Input inputMode="decimal" {...register('fees')} />
+          </Field>
+
+          {meta.quoteCurrencyEditable ? (
+            <Field label="Currency">
+              <Select {...register('quoteCurrency')}>
+                {(currencies.data ?? []).map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} · {c.name}
+                  </option>
+                ))}
+                {(currencies.data ?? []).length === 0 ? (
+                  <option value={space.baseCurrency}>{space.baseCurrency}</option>
+                ) : null}
+              </Select>
+            </Field>
+          ) : (
+            <p className="self-end pb-3 text-sm text-label-secondary">Priced in {quote}</p>
           )}
-        />
-      )}
+          <Field label="Purchase date (optional)" error={err.purchaseDate?.message}>
+            <Input type="date" {...register('purchaseDate')} />
+          </Field>
 
-      {meta.quoteCurrencyEditable ? (
-        <Field label="Currency">
-          <Select {...register('quoteCurrency')}>
-            {(currencies.data ?? []).map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.code} · {c.name}
-              </option>
-            ))}
-            {(currencies.data ?? []).length === 0 ? (
-              <option value={space.baseCurrency}>{space.baseCurrency}</option>
-            ) : null}
-          </Select>
-        </Field>
-      ) : (
-        <p className="text-sm text-label-secondary">Priced in {quote}</p>
-      )}
+          {quote !== space.baseCurrency ? (
+            <Field
+              label={`Exchange rate (1 ${quote} = ? ${space.baseCurrency}, optional)`}
+              error={err.manualFxRate?.message}
+            >
+              <Input inputMode="decimal" {...register('manualFxRate')} />
+            </Field>
+          ) : null}
+          <Field
+            label="Estimated annual change % (optional)"
+            error={err.estimatedAnnualChangePct?.message}
+          >
+            <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
+          </Field>
 
-      <Field label="Average buy price" error={err.avgBuyPrice?.message}>
-        <Input inputMode="decimal" {...register('avgBuyPrice')} />
-      </Field>
-      {priceMode === 'MANUAL' ? (
-        <Field
-          label={meta.assetType === 'MUTUAL_FUND' ? 'Current NAV' : 'Current price'}
-          error={err.manualPrice?.message}
+          <WrapperField
+            assetType={meta.assetType as string}
+            value={watched.wrapper ?? ''}
+            onChange={(w) => setValue('wrapper', w, { shouldValidate: true })}
+            error={err.wrapper?.message}
+          />
+
+          {(meta.detailFields ?? []).filter((f) => !lots || f.name !== 'lots').map(detailInput)}
+        </div>
+
+        <fieldset className="flex flex-col gap-3 rounded-lg border border-border p-4">
+          <legend className="px-1 text-sm font-medium text-label-secondary">
+            Pay from a wallet (optional)
+          </legend>
+          <div className={PAIR}>
+            <Field label="Wallet" error={err.fundingWalletId?.message}>
+              <Select {...register('fundingWalletId')}>
+                <option value="">Don't take it from a wallet</option>
+                {(wallets.data?.items ?? []).map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.icon} {w.name} · {w.currency}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              label="Amount from the wallet (optional)"
+              hint="Leave empty to use quantity × price + fees"
+              error={err.fundingAmount?.message}
+            >
+              <Input inputMode="decimal" {...register('fundingAmount')} />
+            </Field>
+          </div>
+        </fieldset>
+
+        {/* Sticky so Add is reachable without scrolling. On phones it sits above the floating tab bar. */}
+        <div
+          data-testid="submit-bar"
+          className="sticky bottom-24 z-20 -mx-4 border-t border-border bg-bg/90 px-4 py-3 backdrop-blur-[20px] md:bottom-0 md:-mx-8 md:px-8 lg:mx-0 lg:rounded-lg lg:border lg:px-4"
         >
-          <Input inputMode="decimal" {...register('manualPrice')} />
-        </Field>
-      ) : null}
-      <Field label="Fees (optional)" error={err.fees?.message}>
-        <Input inputMode="decimal" {...register('fees')} />
-      </Field>
-      <Field label="Purchase date (optional)" error={err.purchaseDate?.message}>
-        <Input type="date" {...register('purchaseDate')} />
-      </Field>
-      {quote !== space.baseCurrency ? (
-        <Field
-          label={`Exchange rate (1 ${quote} = ? ${space.baseCurrency}, optional)`}
-          error={err.manualFxRate?.message}
-        >
-          <Input inputMode="decimal" {...register('manualFxRate')} />
-        </Field>
-      ) : null}
-      <Field
-        label="Estimated annual change % (optional)"
-        error={err.estimatedAnnualChangePct?.message}
-      >
-        <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
-      </Field>
+          <Button type="submit" block disabled={create.isPending}>
+            {create.isPending ? 'Adding…' : 'Add investment'}
+          </Button>
+        </div>
+      </form>
 
-      <WrapperField
-        assetType={meta.assetType as string}
-        value={useWatch({ control, name: 'wrapper' }) ?? ''}
-        onChange={(w) => setValue('wrapper', w, { shouldValidate: true })}
-        error={err.wrapper?.message}
-      />
-
-      {(meta.detailFields ?? []).filter((f) => !lots || f.name !== 'lots').map(detailInput)}
-
-      <fieldset className="flex flex-col gap-3 rounded-lg border border-border p-4">
-        <legend className="px-1 text-sm font-medium text-label-secondary">
-          Pay from a wallet (optional)
-        </legend>
-        <Field label="Wallet" error={err.fundingWalletId?.message}>
-          <Select {...register('fundingWalletId')}>
-            <option value="">Don't take it from a wallet</option>
-            {(wallets.data?.items ?? []).map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.icon} {w.name} · {w.currency}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field
-          label="Amount from the wallet (optional)"
-          hint="Leave empty to use quantity × price + fees"
-          error={err.fundingAmount?.message}
-        >
-          <Input inputMode="decimal" {...register('fundingAmount')} />
-        </Field>
-      </fieldset>
-
-      <Button type="submit" block disabled={create.isPending}>
-        {create.isPending ? 'Adding…' : 'Add investment'}
-      </Button>
-    </form>
+      <SummaryRail meta={meta} {...watched} />
+    </div>
   )
 }
