@@ -189,6 +189,21 @@ describe('manual assets', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/s/s-1/assets/a-9'))
   })
 
+  it('the preview card follows the typed name, amount and counterparty', async () => {
+    const user = userEvent.setup()
+    renderApp('/s/s-1/assets/new?kind=LIABILITY')
+    const preview = await screen.findByTestId('asset-preview')
+    expect(within(preview).getByText('New debt')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Name'), 'Car loan')
+    for (const k of ['5', '0', '0'])
+      await user.click(screen.getByRole('button', { name: new RegExp(`^${k}$`) }))
+    await user.type(screen.getByLabelText('Owed to (optional)'), 'Bank ABC')
+    expect(within(preview).getByText('Car loan')).toBeInTheDocument()
+    expect(within(preview).getByText(/500/)).toBeInTheDocument()
+    expect(within(preview).getByText('Owed to Bank ABC')).toBeInTheDocument()
+    expect(screen.getByTestId('asset-form-layout')).toBeInTheDocument()
+  })
+
   it('a fixed asset takes an estimated annual change, and no counterparty', async () => {
     let body: Record<string, unknown> = {}
     server.use(

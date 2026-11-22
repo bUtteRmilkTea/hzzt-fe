@@ -30,13 +30,13 @@ export function AssetDetailScreen() {
 
   if (asset.isPending)
     return (
-      <Page width="form">
+      <Page width="wide">
         <Skeleton className="h-48" />
       </Page>
     )
   if (asset.isError || !asset.data) {
     return (
-      <Page width="form">
+      <Page width="wide">
         <EmptyState
           title="Couldn't load this item"
           action={<Button onClick={() => void asset.refetch()}>Try again</Button>}
@@ -49,86 +49,99 @@ export function AssetDetailScreen() {
   const currency = a.currency ?? ''
 
   return (
-    <Page width="form" gap={5}>
+    <Page width="wide" gap={8}>
       <PageHeader title={a.name ?? meta.noun} />
-      <Card className="flex flex-col gap-1" data-testid="asset-card">
-        <p className="text-sm text-label-secondary">
-          {a.kind === 'LIABILITY'
-            ? 'Outstanding'
-            : a.kind === 'RECEIVABLE'
-              ? 'Owed to you'
-              : 'Value'}
-        </p>
-        <p className="text-3xl font-medium" data-testid="asset-value">
-          <Amount animate value={toMoneyString(a.currentValue)} currency={currency} />
-        </p>
-        {a.counterpartyName ? (
-          <p className="text-sm text-label-secondary">
-            {a.kind === 'LIABILITY' ? 'Owed to' : 'Owed by'} {a.counterpartyName}
-          </p>
-        ) : null}
-        {a.dueDate ? (
-          <p className="text-sm text-label-secondary">
-            Due {format(new Date(`${a.dueDate}T12:00:00`), 'd MMM yyyy')}
-          </p>
-        ) : null}
-        {a.estimatedAnnualChangePct ? (
-          <p className="text-sm text-label-secondary">
-            Estimated change {a.estimatedAnnualChangePct}% a year
-          </p>
-        ) : null}
-        {a.note ? <p className="mt-2 text-sm">{a.note}</p> : null}
-      </Card>
+      <div
+        data-testid="asset-detail-layout"
+        className="grid items-start gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-10"
+      >
+        <div className="flex min-w-0 flex-col gap-5">
+          <Card className="flex flex-col gap-1" data-testid="asset-card">
+            <p className="text-sm text-label-secondary">
+              {a.kind === 'LIABILITY'
+                ? 'Outstanding'
+                : a.kind === 'RECEIVABLE'
+                  ? 'Owed to you'
+                  : 'Value'}
+            </p>
+            <p className="text-3xl font-medium" data-testid="asset-value">
+              <Amount animate value={toMoneyString(a.currentValue)} currency={currency} />
+            </p>
+            {a.counterpartyName ? (
+              <p className="text-sm text-label-secondary">
+                {a.kind === 'LIABILITY' ? 'Owed to' : 'Owed by'} {a.counterpartyName}
+              </p>
+            ) : null}
+            {a.dueDate ? (
+              <p className="text-sm text-label-secondary">
+                Due {format(new Date(`${a.dueDate}T12:00:00`), 'd MMM yyyy')}
+              </p>
+            ) : null}
+            {a.estimatedAnnualChangePct ? (
+              <p className="text-sm text-label-secondary">
+                Estimated change {a.estimatedAnnualChangePct}% a year
+              </p>
+            ) : null}
+            {a.note ? <p className="mt-2 text-sm">{a.note}</p> : null}
+          </Card>
 
-      <div className="flex flex-col gap-3">
-        {meta.settles ? (
-          <Button
-            disabled={toMoneyString(a.currentValue) === '0'}
-            onClick={() => setSettling(true)}
-          >
-            {meta.settleLabel}
-          </Button>
-        ) : null}
-        <div className="flex gap-3">
-          <Button variant="secondary" className="flex-1" asChild>
-            <Link to="/s/$spaceId/assets/$id/edit" params={{ spaceId: space.id, id }}>
-              Edit
-            </Link>
-          </Button>
-          <Button variant="ghost" className="flex-1 text-negative" onClick={() => setConfirm(true)}>
-            Delete
-          </Button>
-        </div>
-      </div>
-
-      {(a.history ?? []).length > 0 ? (
-        <section aria-labelledby="hist" className="flex flex-col gap-2">
-          <h2 id="hist" className="text-lg font-medium">
-            History
-          </h2>
-          <ul className="divide-y divide-border rounded-lg border border-border bg-surface-1">
-            {(a.history ?? []).map((h) => (
-              <li
-                key={`${h.changedAt}-${h.newValue}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+          <div className="flex flex-col gap-3">
+            {meta.settles ? (
+              <Button
+                disabled={toMoneyString(a.currentValue) === '0'}
+                onClick={() => setSettling(true)}
               >
-                <span>
-                  <span className="block font-medium">
-                    {h.reason === 'SETTLEMENT' ? 'Settlement' : 'Updated'}
+                {meta.settleLabel}
+              </Button>
+            ) : null}
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" asChild>
+                <Link to="/s/$spaceId/assets/$id/edit" params={{ spaceId: space.id, id }}>
+                  Edit
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex-1 text-negative"
+                onClick={() => setConfirm(true)}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {(a.history ?? []).length > 0 ? (
+          <section aria-labelledby="hist" className="flex flex-col gap-2">
+            <h2 id="hist" className="text-lg font-medium">
+              History
+            </h2>
+            <ul className="divide-y divide-border rounded-lg border border-border bg-surface-1">
+              {(a.history ?? []).map((h) => (
+                <li
+                  key={`${h.changedAt}-${h.newValue}`}
+                  className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
+                >
+                  <span>
+                    <span className="block font-medium">
+                      {h.reason === 'SETTLEMENT' ? 'Settlement' : 'Updated'}
+                    </span>
+                    <span className="text-label-secondary">
+                      {h.changedAt ? format(new Date(h.changedAt), 'd MMM yyyy') : ''}
+                    </span>
                   </span>
-                  <span className="text-label-secondary">
-                    {h.changedAt ? format(new Date(h.changedAt), 'd MMM yyyy') : ''}
+                  <span className="tabular">
+                    <Amount value={toMoneyString(h.previousValue)} currency={currency} /> →{' '}
+                    <Amount value={toMoneyString(h.newValue)} currency={currency} />
                   </span>
-                </span>
-                <span className="tabular">
-                  <Amount value={toMoneyString(h.previousValue)} currency={currency} /> →{' '}
-                  <Amount value={toMoneyString(h.newValue)} currency={currency} />
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : (
+          <p className="text-sm text-label-secondary">No changes yet.</p>
+        )}
+      </div>
 
       {settling ? <SettleSheet asset={a} onClose={() => setSettling(false)} /> : null}
 
@@ -162,7 +175,7 @@ export function EditAssetScreen() {
   const { id } = useParams({ from: '/_authed/s/$spaceId/assets/$id/edit' })
   const asset = useManualAsset(space.id, id)
   return (
-    <Page width="form" gap={5}>
+    <Page width="wide" gap={8}>
       <PageHeader title="Edit" />
       {asset.isPending ? (
         <Skeleton className="h-64" />
@@ -184,7 +197,7 @@ export function EditAssetScreen() {
 
 export function NewAssetScreen({ kind }: { kind: AssetKind }) {
   return (
-    <Page width="form" gap={5}>
+    <Page width="wide" gap={8}>
       <PageHeader title={kindMeta(kind).addLabel} />
       <AssetForm kind={kind} />
     </Page>

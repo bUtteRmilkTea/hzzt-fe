@@ -89,9 +89,9 @@ Run them in order. F24 first, because it touches every screen and shifts every l
 - [x] F28-T04 Tests and bundle (vitest and `pnpm size` pass, Wallets chunk 16.99 KB gzip of 60. The drag, persistence and touch Playwright checks were skipped by request and are still to do; jsdom cannot drag, so only the handles and move buttons are unit tested) check
 
 **F29**
-- [ ] F29-T01 Asset screens to the wide tier
-- [ ] F29-T02 Two-column form and live preview
-- [ ] F29-T03 Tests
+- [x] F29-T01 Asset screens to the wide tier (new, edit and detail; detail is value card and actions on the left, history on the right)
+- [x] F29-T02 Two-column form and live preview (preview hidden below 1024 px, Submit moves under it from 1024 px and stays last on mobile)
+- [x] F29-T03 Tests (vitest only; the Playwright width, sticky and 390 px checks were skipped by request and are still to do)
 
 ### F24: No page names
 
