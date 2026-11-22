@@ -206,3 +206,18 @@ export function topSlices(
   const other = rows.slice(top).reduce((acc, r) => acc.plus(r.amount), new Decimal(0))
   return [...head, { key: '_other', name: 'Other', amount: other.toFixed() }]
 }
+
+/**
+ * Pie data per asset class: one slice per asset type in display order, valued in the base
+ * currency. A type with no base value (no rate) is left out, as `topSlices` does.
+ */
+export function categorySlices(
+  items: readonly InvestmentView[],
+  label: (assetType: string) => string,
+): Array<{ key: string; name: string; amount: string }> {
+  return groupInvestments(items).flatMap((g) =>
+    g.currency && toDecimal(g.value).greaterThan(0)
+      ? [{ key: g.key, name: label(g.assetType), amount: g.value }]
+      : [],
+  )
+}

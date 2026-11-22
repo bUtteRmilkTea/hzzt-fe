@@ -8,7 +8,7 @@ import { btc, list, metas, valuation } from '../../../test/msw/investments'
 import { server } from '../../../test/msw/server'
 import { renderApp } from '../../../test/renderApp'
 import type { InvestmentView } from './types'
-import { groupInvestments, topSlices, wrapperOf } from './valuation'
+import { categorySlices, groupInvestments, topSlices, wrapperOf } from './valuation'
 import { checkTargetPct } from './wrappers'
 
 const I = `${BASE}/spaces/s-1/investments`
@@ -64,6 +64,22 @@ describe('groupInvestments (two-level)', () => {
       'Own',
     )
     expect(wrapperOf(inv('q', 'Q', 'Details', '1')).key).toBe('details')
+  })
+  it('categorySlices: one slice per type in display order, summing to the portfolio, skipping a type with no rate', () => {
+    const label = (t: string) => `L:${t}`
+    const s = categorySlices(
+      [
+        inv('a', 'A', 'W', '10', 'US_STOCK'),
+        inv('b', 'B', 'W', '20.5', 'CRYPTO'),
+        inv('c', 'C', 'W', '4.5', 'CRYPTO'),
+        { ...inv('d', 'D', 'W', '9', 'GLOBAL_ETF'), valuation: valuation({ base: null }) },
+      ],
+      label,
+    )
+    expect(s).toEqual([
+      { key: 'CRYPTO', name: 'L:CRYPTO', amount: '25' },
+      { key: 'US_STOCK', name: 'L:US_STOCK', amount: '10' },
+    ])
   })
   it('folds the long tail of the pie into Other', () => {
     const many = Array.from({ length: 9 }, (_, i) => inv(`i${i}`, `N${i}`, 'W', String(100 - i)))

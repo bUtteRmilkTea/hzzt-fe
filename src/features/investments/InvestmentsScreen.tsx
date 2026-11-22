@@ -10,11 +10,13 @@ import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { SplitSwitch } from '@/shared/ui/SplitSwitch'
 import { TwoColumn } from '@/shared/ui/TwoColumn'
+import { useSplitMode } from '@/shared/ui/useSplitMode'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { CategoryPanel } from './CategoryPanel'
 import { useInvestments, useInvestmentTypes } from './hooks'
-import { groupInvestments, topSlices } from './valuation'
+import { categorySlices, groupInvestments, topSlices } from './valuation'
 import { useWrapperTargets } from './wrappers'
 
 export function InvestmentsScreen() {
@@ -23,9 +25,13 @@ export function InvestmentsScreen() {
   const types = useInvestmentTypes()
   const targets = useWrapperTargets(space.id)
   const groups = useMemo(() => groupInvestments(list.data?.items ?? []), [list.data])
-  const pieSlices = useMemo(() => topSlices(list.data?.items ?? []), [list.data])
+  const [mode, setMode] = useSplitMode('investments-pie-mode')
   const label = (assetType: string) =>
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
+  const pieSlices =
+    mode === 'class'
+      ? categorySlices(list.data?.items ?? [], label)
+      : topSlices(list.data?.items ?? [])
 
   const panel = (g: (typeof groups)[number]) => (
     <CategoryPanel
@@ -106,15 +112,24 @@ export function InvestmentsScreen() {
               </p>
             </div>
             {pieSlices.length > 0 ? (
-              <section aria-label="Portfolio split" className="min-w-0 lg:w-3/5">
+              <section
+                aria-label="Portfolio split"
+                className="flex min-w-0 flex-col gap-3 lg:w-3/5"
+              >
+                <SplitSwitch value={mode} onValueChange={setMode} />
                 <PieChart
+                  key={mode}
                   donut
                   draw
                   layout="row"
                   size={152}
                   slices={pieSlices}
                   currency={list.data.summary.currency || space.baseCurrency}
-                  label="Portfolio split by investment"
+                  label={
+                    mode === 'class'
+                      ? 'Portfolio split by asset class'
+                      : 'Portfolio split by investment'
+                  }
                 />
               </section>
             ) : null}

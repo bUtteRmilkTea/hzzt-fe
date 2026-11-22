@@ -45,8 +45,10 @@ beforeEach(() => {
 
 describe('portfolio hero (F13-T01)', () => {
   it('puts the value and P/L beside a donut whose legend lists the top 6 plus Other', async () => {
+    const user = userEvent.setup()
     renderApp('/s/s-1/investments')
     const hero = await screen.findByTestId('portfolio-summary')
+    await user.click(within(hero).getByRole('radio', { name: 'By asset' }))
     expect(within(hero).getByTestId('portfolio-pl')).toHaveTextContent('+IDR 2,500,000')
     expect(within(hero).getByTestId('portfolio-pl')).toHaveTextContent('(25.51%)')
     const legend = within(hero).getByRole('list', { name: 'Portfolio split by investment legend' })
@@ -57,9 +59,33 @@ describe('portfolio hero (F13-T01)', () => {
     expect(names.at(-1)).toContain('Other')
   })
 
-  it('colours slices from the chart token ramp, never greys or raw hex', async () => {
+  it('defaults to asset classes, and the switch moves between classes and holdings', async () => {
+    const user = userEvent.setup()
+    sessionStorage.clear()
     renderApp('/s/s-1/investments')
     const hero = await screen.findByTestId('portfolio-summary')
+    const legend = () =>
+      within(hero)
+        .getAllByRole('listitem')
+        .map((li) => li.textContent ?? '')
+    expect(within(hero).getByRole('radio', { name: 'By class' })).toBeChecked()
+    expect(within(hero).getByRole('list', { name: 'Portfolio split by asset class legend' })).toBe(
+      within(hero).getByRole('list', { name: /legend$/ }),
+    )
+    expect(legend()).toHaveLength(2) // Crypto, US stock
+    await user.click(within(hero).getByRole('radio', { name: 'By asset' }))
+    expect(legend()).toHaveLength(7)
+    expect(
+      within(hero).getByRole('list', { name: 'Portfolio split by investment legend' }),
+    ).toBeTruthy()
+  })
+
+  it('colours slices from the chart token ramp, never greys or raw hex', async () => {
+    const user = userEvent.setup()
+    sessionStorage.clear()
+    renderApp('/s/s-1/investments')
+    const hero = await screen.findByTestId('portfolio-summary')
+    await user.click(within(hero).getByRole('radio', { name: 'By asset' }))
     const fills = [...hero.querySelectorAll('path[data-slice]')].map(
       (p) => (p as SVGElement).style.fill,
     )
