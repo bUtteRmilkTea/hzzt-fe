@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw'
 import type { components } from '@/shared/api/schema'
+import { PALETTE } from '@/shared/ui/palette'
 
 // Typed from the generated schema: a contract change breaks these, not production.
 type S = components['schemas']
@@ -29,6 +30,42 @@ export function errorEnvelope(
   return { error: { code, message, details }, requestId: 'req-test' }
 }
 
+export const ownerSpace = {
+  id: 's-1',
+  name: 'Home',
+  role: 'OWNER',
+  baseCurrency: 'IDR',
+  trackingMode: 'FULL_NET_WORTH',
+  autoFxConversion: true,
+  avatarEmoji: '🏠',
+  avatarColor: PALETTE[0],
+  memberCount: 2,
+} satisfies S['spaces.SpaceDTO']
+
+export const sharedSpace = {
+  id: 's-2',
+  name: 'Family',
+  role: 'MEMBER',
+  baseCurrency: 'USD',
+  trackingMode: 'FULL_NET_WORTH',
+  autoFxConversion: true,
+  avatarEmoji: '👨‍👩‍👧',
+  avatarColor: PALETTE[7],
+  memberCount: 3,
+} satisfies S['spaces.SpaceDTO']
+
+export const defaultPreferences = {
+  hideAmounts: false,
+  keyboardType: 'MINI_CALCULATOR',
+  appLockEnabled: false,
+} satisfies S['users.PreferencesDTO']
+
+export const currencies = [
+  { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', minorUnits: 0 },
+  { code: 'USD', name: 'US Dollar', symbol: '$', minorUnits: 2 },
+  { code: 'EUR', name: 'Euro', symbol: '€', minorUnits: 2 },
+] satisfies S['currency.Currency'][]
+
 /** Signed-out: the boot refresh is rejected. */
 export const anonHandlers = [
   http.post(`${BASE}/auth/refresh`, () =>
@@ -36,9 +73,35 @@ export const anonHandlers = [
   ),
 ]
 
+/** Signed-in handlers with overrides: who is active, which spaces exist, the preferences. */
+export function makeAuthedHandlers(
+  opts: {
+    lastActiveSpaceId?: string
+    spaces?: S['spaces.SpaceDTO'][]
+    preferences?: S['users.PreferencesDTO']
+  } = {},
+) {
+  const user = { ...testUser, lastActiveSpaceId: opts.lastActiveSpaceId ?? 's-1' }
+  return [
+    http.post(`${BASE}/auth/refresh`, () => HttpResponse.json({ ...authResponse, user })),
+    http.get(`${BASE}/me`, () => HttpResponse.json(user)),
+    http.post(`${BASE}/auth/logout`, () => new HttpResponse(null, { status: 204 })),
+    http.get(`${BASE}/spaces`, () => HttpResponse.json(opts.spaces ?? [ownerSpace, sharedSpace])),
+    http.post(`${BASE}/spaces/:spaceId/activate`, () => new HttpResponse(null, { status: 204 })),
+    http.get(`${BASE}/me/preferences`, () =>
+      HttpResponse.json(opts.preferences ?? defaultPreferences),
+    ),
+    http.get(`${BASE}/currencies`, () => HttpResponse.json(currencies)),
+  ]
+}
+
 /** Signed-in: the boot refresh succeeds and /me returns the user. */
 export const authedHandlers = [
   http.post(`${BASE}/auth/refresh`, () => HttpResponse.json(authResponse)),
   http.get(`${BASE}/me`, () => HttpResponse.json(testUser)),
   http.post(`${BASE}/auth/logout`, () => new HttpResponse(null, { status: 204 })),
+  http.get(`${BASE}/spaces`, () => HttpResponse.json([ownerSpace, sharedSpace])),
+  http.post(`${BASE}/spaces/:spaceId/activate`, () => new HttpResponse(null, { status: 204 })),
+  http.get(`${BASE}/me/preferences`, () => HttpResponse.json(defaultPreferences)),
+  http.get(`${BASE}/currencies`, () => HttpResponse.json(currencies)),
 ]

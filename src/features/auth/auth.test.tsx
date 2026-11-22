@@ -56,31 +56,32 @@ describe('session boot', () => {
 
 describe('route guards', () => {
   it('sends a signed-out user to /login and keeps the attempted path', async () => {
-    const { router } = renderApp('/history')
+    const { router } = renderApp('/s/s-1/history')
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
-    expect(router.state.location.search).toMatchObject({ redirect: '/history' })
+    expect(router.state.location.search).toMatchObject({ redirect: '/s/s-1/history' })
   })
 
   it('lands on the attempted page after signing in', async () => {
     server.use(
       http.post(`${BASE}/auth/login`, () => HttpResponse.json(authResponse)),
       http.get(`${BASE}/me`, () => HttpResponse.json(authResponse.user)),
+      ...authedHandlers.filter((h) => !String(h.info.path).endsWith('/auth/refresh')),
     )
     const user = userEvent.setup()
-    const { router } = renderApp('/history')
+    const { router } = renderApp('/s/s-1/history')
     await user.type(await screen.findByLabelText('Email'), 'jane@example.com')
     await user.type(screen.getByLabelText('Password'), 'correct horse')
     await user.click(screen.getByRole('button', { name: 'Sign in' }))
     expect(await screen.findByRole('heading', { name: 'History' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/history')
+    expect(router.state.location.pathname).toBe('/s/s-1/history')
   })
 
   it('never redirects a signed-in user to an off-site target', async () => {
     server.use(...authedHandlers)
     const { router } = renderApp('/login?redirect=//evil.example')
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/')
+    expect(router.state.location.pathname).toBe('/s/s-1')
     expect(router.state.location.href).not.toContain('evil')
   })
 })
@@ -121,7 +122,7 @@ describe('login', () => {
   it('stores the token nowhere in browser storage', async () => {
     server.use(
       http.post(`${BASE}/auth/login`, () => HttpResponse.json(authResponse)),
-      http.get(`${BASE}/me`, () => HttpResponse.json(authResponse.user)),
+      ...authedHandlers.filter((h) => !String(h.info.path).endsWith('/auth/refresh')),
     )
     const user = userEvent.setup()
     renderApp('/login')
@@ -142,7 +143,7 @@ describe('register', () => {
         body = (await request.json()) as Record<string, unknown>
         return HttpResponse.json(authResponse, { status: 201 })
       }),
-      http.get(`${BASE}/me`, () => HttpResponse.json(authResponse.user)),
+      ...authedHandlers.filter((h) => !String(h.info.path).endsWith('/auth/refresh')),
     )
     const user = userEvent.setup()
     renderApp('/register')
@@ -268,23 +269,21 @@ describe('forgot and reset password', () => {
 })
 
 describe('session expiry', () => {
-  it('routes to /login when a refresh fails mid-session', async () => {
-    server.use(
-      ...authedHandlers,
-      http.get(`${BASE}/spaces`, () =>
-        HttpResponse.json(errorEnvelope('UNAUTHENTICATED'), { status: 401 }),
-      ),
-    )
+  it('routes to /login when a refresh fails mid-session, without an error', async () => {
+    server.use(...authedHandlers)
     const { router } = renderApp('/')
     await screen.findByRole('heading', { name: 'Home' })
-    // Now make the next refresh fail and trigger an authenticated call.
+    // Later requests are prepended, so these now win: the token is rejected and refresh fails.
     server.use(
+      http.get(`${BASE}/me`, () =>
+        HttpResponse.json(errorEnvelope('UNAUTHENTICATED'), { status: 401 }),
+      ),
       http.post(`${BASE}/auth/refresh`, () =>
         HttpResponse.json(errorEnvelope('REFRESH_TOKEN_INVALID'), { status: 401 }),
       ),
     )
     const { api } = await import('@/shared/api/client')
-    await api.GET('/spaces').catch(() => undefined)
+    await api.GET('/me').catch(() => undefined)
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
     // A 401 renders no error, it just routes to /login.
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()

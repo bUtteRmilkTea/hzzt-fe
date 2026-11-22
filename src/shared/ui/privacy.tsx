@@ -46,3 +46,21 @@ export function PrivacyProvider({
 export function usePrivacy(): PrivacyValue {
   return useContext(PrivacyContext)
 }
+
+/** Which entry keyboard MoneyInput uses by default (set from the user's preference). */
+export type KeyboardMode = 'calculator' | 'numeric'
+const KeyboardContext = createContext<KeyboardMode>('calculator')
+
+export function KeyboardModeProvider({
+  mode,
+  children,
+}: {
+  mode: KeyboardMode
+  children: ReactNode
+}) {
+  return <KeyboardContext.Provider value={mode}>{children}</KeyboardContext.Provider>
+}
+
+export function useKeyboardMode(): KeyboardMode {
+  return useContext(KeyboardContext)
+}

@@ -8,13 +8,13 @@ describe('signed in', () => {
   beforeEach(() => server.use(...authedHandlers))
 
   it('renders the home placeholder inside the shell', async () => {
-    renderApp('/')
+    renderApp('/s/s-1')
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
   })
 
   it('shows who is signed in and signs out back to /login', async () => {
-    const { router } = renderApp('/')
+    const { router } = renderApp('/s/s-1')
     expect(await screen.findByText('jane@example.com')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
@@ -22,9 +22,9 @@ describe('signed in', () => {
   })
 
   it.each([
-    ['/history', 'History'],
-    ['/wallets', 'Wallets'],
-    ['/assets', 'Assets'],
+    ['/s/s-1/history', 'History'],
+    ['/s/s-1/wallets', 'Wallets'],
+    ['/s/s-1/assets', 'Assets'],
   ])('renders %s', async (path, title) => {
     renderApp(path)
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument()
@@ -36,14 +36,21 @@ describe('signed in', () => {
   })
 
   it('opens the add sheet from the centre add button', async () => {
-    renderApp('/')
+    renderApp('/s/s-1')
     await userEvent.click(await screen.findByRole('button', { name: 'Add transaction' }))
     expect(await screen.findByRole('dialog', { name: 'Add transaction' })).toBeInTheDocument()
   })
 
-  it('redirects away from /login to home', async () => {
-    renderApp('/login')
+  it('redirects away from /login to the active space home', async () => {
+    const { router } = renderApp('/login')
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/s/s-1')
+  })
+
+  it('sends / to the active space', async () => {
+    const { router } = renderApp('/')
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/s/s-1')
   })
 })
 

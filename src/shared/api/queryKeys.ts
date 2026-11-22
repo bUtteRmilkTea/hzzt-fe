@@ -4,9 +4,15 @@
  */
 export const queryKeys = {
   me: () => ['me'] as const,
+  preferences: () => ['me', 'preferences'] as const,
+  spaces: () => ['spaces'] as const,
+  currencies: () => ['currencies'] as const,
   space: (spaceId: string) => ({
+    /** Prefix of every key for this space: used to drop its cache on a switch. */
     all: () => ['space', spaceId] as const,
-    // Resource factories are added by the phase that needs them, e.g.:
-    // wallets: (filters?: unknown) => ['space', spaceId, 'wallets', filters] as const,
+    members: () => ['space', spaceId, 'members'] as const,
+    invitation: () => ['space', spaceId, 'invitation'] as const,
+    manualRates: () => ['space', spaceId, 'manual-rates'] as const,
+    // Wallets, transactions and the rest are added by the phase that needs them.
   }),
 }

@@ -323,7 +323,7 @@ F0 and F1 need no backend at all, so you can start today. From F3 onward each ph
 | F0 | WSL environment, repository and tooling | — | — | Done (local e2e skipped: Chromium system libs not installed; CI runs it. Bundle check is `scripts/check-bundle.mjs` instead of size-limit) |
 | F1 | Design system, app shell and primitives | F0 | — | Done (local e2e skipped, CI runs it; mobile sheet focus trap and drag-dismiss verified only by e2e, not jsdom) |
 | F2 | API client, auth and session | F0, F1 | P2 | Done (local e2e skipped, CI runs it; `openapi-react-query` not used, plain `openapi-fetch` + TanStack Query) |
-| F3 | Spaces, settings, preferences and app lock | F2 | P3, P4, P5 | Backlog |
+| F3 | Spaces, settings, preferences and app lock | F2 | P3, P4, P5 | Done (local e2e skipped, CI runs it; Goals and Categories rows in Settings arrive with F8 and F6) |
 | F4 | Wallets and the card style editor | F3 | P7 | Backlog |
 | F6 | Categories and budgets | F3 | P6, P8 | Backlog |
 | F5 | Transactions, filters and transfers | F4, F6 | P8, P9 | Backlog |

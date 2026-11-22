@@ -7,7 +7,8 @@ import { cn } from './cn'
 import { useLayout } from './layout'
 
 interface NavItem {
-  to: LinkProps['to']
+  /** Every destination lives under /s/$spaceId. */
+  to: Extract<LinkProps['to'], `/s/$spaceId${string}`>
   label: string
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
   exact?: boolean
@@ -15,22 +16,35 @@ interface NavItem {
 
 /** Four destinations. The centre "add" button is separate (plan F1-T06). */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { to: '/', label: 'Home', icon: House, exact: true },
-  { to: '/history', label: 'History', icon: Clock },
-  { to: '/wallets', label: 'Wallets', icon: Wallet },
-  { to: '/assets', label: 'Assets', icon: Landmark },
+  { to: '/s/$spaceId', label: 'Home', icon: House, exact: true },
+  { to: '/s/$spaceId/history', label: 'History', icon: Clock },
+  { to: '/s/$spaceId/wallets', label: 'Wallets', icon: Wallet },
+  { to: '/s/$spaceId/assets', label: 'Assets', icon: Landmark },
 ]
 
 interface AppShellProps {
   children: ReactNode
   onAdd: () => void
+  /** The active space, used to build every nav link. */
+  spaceId: string
+  /** Top bar content (space switcher, settings, reveal toggle). Provided by the route. */
+  header?: ReactNode
 }
 
-function NavLink({ item, layout }: { item: NavItem; layout: 'tab' | 'side' }) {
+function NavLink({
+  item,
+  layout,
+  spaceId,
+}: {
+  item: NavItem
+  layout: 'tab' | 'side'
+  spaceId: string
+}) {
   const Icon = item.icon
   return (
     <Link
       to={item.to}
+      params={{ spaceId }}
       activeOptions={{ exact: item.exact ?? false }}
       className={cn(
         'group flex items-center text-label-secondary transition-colors duration-150 [&.active]:text-label',
@@ -68,7 +82,7 @@ function AddButton({ onAdd, layout }: { onAdd: () => void; layout: 'tab' | 'side
 }
 
 /** One shell, chosen by a single media query (read once in LayoutProvider). */
-export function AppShell({ children, onAdd }: AppShellProps) {
+export function AppShell({ children, onAdd, spaceId, header }: AppShellProps) {
   const { isDesktop } = useLayout()
 
   if (isDesktop) {
@@ -78,14 +92,21 @@ export function AppShell({ children, onAdd }: AppShellProps) {
           <p className="px-3 pt-2 pb-4 text-lg font-semibold">HZZT</p>
           <nav aria-label="Primary" className="flex flex-col gap-1">
             {NAV_ITEMS.map((item) => (
-              <NavLink key={item.label} item={item} layout="side" />
+              <NavLink key={item.label} item={item} layout="side" spaceId={spaceId} />
             ))}
           </nav>
           <div className="mt-4">
             <AddButton onAdd={onAdd} layout="side" />
           </div>
         </aside>
-        <main className="ml-60 min-h-dvh p-8">{children}</main>
+        <div className="ml-60 min-h-dvh">
+          {header ? (
+            <header className="flex items-center justify-between gap-3 border-b border-border px-8 py-3">
+              {header}
+            </header>
+          ) : null}
+          <main className="p-8">{children}</main>
+        </div>
       </div>
     )
   }
@@ -93,17 +114,22 @@ export function AppShell({ children, onAdd }: AppShellProps) {
   const [home, history, wallets, assets] = NAV_ITEMS as [NavItem, NavItem, NavItem, NavItem]
   return (
     <div className="min-h-dvh">
+      {header ? (
+        <header className="pt-safe sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-bg/90 px-4 py-2 backdrop-blur-[20px]">
+          {header}
+        </header>
+      ) : null}
       <main className="px-4 pt-6 pb-32">{children}</main>
       <nav
         aria-label="Primary"
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
         className="fixed inset-x-4 z-40 mx-auto flex max-w-md items-center rounded-full border border-border bg-surface-2 px-2 py-1.5 shadow-sheet supports-[backdrop-filter]:bg-chrome supports-[backdrop-filter]:backdrop-blur-[20px]"
       >
-        <NavLink item={home} layout="tab" />
-        <NavLink item={history} layout="tab" />
+        <NavLink item={home} layout="tab" spaceId={spaceId} />
+        <NavLink item={history} layout="tab" spaceId={spaceId} />
         <AddButton onAdd={onAdd} layout="tab" />
-        <NavLink item={wallets} layout="tab" />
-        <NavLink item={assets} layout="tab" />
+        <NavLink item={wallets} layout="tab" spaceId={spaceId} />
+        <NavLink item={assets} layout="tab" spaceId={spaceId} />
       </nav>
     </div>
   )

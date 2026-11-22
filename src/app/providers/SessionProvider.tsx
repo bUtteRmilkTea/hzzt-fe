@@ -31,6 +31,8 @@ export interface SessionValue {
   /** Call after a successful login or register. */
   startSession: (auth: AuthResponse) => void
   logout: () => Promise<void>
+  /** Replace the signed-in user's details, e.g. after editing the profile. */
+  applyUser: (dto: UserDTO) => void
 }
 
 /** The backend declares every response field optional; the ones we rely on must be present. */
@@ -117,9 +119,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setStatus('unauthenticated')
   }, [queryClient])
 
+  const applyUser = useCallback((dto: UserDTO) => setUser(toSessionUser(dto)), [])
+
   const value = useMemo(
-    () => ({ user, status, startSession, logout }),
-    [user, status, startSession, logout],
+    () => ({ user, status, startSession, logout, applyUser }),
+    [user, status, startSession, logout, applyUser],
   )
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
 }

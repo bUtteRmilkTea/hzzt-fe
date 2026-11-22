@@ -83,13 +83,13 @@ test('a signed-out visit to a protected page redirects to login and returns afte
   page,
 }) => {
   await installFakeApi(page)
-  await page.goto('/history')
-  await expect(page).toHaveURL(/\/login\?redirect=%2Fhistory/)
+  await page.goto('/s/s-1/history')
+  await expect(page).toHaveURL(/\/login\?redirect=%2Fs%2Fs-1%2Fhistory/)
   await page.getByLabel('Email').fill('jane@example.com')
   await page.getByLabel('Password').fill('correct horse')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByRole('heading', { name: 'History' })).toBeVisible()
-  await expect(page).toHaveURL(/\/history$/)
+  await expect(page).toHaveURL(/\/s\/s-1\/history$/)
 })
 
 test('sign out returns to the login screen and stays signed out after reload', async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe('app shell', () => {
     await expect(nav.getByRole('link', { name: 'History' })).toBeVisible()
     await expect(nav.getByRole('button', { name: 'Add transaction' })).toBeVisible()
     await nav.getByRole('link', { name: 'Wallets' }).click()
-    await expect(page).toHaveURL(/\/wallets$/)
+    await expect(page).toHaveURL(/\/s\/s-1\/wallets$/)
   })
 
   test('sidebar on desktop', async ({ page }) => {

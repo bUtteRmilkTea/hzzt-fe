@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { applyKey, type CalcKey, evaluate, OP_GLYPH, parseInput } from '@/shared/money'
 import { cn } from './cn'
 import { Input } from './Input'
+import { useKeyboardMode } from './privacy'
 
 interface MoneyInputProps {
   /** Current value as an API money string ('' when empty). */
@@ -122,6 +123,11 @@ function NumericInput({ value, onChange, currency, id, invalid, ...rest }: Money
   )
 }
 
-export function MoneyInput({ mode = 'calculator', ...props }: MoneyInputProps) {
-  return mode === 'calculator' ? <CalculatorInput {...props} /> : <NumericInput {...props} />
+export function MoneyInput({ mode, ...props }: MoneyInputProps) {
+  const preferred = useKeyboardMode()
+  return (mode ?? preferred) === 'calculator' ? (
+    <CalculatorInput {...props} />
+  ) : (
+    <NumericInput {...props} />
+  )
 }

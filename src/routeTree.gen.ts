@@ -13,13 +13,21 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as GalleryRouteImport } from './routes/[_]gallery'
 import { Route as GuestRouteImport } from './routes/_guest'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
-import { Route as AuthedAssetsRouteImport } from './routes/_authed/assets'
-import { Route as AuthedHistoryRouteImport } from './routes/_authed/history'
-import { Route as AuthedWalletsRouteImport } from './routes/_authed/wallets'
 import { Route as GuestForgotPasswordRouteImport } from './routes/_guest/forgot-password'
 import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
 import { Route as GuestResetPasswordRouteImport } from './routes/_guest/reset-password'
+import { Route as AuthedInvitationsCodeRouteImport } from './routes/_authed/invitations/$code'
+import { Route as AuthedSSpaceIdRouteRouteImport } from './routes/_authed/s/$spaceId/route'
+import { Route as AuthedSettingsIndexRouteImport } from './routes/_authed/settings/index'
+import { Route as AuthedSettingsCurrencyRouteImport } from './routes/_authed/settings/currency'
+import { Route as AuthedSettingsProfileRouteImport } from './routes/_authed/settings/profile'
+import { Route as AuthedSettingsSecurityRouteImport } from './routes/_authed/settings/security'
+import { Route as AuthedSettingsSpaceRouteImport } from './routes/_authed/settings/space'
+import { Route as AuthedSSpaceIdIndexRouteImport } from './routes/_authed/s/$spaceId/index'
+import { Route as AuthedSSpaceIdAssetsRouteImport } from './routes/_authed/s/$spaceId/assets'
+import { Route as AuthedSSpaceIdHistoryRouteImport } from './routes/_authed/s/$spaceId/history'
+import { Route as AuthedSSpaceIdWalletsRouteImport } from './routes/_authed/s/$spaceId/wallets'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -37,21 +45,6 @@ const GuestRoute = GuestRouteImport.update({
 const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedAssetsRoute = AuthedAssetsRouteImport.update({
-  id: '/assets',
-  path: '/assets',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedHistoryRoute = AuthedHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedWalletsRoute = AuthedWalletsRouteImport.update({
-  id: '/wallets',
-  path: '/wallets',
   getParentRoute: () => AuthedRoute,
 } as any)
 const GuestForgotPasswordRoute = GuestForgotPasswordRouteImport.update({
@@ -74,79 +67,180 @@ const GuestResetPasswordRoute = GuestResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => GuestRoute,
 } as any)
+const AuthedInvitationsCodeRoute = AuthedInvitationsCodeRouteImport.update({
+  id: '/invitations/$code',
+  path: '/invitations/$code',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSSpaceIdRouteRoute = AuthedSSpaceIdRouteRouteImport.update({
+  id: '/s/$spaceId',
+  path: '/s/$spaceId',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsIndexRoute = AuthedSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsCurrencyRoute = AuthedSettingsCurrencyRouteImport.update({
+  id: '/settings/currency',
+  path: '/settings/currency',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsProfileRoute = AuthedSettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsSecurityRoute = AuthedSettingsSecurityRouteImport.update({
+  id: '/settings/security',
+  path: '/settings/security',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsSpaceRoute = AuthedSettingsSpaceRouteImport.update({
+  id: '/settings/space',
+  path: '/settings/space',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSSpaceIdIndexRoute = AuthedSSpaceIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedSSpaceIdRouteRoute,
+} as any)
+const AuthedSSpaceIdAssetsRoute = AuthedSSpaceIdAssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => AuthedSSpaceIdRouteRoute,
+} as any)
+const AuthedSSpaceIdHistoryRoute = AuthedSSpaceIdHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthedSSpaceIdRouteRoute,
+} as any)
+const AuthedSSpaceIdWalletsRoute = AuthedSSpaceIdWalletsRouteImport.update({
+  id: '/wallets',
+  path: '/wallets',
+  getParentRoute: () => AuthedSSpaceIdRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/_gallery': typeof GalleryRoute
-  '/assets': typeof AuthedAssetsRoute
-  '/history': typeof AuthedHistoryRoute
-  '/wallets': typeof AuthedWalletsRoute
   '/forgot-password': typeof GuestForgotPasswordRoute
   '/login': typeof GuestLoginRoute
   '/register': typeof GuestRegisterRoute
   '/reset-password': typeof GuestResetPasswordRoute
+  '/s/$spaceId': typeof AuthedSSpaceIdRouteRouteWithChildren
+  '/invitations/$code': typeof AuthedInvitationsCodeRoute
+  '/settings/currency': typeof AuthedSettingsCurrencyRoute
+  '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/security': typeof AuthedSettingsSecurityRoute
+  '/settings/space': typeof AuthedSettingsSpaceRoute
+  '/settings/': typeof AuthedSettingsIndexRoute
+  '/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsRoute
+  '/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRoute
+  '/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsRoute
+  '/s/$spaceId/': typeof AuthedSSpaceIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/_gallery': typeof GalleryRoute
   '/': typeof AuthedIndexRoute
-  '/assets': typeof AuthedAssetsRoute
-  '/history': typeof AuthedHistoryRoute
-  '/wallets': typeof AuthedWalletsRoute
   '/forgot-password': typeof GuestForgotPasswordRoute
   '/login': typeof GuestLoginRoute
   '/register': typeof GuestRegisterRoute
   '/reset-password': typeof GuestResetPasswordRoute
+  '/invitations/$code': typeof AuthedInvitationsCodeRoute
+  '/settings/currency': typeof AuthedSettingsCurrencyRoute
+  '/settings/profile': typeof AuthedSettingsProfileRoute
+  '/settings/security': typeof AuthedSettingsSecurityRoute
+  '/settings/space': typeof AuthedSettingsSpaceRoute
+  '/settings': typeof AuthedSettingsIndexRoute
+  '/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsRoute
+  '/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRoute
+  '/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsRoute
+  '/s/$spaceId': typeof AuthedSSpaceIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteWithChildren
   '/_gallery': typeof GalleryRoute
   '/_guest': typeof GuestRouteWithChildren
-  '/_authed/assets': typeof AuthedAssetsRoute
-  '/_authed/history': typeof AuthedHistoryRoute
-  '/_authed/wallets': typeof AuthedWalletsRoute
   '/_guest/forgot-password': typeof GuestForgotPasswordRoute
   '/_guest/login': typeof GuestLoginRoute
   '/_guest/register': typeof GuestRegisterRoute
   '/_guest/reset-password': typeof GuestResetPasswordRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/s/$spaceId': typeof AuthedSSpaceIdRouteRouteWithChildren
+  '/_authed/invitations/$code': typeof AuthedInvitationsCodeRoute
+  '/_authed/settings/currency': typeof AuthedSettingsCurrencyRoute
+  '/_authed/settings/profile': typeof AuthedSettingsProfileRoute
+  '/_authed/settings/security': typeof AuthedSettingsSecurityRoute
+  '/_authed/settings/space': typeof AuthedSettingsSpaceRoute
+  '/_authed/settings/': typeof AuthedSettingsIndexRoute
+  '/_authed/s/$spaceId/assets': typeof AuthedSSpaceIdAssetsRoute
+  '/_authed/s/$spaceId/history': typeof AuthedSSpaceIdHistoryRoute
+  '/_authed/s/$spaceId/wallets': typeof AuthedSSpaceIdWalletsRoute
+  '/_authed/s/$spaceId/': typeof AuthedSSpaceIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/_gallery'
-    | '/assets'
-    | '/history'
-    | '/wallets'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/s/$spaceId'
+    | '/invitations/$code'
+    | '/settings/currency'
+    | '/settings/profile'
+    | '/settings/security'
+    | '/settings/space'
+    | '/settings/'
+    | '/s/$spaceId/assets'
+    | '/s/$spaceId/history'
+    | '/s/$spaceId/wallets'
+    | '/s/$spaceId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/_gallery'
     | '/'
-    | '/assets'
-    | '/history'
-    | '/wallets'
     | '/forgot-password'
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/invitations/$code'
+    | '/settings/currency'
+    | '/settings/profile'
+    | '/settings/security'
+    | '/settings/space'
+    | '/settings'
+    | '/s/$spaceId/assets'
+    | '/s/$spaceId/history'
+    | '/s/$spaceId/wallets'
+    | '/s/$spaceId'
   id:
     | '__root__'
     | '/_authed'
     | '/_gallery'
     | '/_guest'
-    | '/_authed/assets'
-    | '/_authed/history'
-    | '/_authed/wallets'
     | '/_guest/forgot-password'
     | '/_guest/login'
     | '/_guest/register'
     | '/_guest/reset-password'
     | '/_authed/'
+    | '/_authed/s/$spaceId'
+    | '/_authed/invitations/$code'
+    | '/_authed/settings/currency'
+    | '/_authed/settings/profile'
+    | '/_authed/settings/security'
+    | '/_authed/settings/space'
+    | '/_authed/settings/'
+    | '/_authed/s/$spaceId/assets'
+    | '/_authed/s/$spaceId/history'
+    | '/_authed/s/$spaceId/wallets'
+    | '/_authed/s/$spaceId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -185,27 +279,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/assets': {
-      id: '/_authed/assets'
-      path: '/assets'
-      fullPath: '/assets'
-      preLoaderRoute: typeof AuthedAssetsRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/history': {
-      id: '/_authed/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof AuthedHistoryRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/wallets': {
-      id: '/_authed/wallets'
-      path: '/wallets'
-      fullPath: '/wallets'
-      preLoaderRoute: typeof AuthedWalletsRouteImport
-      parentRoute: typeof AuthedRoute
-    }
     '/_guest/forgot-password': {
       id: '/_guest/forgot-password'
       path: '/forgot-password'
@@ -234,21 +307,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuestResetPasswordRouteImport
       parentRoute: typeof GuestRoute
     }
+    '/_authed/invitations/$code': {
+      id: '/_authed/invitations/$code'
+      path: '/invitations/$code'
+      fullPath: '/invitations/$code'
+      preLoaderRoute: typeof AuthedInvitationsCodeRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/s/$spaceId': {
+      id: '/_authed/s/$spaceId'
+      path: '/s/$spaceId'
+      fullPath: '/s/$spaceId'
+      preLoaderRoute: typeof AuthedSSpaceIdRouteRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/': {
+      id: '/_authed/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthedSettingsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/currency': {
+      id: '/_authed/settings/currency'
+      path: '/settings/currency'
+      fullPath: '/settings/currency'
+      preLoaderRoute: typeof AuthedSettingsCurrencyRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/profile': {
+      id: '/_authed/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthedSettingsProfileRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/security': {
+      id: '/_authed/settings/security'
+      path: '/settings/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AuthedSettingsSecurityRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings/space': {
+      id: '/_authed/settings/space'
+      path: '/settings/space'
+      fullPath: '/settings/space'
+      preLoaderRoute: typeof AuthedSettingsSpaceRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/s/$spaceId/': {
+      id: '/_authed/s/$spaceId/'
+      path: '/'
+      fullPath: '/s/$spaceId/'
+      preLoaderRoute: typeof AuthedSSpaceIdIndexRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/assets': {
+      id: '/_authed/s/$spaceId/assets'
+      path: '/assets'
+      fullPath: '/s/$spaceId/assets'
+      preLoaderRoute: typeof AuthedSSpaceIdAssetsRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/history': {
+      id: '/_authed/s/$spaceId/history'
+      path: '/history'
+      fullPath: '/s/$spaceId/history'
+      preLoaderRoute: typeof AuthedSSpaceIdHistoryRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
+    '/_authed/s/$spaceId/wallets': {
+      id: '/_authed/s/$spaceId/wallets'
+      path: '/wallets'
+      fullPath: '/s/$spaceId/wallets'
+      preLoaderRoute: typeof AuthedSSpaceIdWalletsRouteImport
+      parentRoute: typeof AuthedSSpaceIdRouteRoute
+    }
   }
 }
 
+interface AuthedSSpaceIdRouteRouteChildren {
+  AuthedSSpaceIdAssetsRoute: typeof AuthedSSpaceIdAssetsRoute
+  AuthedSSpaceIdHistoryRoute: typeof AuthedSSpaceIdHistoryRoute
+  AuthedSSpaceIdWalletsRoute: typeof AuthedSSpaceIdWalletsRoute
+  AuthedSSpaceIdIndexRoute: typeof AuthedSSpaceIdIndexRoute
+}
+
+const AuthedSSpaceIdRouteRouteChildren: AuthedSSpaceIdRouteRouteChildren = {
+  AuthedSSpaceIdAssetsRoute: AuthedSSpaceIdAssetsRoute,
+  AuthedSSpaceIdHistoryRoute: AuthedSSpaceIdHistoryRoute,
+  AuthedSSpaceIdWalletsRoute: AuthedSSpaceIdWalletsRoute,
+  AuthedSSpaceIdIndexRoute: AuthedSSpaceIdIndexRoute,
+}
+
+const AuthedSSpaceIdRouteRouteWithChildren =
+  AuthedSSpaceIdRouteRoute._addFileChildren(AuthedSSpaceIdRouteRouteChildren)
+
 interface AuthedRouteChildren {
-  AuthedAssetsRoute: typeof AuthedAssetsRoute
-  AuthedHistoryRoute: typeof AuthedHistoryRoute
-  AuthedWalletsRoute: typeof AuthedWalletsRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedSSpaceIdRouteRoute: typeof AuthedSSpaceIdRouteRouteWithChildren
+  AuthedInvitationsCodeRoute: typeof AuthedInvitationsCodeRoute
+  AuthedSettingsCurrencyRoute: typeof AuthedSettingsCurrencyRoute
+  AuthedSettingsProfileRoute: typeof AuthedSettingsProfileRoute
+  AuthedSettingsSecurityRoute: typeof AuthedSettingsSecurityRoute
+  AuthedSettingsSpaceRoute: typeof AuthedSettingsSpaceRoute
+  AuthedSettingsIndexRoute: typeof AuthedSettingsIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
-  AuthedAssetsRoute: AuthedAssetsRoute,
-  AuthedHistoryRoute: AuthedHistoryRoute,
-  AuthedWalletsRoute: AuthedWalletsRoute,
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedSSpaceIdRouteRoute: AuthedSSpaceIdRouteRouteWithChildren,
+  AuthedInvitationsCodeRoute: AuthedInvitationsCodeRoute,
+  AuthedSettingsCurrencyRoute: AuthedSettingsCurrencyRoute,
+  AuthedSettingsProfileRoute: AuthedSettingsProfileRoute,
+  AuthedSettingsSecurityRoute: AuthedSettingsSecurityRoute,
+  AuthedSettingsSpaceRoute: AuthedSettingsSpaceRoute,
+  AuthedSettingsIndexRoute: AuthedSettingsIndexRoute,
 }
 
 const AuthedRouteWithChildren =

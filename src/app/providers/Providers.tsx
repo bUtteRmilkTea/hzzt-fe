@@ -1,3 +1,4 @@
+import type { QueryClient } from '@tanstack/react-query'
 import { LazyMotion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { LayoutProvider } from '@/shared/ui/layout'
@@ -10,14 +11,20 @@ import { ThemeProvider } from './ThemeProvider'
 const loadMotionFeatures = () => import('./motionFeatures').then((m) => m.default)
 
 /** Provider order: theme and layout first, then privacy, motion, toasts, data, session. */
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+  children,
+  queryClient,
+}: {
+  children: ReactNode
+  queryClient?: QueryClient
+}) {
   return (
     <ThemeProvider>
       <LayoutProvider>
         <PrivacyProvider>
           <LazyMotion features={loadMotionFeatures} strict>
             <ToastProvider>
-              <QueryProvider>
+              <QueryProvider client={queryClient}>
                 <SessionProvider>{children}</SessionProvider>
               </QueryProvider>
             </ToastProvider>
