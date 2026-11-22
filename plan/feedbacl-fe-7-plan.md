@@ -61,18 +61,18 @@ F30 and F32 are independent. F31 can start now, with its line chart held back un
 - [x] F30-T03 Remove the per-section pies (`SectionPie`, `manualSlices`, the `chart` prop, the Assets `SplitSwitch`)
 - [x] F30-T04 Tests (vitest only; the Playwright layout check was skipped by request and is still to do)
 
-**F31**
+**F31** (deferred by request: the line chart waits on D-F39, so the hero was left as it is)
 - [ ] F31-T01 Hero layout: summary row, then a left half (line) and a right half (pie with the class and asset switch)
 - [ ] F31-T02 `usePortfolioHistory` and the line chart (blocked on D-F39; empty state until the endpoint exists)
 - [ ] F31-T03 Short data note (chosen range longer than the data, D-F43)
 - [ ] F31-T04 Tests
 
 **F32**
-- [ ] F32-T01 Remove the grip handle, make the whole card the drag source
-- [ ] F32-T02 Fix `.stagger-in` so it cannot override dnd-kit's transform
-- [ ] F32-T03 `DragOverlay`, lift, neighbour slide and drop animation
-- [ ] F32-T04 Click, touch and link behaviour (no native link drag, no click after a drop, 200 ms touch hold)
-- [ ] F32-T05 Tests in real Chromium (mouse and touch) and the bundle check
+- [x] F32-T01 Remove the grip handle, make the whole card the drag source
+- [x] F32-T02 Fix `.stagger-in` so it cannot override dnd-kit's transform
+- [x] F32-T03 `DragOverlay`, lift, neighbour slide and drop animation
+- [x] F32-T04 Click, touch and link behaviour (no native link drag, no click after a drop, 200 ms touch hold)
+- [x] F32-T05 Tests and bundle (vitest and `pnpm size` pass; a CSS test guards the stagger fix. The real-Chromium drag, animation, touch and click checks were skipped by request and are STILL TO DO, so the smooth animation is not yet verified in a browser)
 
 ### F30: One combined pie on the Assets page
 

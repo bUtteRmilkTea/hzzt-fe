@@ -186,7 +186,9 @@
   }
 }
 .stagger-in {
-  animation: row-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  /* `backwards`, not `both`: after it ends the element must keep no `transform` of its own, or it
+     would override inline transforms such as the drag-and-drop one. */
+  animation: row-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
   animation-delay: calc(min(var(--i, 0), 12) * 45ms);
 }
 @media (prefers-reduced-motion: reduce) {

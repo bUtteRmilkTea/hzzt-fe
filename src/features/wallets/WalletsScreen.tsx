@@ -37,7 +37,7 @@ function TotalCard({ value, currency }: { value: string; currency: string }) {
 
 /**
  * A sortable list of wallet cards: from 1024px a grid, below it the single column shown while
- * reordering. Each card drags by its grip handle; the card itself is still a link.
+ * reordering. The whole card drags (no handle); the card itself is still a link.
  */
 function WalletGrid({
   wallets,
@@ -52,11 +52,27 @@ function WalletGrid({
   onReorder: (from: number, to: number) => void
   layout: 'grid' | 'list'
 }) {
+  const card = (w: WalletDTO) => (
+    <WalletCard
+      name={w.name ?? ''}
+      icon={w.icon ?? '💳'}
+      balance={w.balance ?? '0'}
+      currency={w.currency ?? ''}
+      type={w.type ?? 'OTHER'}
+      cardStyle={w.cardStyle}
+      isFavorite={w.isFavorite}
+      display={prefsOf(w)}
+    />
+  )
   return (
     <SortableList
       ids={wallets.map((w) => w.id as string)}
       onReorder={onReorder}
       layout={layout}
+      renderOverlay={(id) => {
+        const w = wallets.find((x) => x.id === id)
+        return w ? card(w) : null
+      }}
       className={cn(
         'grid grid-cols-1 gap-4',
         layout === 'grid' && 'sm:grid-cols-2 lg:gap-6 2xl:grid-cols-3',
@@ -66,7 +82,6 @@ function WalletGrid({
         <SortableItem
           key={w.id}
           id={w.id as string}
-          label={`Reorder ${w.name}`}
           data-testid="wallet-grid-item"
           className={cn('flex min-w-0 flex-col gap-2', STAGGER)}
           style={staggerStyle(i)}
@@ -75,18 +90,10 @@ function WalletGrid({
             to="/s/$spaceId/wallets/$id"
             params={{ spaceId, id: w.id as string }}
             aria-label={`${w.name}, open wallet`}
-            className="card-interactive block rounded-lg"
+            draggable={false}
+            className="card-interactive block rounded-lg [-webkit-user-drag:none]"
           >
-            <WalletCard
-              name={w.name ?? ''}
-              icon={w.icon ?? '💳'}
-              balance={w.balance ?? '0'}
-              currency={w.currency ?? ''}
-              type={w.type ?? 'OTHER'}
-              cardStyle={w.cardStyle}
-              isFavorite={w.isFavorite}
-              display={prefsOf(w)}
-            />
+            {card(w)}
           </Link>
           {renderAside(w, i)}
         </SortableItem>
