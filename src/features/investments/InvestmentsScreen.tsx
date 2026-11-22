@@ -11,8 +11,8 @@ import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { SplitSwitch } from '@/shared/ui/SplitSwitch'
-import { useSplitMode } from '@/shared/ui/useSplitMode'
 import { TwoColumn } from '@/shared/ui/TwoColumn'
+import { useSplitMode } from '@/shared/ui/useSplitMode'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { CategoryPanel } from './CategoryPanel'
 import { useInvestments, useInvestmentTypes } from './hooks'
@@ -28,14 +28,10 @@ export function InvestmentsScreen() {
   const [mode, setMode] = useSplitMode('investments-pie-mode')
   const label = (assetType: string) =>
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
-  const pieSlices = useMemo(
-    () =>
-      mode === 'class'
-        ? categorySlices(list.data?.items ?? [], label)
-        : topSlices(list.data?.items ?? []),
-    // biome-ignore lint/correctness/useExhaustiveDependencies: label only changes with types.data
-    [list.data, mode, types.data],
-  )
+  const pieSlices =
+    mode === 'class'
+      ? categorySlices(list.data?.items ?? [], label)
+      : topSlices(list.data?.items ?? [])
 
   const panel = (g: (typeof groups)[number]) => (
     <CategoryPanel
