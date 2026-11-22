@@ -85,13 +85,13 @@ Tick a task only after tests pass and the app starts. Added by the build loop; t
 - [x] F11-T08 Tests (unit tests for exact `134.26` and hidden-amount DOM at several frames pass; the Playwright spec `test/e2e/layout-motion.spec.ts` is written but NOT run: Chromium system libs are missing locally, so run `pnpm test:e2e` once on a machine with a browser)
 
 **F12**
-- [ ] F12-T01 History toolbar
-- [ ] F12-T02 Filter panel
-- [ ] F12-T03 Active filter chips
-- [ ] F12-T04 Fill the width
-- [ ] F12-T05 Assets layout
-- [ ] F12-T06 Collapsed summaries
-- [ ] F12-T07 Tests
+- [x] F12-T01 History toolbar
+- [x] F12-T02 Filter panel
+- [x] F12-T03 Active filter chips
+- [x] F12-T04 Fill the width
+- [x] F12-T05 Assets layout
+- [x] F12-T06 Collapsed summaries
+- [x] F12-T07 Tests (unit and component tests pass; the Playwright specs `assets-layout`, `history-desktop` are written but NOT run: Chromium system libs are missing locally)
 
 **F13**
 - [ ] F13-T01 Portfolio hero

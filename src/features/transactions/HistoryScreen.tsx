@@ -7,15 +7,15 @@ import { useDebounce } from '@/shared/hooks/useDebounce'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Input } from '@/shared/ui/Input'
-import { useLayout } from '@/shared/ui/layout'
 import { Page } from '@/shared/ui/Page'
 import { PeriodPicker } from '@/shared/ui/PeriodPicker'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { DayGroupHeader, TransactionRow } from '@/shared/ui/TransactionRow'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
+import { ActiveFilterChips } from './ActiveFilterChips'
 import { dayOf } from './datetime'
-import { FilterPanel } from './FilterPanel'
 import { activeFilterCount, filtersFromSearch, filtersToSearch, hasAnyFilter } from './filters'
+import { HistorySummaryRail } from './HistorySummaryRail'
 import { useDailySummary, useTransactions } from './hooks'
 import type { PendingTransaction } from './optimistic'
 
@@ -44,7 +44,6 @@ export function toRows(items: readonly PendingTransaction[]): Row[] {
 
 export function HistoryScreen() {
   const { space } = useSpace()
-  const { isWide } = useLayout()
   const search = useSearch({ from: '/_authed/s/$spaceId/history' })
   const navigate = useNavigate()
   const filters = useMemo(() => filtersFromSearch(search), [search])
@@ -91,15 +90,22 @@ export function HistoryScreen() {
   const count = activeFilterCount(filters)
   const filtered = hasAnyFilter(filters)
 
+  const writeFilters = (next: typeof filters) =>
+    navigate({
+      to: '/s/$spaceId/history',
+      params: { spaceId: space.id },
+      search: filtersToSearch(next),
+      replace: true,
+    })
+
   return (
     <Page className="flex-row gap-6">
-      {isWide ? <FilterPanel /> : null}
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <h1 className="text-xl font-semibold">History</h1>
 
         <div className="sticky top-14 z-20 -mx-4 flex flex-col gap-2 bg-bg px-4 py-2 lg:top-0 lg:mx-0 lg:px-0">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-48 flex-1">
               <Search
                 aria-hidden
                 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-label-tertiary"
@@ -113,37 +119,27 @@ export function HistoryScreen() {
                 className="pl-9"
               />
             </div>
-            {isWide ? null : (
-              <Link
-                to="/s/$spaceId/history/filters"
-                params={{ spaceId: space.id }}
-                search={(prev) => prev}
-                aria-label={count > 0 ? `Filters, ${count} active` : 'Filters'}
-                className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface-1"
-              >
-                <ListFilter aria-hidden className="size-5" />
-                {count > 0 ? (
-                  <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-label">
-                    {count}
-                  </span>
-                ) : null}
-              </Link>
-            )}
-          </div>
-          {isWide ? null : (
             <PeriodPicker
               value={filters.period}
-              className="self-start"
-              onChange={(p) =>
-                navigate({
-                  to: '/s/$spaceId/history',
-                  params: { spaceId: space.id },
-                  search: filtersToSearch({ ...filters, period: p }),
-                  replace: true,
-                })
-              }
+              onChange={(p) => writeFilters({ ...filters, period: p })}
             />
-          )}
+            <Link
+              to="/s/$spaceId/history/filters"
+              params={{ spaceId: space.id }}
+              search={(prev) => prev}
+              aria-label={count > 0 ? `Filters, ${count} active` : 'Filters'}
+              className="relative inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-surface-1 px-4 text-sm font-medium"
+            >
+              <ListFilter aria-hidden className="size-4" />
+              Filters
+              {count > 0 ? (
+                <span className="flex size-5 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-label">
+                  {count}
+                </span>
+              ) : null}
+            </Link>
+          </div>
+          <ActiveFilterChips spaceId={space.id} filters={filters} onChange={writeFilters} />
         </div>
 
         <WarningsStrip warnings={summary.data?.warnings} />
@@ -227,7 +223,11 @@ export function HistoryScreen() {
                         params={{ spaceId: space.id, id: row.txn.id as string }}
                         className="block border-b border-border"
                       >
-                        <TransactionRow transaction={row.txn} pending={row.txn.pending} />
+                        <TransactionRow
+                          transaction={row.txn}
+                          pending={row.txn.pending}
+                          showWallet
+                        />
                       </Link>
                     )}
                   </li>
@@ -240,6 +240,7 @@ export function HistoryScreen() {
 
         <Outlet />
       </div>
+      <HistorySummaryRail period={filters.period} />
     </Page>
   )
 }

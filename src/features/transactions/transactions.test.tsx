@@ -5,6 +5,7 @@ import { HttpResponse, http } from 'msw'
 import { setMedia } from '../../../test/matchMedia'
 import { BASE, errorEnvelope, makeAuthedHandlers } from '../../../test/msw/api'
 import { seededExpense, seededIncome } from '../../../test/msw/categories'
+import { breakdown, overview } from '../../../test/msw/dashboard'
 import { server } from '../../../test/msw/server'
 import { bank, cash, savings, txn, walletList } from '../../../test/msw/wallets'
 import { renderApp } from '../../../test/renderApp'
@@ -807,31 +808,73 @@ describe('default date', () => {
   })
 })
 
-describe('inline filter panel at 1024px+ (S3)', () => {
+describe('history toolbar, filter panel and chips at 1024px+ (F12)', () => {
+  const D = `${BASE}/spaces/s-1/dashboard`
   beforeEach(() => {
     setMedia({ desktop: true, wide: true })
     server.use(...makeAuthedHandlers())
     server.use(
       wallets,
       categories,
-      http.get(T, () => HttpResponse.json({ items: [] })),
+      http.get(T, () =>
+        HttpResponse.json({
+          items: [txn({ id: 'a', title: 'Lunch', wallet: { id: 'w-1', name: 'Cash' } })],
+        }),
+      ),
+      http.get(`${D}/overview`, () => HttpResponse.json(overview())),
+      http.get(`${D}/category-breakdown`, () => HttpResponse.json(breakdown())),
     )
   })
   afterEach(() => setMedia({ desktop: false, wide: false }))
 
-  it('filters without a sheet: each choice updates the URL straight away', async () => {
+  it('has no permanent filter column: search, period and a Filters button sit in a toolbar', async () => {
+    renderApp('/s/s-1/history')
+    expect(await screen.findByRole('searchbox', { name: 'Search transactions' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Filters' })).toBeVisible()
+    expect(screen.getByRole('button', { name: /This period|Period/ })).toBeVisible()
+    expect(screen.queryByTestId('filter-panel')).not.toBeInTheDocument()
+  })
+
+  it('opens the filters as a right-side panel with a sticky Apply and Clear, and Apply writes the URL', async () => {
     const user = userEvent.setup()
     const { router } = renderApp('/s/s-1/history')
-    const panel = await screen.findByTestId('filter-panel')
-    expect(screen.queryByRole('link', { name: 'Filters' })).not.toBeInTheDocument()
+    await user.click(await screen.findByRole('link', { name: 'Filters' }))
+    const panel = await screen.findByRole('dialog', { name: 'Filters' })
+    expect(within(panel).getByRole('button', { name: 'Clear' })).toBeVisible()
     await user.click(within(panel).getByRole('button', { name: 'Last 7 days' }))
+    // Nothing is written until Apply.
+    expect(router.state.location.search).not.toMatchObject({ period: 'LAST_7_DAYS' })
+    await user.click(within(panel).getByRole('button', { name: 'Apply' }))
     await waitFor(() =>
       expect(router.state.location.search).toMatchObject({ period: 'LAST_7_DAYS' }),
     )
-    await user.click(await within(panel).findByRole('button', { name: /Food/ }))
-    await waitFor(() =>
-      expect(router.state.location.search).toMatchObject({ categoryIds: ['e-0'] }),
-    )
-    expect(screen.queryByRole('dialog', { name: 'Filters' })).not.toBeInTheDocument()
+  })
+
+  it('shows a removable chip per active filter, restored from the URL, and removing one updates it', async () => {
+    const user = userEvent.setup()
+    // A pasted URL into a fresh tab: the same filters come back (acts as a reload).
+    const { router } = renderApp('/s/s-1/history?period=LAST_7_DAYS&categoryIds=e-0&walletIds=w-1')
+    const chips = await screen.findByRole('list', { name: 'Active filters' })
+    expect(within(chips).getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.getByRole('link', { name: 'Filters, 3 active' })).toBeVisible()
+    await user.click(await within(chips).findByRole('button', { name: /Remove filter: .*Food/ }))
+    await waitFor(() => expect(router.state.location.search).not.toHaveProperty('categoryIds'))
+    expect(router.state.location.search).toMatchObject({ period: 'LAST_7_DAYS' })
+    expect(within(chips).getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('renders no chip row when nothing is filtered', async () => {
+    renderApp('/s/s-1/history')
+    await screen.findByRole('list', { name: 'Transactions' })
+    expect(screen.queryByRole('list', { name: 'Active filters' })).not.toBeInTheDocument()
+  })
+
+  it('shows the wallet column on rows and the period summary rail', async () => {
+    renderApp('/s/s-1/history')
+    expect(await screen.findByTestId('row-wallet')).toHaveTextContent('Cash')
+    const rail = await screen.findByTestId('history-rail')
+    expect(await within(rail).findByText('In')).toBeInTheDocument()
+    expect(within(rail).getByText('Out')).toBeInTheDocument()
+    expect(within(rail).getByText(/before filters/i)).toBeInTheDocument()
   })
 })

@@ -34,10 +34,13 @@ export function amountTone(t: TransactionDTO): 'auto' | 'expense' | 'neutral' {
 export function TransactionRow({
   transaction: t,
   pending,
+  showWallet,
 }: {
   transaction: TransactionDTO
   /** An optimistic row that the server has not confirmed yet. */
   pending?: boolean
+  /** Show the wallet as its own column from 1024px (History). */
+  showWallet?: boolean
 }) {
   return (
     <div
@@ -61,6 +64,14 @@ export function TransactionRow({
           {!pending && t.occurredAt ? ` · ${format(parseISO(t.occurredAt), 'HH:mm')}` : ''}
         </p>
       </div>
+      {showWallet && t.wallet?.name ? (
+        <p
+          data-testid="row-wallet"
+          className="hidden w-36 shrink-0 truncate text-sm text-label-secondary lg:block"
+        >
+          {t.wallet.name}
+        </p>
+      ) : null}
       <Amount
         value={signedAmount(t)}
         currency={t.currency ?? ''}

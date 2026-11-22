@@ -35,7 +35,8 @@ describe('asset page', () => {
       }),
     )
     renderApp('/s/s-1/assets')
-    expect(await screen.findByText('IDR 95,000,000')).toBeInTheDocument()
+    // The animated hero renders a sizer, the counting frame and a screen-reader copy.
+    expect((await screen.findAllByText('IDR 95,000,000')).length).toBeGreaterThan(0)
     expect(await screen.findByTestId('networth-change')).toHaveTextContent(
       '+3.25% in the last month',
     )
@@ -79,7 +80,9 @@ describe('asset page', () => {
     expect(await within(fixed).findByText('Apartment')).toBeInTheDocument()
     await user.click(toggle)
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(within(fixed).queryByText('Apartment')).not.toBeInTheDocument()
+    // Collapsed content stays mounted (for the height transition) but is inert, so it cannot be focused or read.
+    expect(within(fixed).getByText('Apartment').closest('[inert]')).not.toBeNull()
+    expect(within(fixed).getByTestId('section-summary')).toHaveTextContent('1 item · Apartment')
   })
 
   it('shows warnings for items left out for lack of a rate', async () => {
@@ -115,7 +118,8 @@ describe('asset page', () => {
     expect(await screen.findByText("Couldn't load your net worth")).toBeInTheDocument()
     fail = false
     await user.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByText('IDR 95,000,000')).toBeInTheDocument()
+    // The animated hero renders a sizer, the counting frame and a screen-reader copy.
+    expect((await screen.findAllByText('IDR 95,000,000')).length).toBeGreaterThan(0)
   })
 })
 
