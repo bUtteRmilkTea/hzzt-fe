@@ -1,6 +1,7 @@
+import { arrayMove } from '@dnd-kit/sortable'
 import { Link } from '@tanstack/react-router'
 import { ArrowDown, ArrowUp, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { errorMessage } from '@/shared/api/errors'
 import { PieChart } from '@/shared/charts'
@@ -52,6 +53,19 @@ function WalletGrid({
   onReorder: (from: number, to: number) => void
   layout: 'grid' | 'list'
 }) {
+  // Keep the dropped order locally and apply it in the same render as the drop. The server list
+  // only updates a tick later (the mutation awaits before its optimistic write), and until then
+  // the cards would spring back to their old places and then jump. When the list changes, for
+  // example after a failed save is rolled back, the server order wins again.
+  const [order, setOrder] = useState<string[]>(() => wallets.map((w) => w.id as string))
+  useEffect(() => setOrder(wallets.map((w) => w.id as string)), [wallets])
+  const byId = new Map(wallets.map((w) => [w.id as string, w]))
+  const ordered = order.flatMap((id) => byId.get(id) ?? [])
+  const shown = ordered.length === wallets.length ? ordered : wallets
+  const reorder = (from: number, to: number) => {
+    setOrder((o) => arrayMove(o, from, to))
+    onReorder(from, to)
+  }
   const card = (w: WalletDTO) => (
     <WalletCard
       name={w.name ?? ''}
@@ -66,11 +80,11 @@ function WalletGrid({
   )
   return (
     <SortableList
-      ids={wallets.map((w) => w.id as string)}
-      onReorder={onReorder}
+      ids={shown.map((w) => w.id as string)}
+      onReorder={reorder}
       layout={layout}
       renderOverlay={(id) => {
-        const w = wallets.find((x) => x.id === id)
+        const w = shown.find((x) => x.id === id)
         return w ? card(w) : null
       }}
       className={cn(
@@ -78,7 +92,7 @@ function WalletGrid({
         layout === 'grid' && 'sm:grid-cols-2 lg:gap-6 2xl:grid-cols-3',
       )}
     >
-      {wallets.map((w, i) => (
+      {shown.map((w, i) => (
         <SortableItem
           key={w.id}
           id={w.id as string}
