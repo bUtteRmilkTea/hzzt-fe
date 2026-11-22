@@ -83,10 +83,10 @@ Run them in order. F24 first, because it touches every screen and shifts every l
 - [x] F27-T03 Tests (vitest only; the Playwright fit and overflow checks were skipped by request and are still to do)
 
 **F28**
-- [ ] F28-T01 Install dnd-kit and build `SortableList`
-- [ ] F28-T02 Wallet grid drag from 1024 px
-- [ ] F28-T03 Mobile expanded list drag
-- [ ] F28-T04 Tests and bundle check
+- [x] F28-T01 Install dnd-kit and build `SortableList` (`shared/ui/SortableList.tsx`: pointer and keyboard sensors, handle-only drag; no touch sensor needed because the handle is `touch-none`)
+- [x] F28-T02 Wallet grid drag from 1024 px (built; actual dragging NOT verified in a browser, Playwright skipped by request)
+- [x] F28-T03 Mobile expanded list drag (changed: reorder mode now swaps the overlapped deck for a plain sortable list, because the absolutely positioned deck cannot be dragged sensibly. Not verified on touch)
+- [x] F28-T04 Tests and bundle (vitest and `pnpm size` pass, Wallets chunk 16.99 KB gzip of 60. The drag, persistence and touch Playwright checks were skipped by request and are still to do; jsdom cannot drag, so only the handles and move buttons are unit tested) check
 
 **F29**
 - [ ] F29-T01 Asset screens to the wide tier
