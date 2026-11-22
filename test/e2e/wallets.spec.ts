@@ -77,7 +77,7 @@ test('card style: edits are a draft until Apply, and a cancelled edit changes no
   expect(api.wallets[0]?.cardStyle).toMatchObject({ direction: 'SE' }) // nothing saved
 
   await page.goto('/s/s-1/wallets/w-1/card')
-  await page.getByRole('button', { name: 'Direction N' }).click()
+  await page.getByRole('button', { name: 'Direction N', exact: true }).click()
   await page.getByRole('button', { name: 'Apply' }).click()
   await expect.poll(() => api.wallets[0]?.cardStyle).toMatchObject({ direction: 'N' })
 })
