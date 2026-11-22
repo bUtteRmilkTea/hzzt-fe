@@ -43,6 +43,95 @@ beforeEach(() => {
   )
 })
 
+describe('portfolio line (F31)', () => {
+  const NW = `${BASE}/spaces/s-1/net-worth/history`
+  const threeMonths = () => {
+    const day = (back: number) => new Date(Date.now() - back * 864e5).toISOString().slice(0, 10)
+    return [90, 60, 30, 0].map((b) => ({
+      date: day(b),
+      netWorth: '1000',
+      investments: String(900 + (90 - b)),
+    }))
+  }
+
+  it('has a line half and a pie half, with the five ranges', async () => {
+    const seen: string[] = []
+    server.use(
+      http.get(NW, ({ request }) => {
+        seen.push(new URL(request.url).searchParams.get('range') ?? '')
+        return HttpResponse.json({
+          currency: 'IDR',
+          range: 'x',
+          changePct: '1',
+          investmentsChangePct: '10.00',
+          points: threeMonths(),
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/investments')
+    const hero = await screen.findByTestId('portfolio-summary')
+    expect(within(hero).getByTestId('portfolio-line')).toBeInTheDocument()
+    expect(within(hero).getByTestId('portfolio-pie')).toBeInTheDocument()
+    const picker = within(hero).getByRole('radiogroup', { name: 'Portfolio range' })
+    expect(
+      within(picker)
+        .getAllByRole('radio')
+        .map((r) => r.textContent),
+    ).toEqual(['1M', '3M', '6M', '12M', 'All time'])
+    expect(await within(hero).findByTestId('portfolio-change')).toHaveTextContent('+10.00%')
+    await user.click(within(picker).getByRole('radio', { name: '12M' }))
+    await user.click(within(picker).getByRole('radio', { name: 'All time' }))
+    expect(seen).toContain('1Y')
+    expect(seen).toContain('ALL')
+  })
+
+  it('keeps the chosen 6M and notes that the data only covers 3 months', async () => {
+    server.use(
+      http.get(NW, () =>
+        HttpResponse.json({
+          currency: 'IDR',
+          range: '6M',
+          changePct: '1',
+          investmentsChangePct: '10.00',
+          points: threeMonths(),
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/investments')
+    const hero = await screen.findByTestId('portfolio-summary')
+    const picker = within(hero).getByRole('radiogroup', { name: 'Portfolio range' })
+    await user.click(within(picker).getByRole('radio', { name: '6M' }))
+    expect(await within(hero).findByTestId('portfolio-coverage')).toHaveTextContent(
+      'Your data only covers 3 months.',
+    )
+    expect(within(picker).getByRole('radio', { name: '6M' })).toBeChecked()
+    await user.click(within(picker).getByRole('radio', { name: 'All time' }))
+    expect(within(hero).queryByTestId('portfolio-coverage')).not.toBeInTheDocument()
+  })
+
+  it('a single point shows the empty state with the note', async () => {
+    server.use(
+      http.get(NW, () =>
+        HttpResponse.json({
+          currency: 'IDR',
+          range: '1M',
+          changePct: null,
+          investmentsChangePct: null,
+          points: [
+            { date: new Date().toISOString().slice(0, 10), netWorth: '1', investments: '1' },
+          ],
+        }),
+      ),
+    )
+    renderApp('/s/s-1/investments')
+    const hero = await screen.findByTestId('portfolio-summary')
+    expect(await within(hero).findByText('History starts today.')).toBeInTheDocument()
+    expect(within(hero).getByTestId('portfolio-coverage')).toHaveTextContent('1 day')
+  })
+})
+
 describe('portfolio hero (F13-T01)', () => {
   it('puts the value and P/L beside a donut whose legend lists the top 6 plus Other', async () => {
     const user = userEvent.setup()
