@@ -3,6 +3,8 @@ import { ArrowUpRight, ChevronDown, Plus, Wallet } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { useInvestments, useInvestmentTypes } from '@/features/investments/hooks'
+import { categorySlices, topSlices } from '@/features/investments/valuation'
+import { walletPieSlices } from '@/features/wallets/pie'
 import { useWallets } from '@/shared/api/wallets'
 import { LineChart } from '@/shared/charts'
 import { toMoneyString } from '@/shared/money'
@@ -14,12 +16,15 @@ import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { SplitSwitch } from '@/shared/ui/SplitSwitch'
 import { TwoColumn } from '@/shared/ui/TwoColumn'
+import { useSplitMode } from '@/shared/ui/useSplitMode'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { AssetBreakdownList } from './AssetBreakdownList'
-import { accountGroups, capEach, cashGroups } from './breakdown'
+import { accountGroups, capEach, cashGroups, manualSlices } from './breakdown'
 import { useManualAssets, useNetWorthHistory, useNetWorthSummary } from './hooks'
 import { KINDS, type KindMeta } from './kinds'
+import { SectionPie } from './SectionPie'
 
 /** "3 items": just the count. Shown while a section is collapsed. */
 export function collapsedSummary(count: number): string {
@@ -33,6 +38,7 @@ function Section({
   currency,
   action,
   summary,
+  chart,
   children,
 }: {
   title: string
@@ -41,6 +47,8 @@ function Section({
   action?: ReactNode
   /** Shown under the title while collapsed. */
   summary?: string
+  /** A pie (or anything) shown first inside the open section. */
+  chart?: ReactNode
   children: ReactNode
 }) {
   const [open, setOpen] = useState(true)
@@ -81,7 +89,10 @@ function Section({
         {action}
       </div>
       <Collapsible open={open}>
-        <div className="flex flex-col gap-2 border-t border-border p-4">{children}</div>
+        <div className="flex flex-col gap-2 border-t border-border p-4">
+          {chart}
+          {children}
+        </div>
       </Collapsible>
     </section>
   )
@@ -96,6 +107,15 @@ function ManualSection({ meta, currency }: { meta: KindMeta; currency: string })
       total={list.data?.total.amount ?? '0'}
       currency={list.data?.total.currency || currency}
       summary={collapsedSummary(list.data?.items.length ?? 0)}
+      chart={
+        list.data ? (
+          <SectionPie
+            {...manualSlices(list.data.items, list.data.total.currency || currency)}
+            currency={list.data.total.currency || currency}
+            label={`${meta.section} split by item`}
+          />
+        ) : null
+      }
       action={
         <Button variant="ghost" size="icon" aria-label={meta.addLabel} asChild>
           <Link
@@ -174,16 +194,26 @@ export function AssetsScreen() {
   const types = useInvestmentTypes()
   const typeLabel = (assetType: string) =>
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
+  const [invMode, setInvMode] = useSplitMode('assets-investments-pie-mode')
   const s = summary.data
   const change = history.data?.changePct
   const currency = s?.currency || space.baseCurrency
 
+  const cashSlices = walletPieSlices(wallets.data, space.baseCurrency)
   const cash = s ? (
     <Section
       title="Cash"
       total={s.cash}
       currency={currency}
       summary={collapsedSummary(wallets.data?.items.length ?? 0)}
+      chart={
+        <SectionPie
+          slices={cashSlices}
+          currency={currency}
+          label="Cash split by wallet"
+          skipped={(wallets.data?.items.length ?? 0) - cashSlices.length}
+        />
+      }
       action={
         <Button variant="ghost" size="icon" aria-label="Open wallets" asChild>
           <Link to="/s/$spaceId/wallets" params={{ spaceId: space.id }} title="Open wallets">
@@ -205,12 +235,32 @@ export function AssetsScreen() {
 
   const allInvestmentGroups = accountGroups(investments.data?.items ?? [], typeLabel, space.id)
   const investmentRows = allInvestmentGroups.flatMap((g) => g.rows)
+  const invSlices =
+    invMode === 'class'
+      ? categorySlices(investments.data?.items ?? [], typeLabel)
+      : topSlices(investments.data?.items ?? [])
   const investmentsSection = s ? (
     <Section
       title="Investments"
       total={s.investments?.value ?? '0'}
       currency={currency}
       summary={collapsedSummary(investmentRows.length)}
+      chart={
+        <div className="flex flex-col gap-3">
+          {investmentRows.length > 1 ? (
+            <SplitSwitch value={invMode} onValueChange={setInvMode} className="w-full sm:w-fit" />
+          ) : null}
+          <SectionPie
+            slices={invSlices}
+            currency={currency}
+            label={
+              invMode === 'class'
+                ? 'Investments split by asset class'
+                : 'Investments split by investment'
+            }
+          />
+        </div>
+      }
       action={
         <Button variant="ghost" size="icon" aria-label="Open investments" asChild>
           <Link

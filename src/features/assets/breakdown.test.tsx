@@ -7,6 +7,7 @@ import { btc, list, metas, sharedIn, valuation } from '../../../test/msw/investm
 import { server } from '../../../test/msw/server'
 import { bank, cash, walletList } from '../../../test/msw/wallets'
 import { renderApp } from '../../../test/renderApp'
+import { manualSlices } from './breakdown'
 
 const NW = `${BASE}/spaces/s-1/net-worth`
 
@@ -55,7 +56,7 @@ describe('assets page breakdown (S6)', () => {
   it('lists wallets by type, investments by category with PnL, and every manual kind', async () => {
     renderApp('/s/s-1/assets')
     const cashSection = await screen.findByRole('region', { name: 'Cash' })
-    expect(await within(cashSection).findByText('BCA')).toBeInTheDocument()
+    expect(await within(cashSection).findByRole('link', { name: /BCA/ })).toBeInTheDocument()
     expect(within(cashSection).getByRole('heading', { name: 'Cash' })).toBeInTheDocument()
     expect(within(cashSection).getByRole('heading', { name: 'Bank' })).toBeInTheDocument()
     expect(within(cashSection).getByRole('link', { name: /Cash/ })).toBeInTheDocument()
@@ -86,5 +87,24 @@ describe('shared investment access (S6)', () => {
     expect(screen.queryByText('You no longer have access')).not.toBeInTheDocument()
     expect(screen.queryByText("Couldn't load this investment")).not.toBeInTheDocument()
     expect(await screen.findByTestId('share-compare')).toHaveTextContent('My share (25.00%)')
+  })
+})
+
+describe('manualSlices (F27)', () => {
+  it('draws only base-currency items, counts the rest, and skips zero values', () => {
+    const r = manualSlices(
+      [
+        { id: 'a', name: 'A', currency: 'IDR', currentValue: '100.50' },
+        { id: 'b', name: 'B', currency: 'USD', currentValue: '10' },
+        { id: 'c', name: 'C', currency: 'IDR', currentValue: '0' },
+        { id: 'd', name: 'D', currency: 'IDR', currentValue: '50' },
+      ],
+      'IDR',
+    )
+    expect(r.slices).toEqual([
+      { key: 'a', name: 'A', amount: '100.50' },
+      { key: 'd', name: 'D', amount: '50' },
+    ])
+    expect(r.skipped).toBe(1)
   })
 })
