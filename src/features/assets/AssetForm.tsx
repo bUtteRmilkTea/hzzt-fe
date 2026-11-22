@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
+import { format } from 'date-fns'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { type Control, Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { applyServerError } from '@/features/auth/useServerErrors'
@@ -9,7 +10,9 @@ import { useCurrencies } from '@/features/spaces/hooks'
 import { errorMessage, toAppError } from '@/shared/api/errors'
 import { Decimal, parseInput } from '@/shared/money'
 import { isValidDay } from '@/shared/period'
+import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
+import { Card } from '@/shared/ui/Card'
 import { EmojiPicker } from '@/shared/ui/EmojiPicker'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
@@ -34,6 +37,47 @@ const schema = z.object({
   note: z.string().max(1000),
 })
 type Values = z.infer<typeof schema>
+
+const plainMoney = (v: string) => (/^\d+(\.\d+)?$/.test(v) ? v : '0')
+
+/** A live card of the item as it is being typed. Hidden below 1024px, where the form is the whole screen. */
+function AssetPreview({ kind, control }: { kind: AssetKind; control: Control<Values> }) {
+  const v = useWatch({ control })
+  const meta = kindMeta(kind)
+  const valid = (d: string | undefined) => (d && isValidDay(d) ? d : null)
+  const due = valid(v.dueDate)
+  return (
+    <Card data-testid="asset-preview" className="hidden flex-col gap-1 lg:flex">
+      <div className="flex items-center gap-3">
+        <span aria-hidden className="text-3xl">
+          {v.icon || meta.defaultIcon}
+        </span>
+        <p className="min-w-0 truncate text-lg font-medium">{v.name || `New ${meta.noun}`}</p>
+      </div>
+      <p className="mt-2 text-sm text-label-secondary">
+        {kind === 'LIABILITY' ? 'Outstanding' : kind === 'RECEIVABLE' ? 'Owed to you' : 'Value'}
+      </p>
+      <p className="text-3xl font-medium">
+        <Amount value={plainMoney(v.currentValue ?? '')} currency={v.currency ?? ''} />
+      </p>
+      {v.counterpartyName && kind !== 'FIXED_ASSET' ? (
+        <p className="text-sm text-label-secondary">
+          {kind === 'LIABILITY' ? 'Owed to' : 'Owed by'} {v.counterpartyName}
+        </p>
+      ) : null}
+      {due && kind !== 'FIXED_ASSET' ? (
+        <p className="text-sm text-label-secondary">
+          Due {format(new Date(`${due}T12:00:00`), 'd MMM yyyy')}
+        </p>
+      ) : null}
+      {v.estimatedAnnualChangePct && kind === 'FIXED_ASSET' ? (
+        <p className="text-sm text-label-secondary">
+          Estimated change {v.estimatedAnnualChangePct}% a year
+        </p>
+      ) : null}
+    </Card>
+  )
+}
 
 /** Create (`asset` absent) or edit a fixed asset, a receivable or a liability. */
 export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }) {
@@ -146,86 +190,104 @@ export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }
   })
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-5">
-      {formError ? (
-        <p role="alert" className="text-sm text-negative">
-          {formError}
-        </p>
-      ) : null}
-      <Field label="Name" error={errors.name?.message}>
-        <Input maxLength={120} {...register('name')} />
-      </Field>
-      <Controller
-        control={control}
-        name="icon"
-        render={({ field }) => (
-          <EmojiPicker label="Icon" value={field.value} onChange={field.onChange} />
-        )}
-      />
-      <Field
-        label="Currency"
-        hint={currencyLocked ? "Currency can't change once there are settlements." : undefined}
-      >
-        <Select disabled={currencyLocked} {...register('currency')}>
-          {(currencies.data ?? []).map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.code} · {c.name}
-            </option>
-          ))}
-          {(currencies.data ?? []).length === 0 ? (
-            <option value={space.baseCurrency}>{space.baseCurrency}</option>
-          ) : null}
-        </Select>
-      </Field>
-      <Controller
-        control={control}
-        name="currentValue"
-        render={({ field }) => (
-          <Field
-            label={
-              kind === 'LIABILITY'
-                ? 'Amount outstanding'
-                : kind === 'RECEIVABLE'
-                  ? 'Amount owed to you'
-                  : 'Current value'
-            }
-            error={errors.currentValue?.message}
-          >
-            <MoneyInput
-              value={field.value}
-              onChange={field.onChange}
-              currency={space.baseCurrency}
-            />
-          </Field>
-        )}
-      />
-      {kind !== 'FIXED_ASSET' ? (
-        <>
-          <Field label={kind === 'LIABILITY' ? 'Owed to (optional)' : 'Who owes you (optional)'}>
-            <Input maxLength={120} {...register('counterpartyName')} />
-          </Field>
-          <Field label="Due date (optional)" error={errors.dueDate?.message}>
-            <Input type="date" {...register('dueDate')} />
-          </Field>
-        </>
-      ) : (
-        <Field
-          label="Estimated annual change % (optional)"
-          error={errors.estimatedAnnualChangePct?.message}
-        >
-          <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
+    <form
+      noValidate
+      onSubmit={submit}
+      data-testid="asset-form-layout"
+      className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-10"
+    >
+      <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+        {formError ? (
+          <p role="alert" className="text-sm text-negative lg:col-span-2">
+            {formError}
+          </p>
+        ) : null}
+        <Field label="Name" error={errors.name?.message}>
+          <Input maxLength={120} {...register('name')} />
         </Field>
-      )}
-      <Field label="Note (optional)" error={errors.note?.message}>
-        <Input maxLength={1000} {...register('note')} />
-      </Field>
-      <Button type="submit" block disabled={create.isPending || update.isPending}>
-        {create.isPending || update.isPending
-          ? 'Saving…'
-          : editing
-            ? 'Save changes'
-            : meta.addLabel}
-      </Button>
+        <div className="lg:col-span-2">
+          <Controller
+            control={control}
+            name="icon"
+            render={({ field }) => (
+              <EmojiPicker label="Icon" value={field.value} onChange={field.onChange} />
+            )}
+          />
+        </div>
+        <Field
+          label="Currency"
+          hint={currencyLocked ? "Currency can't change once there are settlements." : undefined}
+        >
+          <Select disabled={currencyLocked} {...register('currency')}>
+            {(currencies.data ?? []).map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code} · {c.name}
+              </option>
+            ))}
+            {(currencies.data ?? []).length === 0 ? (
+              <option value={space.baseCurrency}>{space.baseCurrency}</option>
+            ) : null}
+          </Select>
+        </Field>
+        <Controller
+          control={control}
+          name="currentValue"
+          render={({ field }) => (
+            <Field
+              label={
+                kind === 'LIABILITY'
+                  ? 'Amount outstanding'
+                  : kind === 'RECEIVABLE'
+                    ? 'Amount owed to you'
+                    : 'Current value'
+              }
+              error={errors.currentValue?.message}
+            >
+              <MoneyInput
+                value={field.value}
+                onChange={field.onChange}
+                currency={space.baseCurrency}
+              />
+            </Field>
+          )}
+        />
+        {kind !== 'FIXED_ASSET' ? (
+          <>
+            <Field label={kind === 'LIABILITY' ? 'Owed to (optional)' : 'Who owes you (optional)'}>
+              <Input maxLength={120} {...register('counterpartyName')} />
+            </Field>
+            <Field label="Due date (optional)" error={errors.dueDate?.message}>
+              <Input type="date" {...register('dueDate')} />
+            </Field>
+          </>
+        ) : (
+          <Field
+            label="Estimated annual change % (optional)"
+            error={errors.estimatedAnnualChangePct?.message}
+          >
+            <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
+          </Field>
+        )}
+        <div className="lg:col-span-2">
+          <Field label="Note (optional)" error={errors.note?.message}>
+            <Input maxLength={1000} {...register('note')} />
+          </Field>
+        </div>
+      </div>
+      <aside
+        aria-label="Preview"
+        className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-4"
+        data-testid="asset-aside"
+      >
+        <AssetPreview kind={kind} control={control} />
+        <Button type="submit" block disabled={create.isPending || update.isPending}>
+          {create.isPending || update.isPending
+            ? 'Saving…'
+            : editing
+              ? 'Save changes'
+              : meta.addLabel}
+        </Button>
+      </aside>
     </form>
   )
 }
