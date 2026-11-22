@@ -25,7 +25,7 @@ function Loop({ children }: { children: (n: number) => React.ReactNode }) {
 }
 
 /**
- * The left half of the sign-in screens (F20, D-F23): a brand surface with a short looping scene,
+ * The brand side of the sign-in screens (F20, D-F23, F22): it sits on the page's own background (no panel surface or divider) with a short looping scene,
  * a net-worth line that draws while the figure beside it counts up, and two soft cards that drift.
  * Pure decoration: it is aria-hidden and carries no information, and the screens work without it.
  * CSS and inline SVG only. Under OS reduced motion it shows one finished frame (see globals.css).
@@ -35,14 +35,11 @@ export function AuthPanel({ className }: { className?: string }) {
     <section
       aria-hidden
       data-testid="auth-panel"
-      className={cn(
-        'relative flex min-h-dvh flex-col justify-between overflow-hidden border-r border-border bg-surface-1 p-10 xl:p-14',
-        className,
-      )}
+      className={cn('relative flex flex-col gap-10', className)}
     >
       <p className="text-2xl font-semibold">HZZT</p>
 
-      <div className="relative mx-auto my-10 w-full max-w-md">
+      <div className="relative w-full max-w-md">
         <div className="auth-card rounded-xl border border-border bg-surface-2 p-6 shadow-card">
           <p className="text-sm text-label-secondary">Net worth</p>
           <Loop>

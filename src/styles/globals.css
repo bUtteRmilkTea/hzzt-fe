@@ -311,3 +311,101 @@ html[data-motion="on"] {
     stroke-dasharray: none;
   }
 }
+
+/* F22: animated backdrop of the auth screens. Three interchangeable looks (VITE_AUTH_BG), all grey tones
+   from the theme and all transform-only. A still frame under OS reduced motion. */
+.auth-bg-blob {
+  position: absolute;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--label) 9%, transparent);
+  filter: blur(90px);
+  will-change: transform;
+}
+.auth-bg-blob-a {
+  top: -10%;
+  left: -8%;
+  width: 46vmax;
+  height: 46vmax;
+  animation: auth-bg-drift-a 26s ease-in-out infinite alternate;
+}
+.auth-bg-blob-b {
+  right: -12%;
+  bottom: -14%;
+  width: 52vmax;
+  height: 52vmax;
+  background: color-mix(in srgb, var(--label) 7%, transparent);
+  animation: auth-bg-drift-b 32s ease-in-out -8s infinite alternate;
+}
+.auth-bg-blob-c {
+  top: 35%;
+  left: 38%;
+  width: 28vmax;
+  height: 28vmax;
+  background: color-mix(in srgb, var(--label) 6%, transparent);
+  animation: auth-bg-drift-c 22s ease-in-out -4s infinite alternate;
+}
+@keyframes auth-bg-drift-a {
+  to {
+    transform: translate3d(14vmax, 10vmax, 0) scale(1.15);
+  }
+}
+@keyframes auth-bg-drift-b {
+  to {
+    transform: translate3d(-16vmax, -8vmax, 0) scale(0.9);
+  }
+}
+@keyframes auth-bg-drift-c {
+  to {
+    transform: translate3d(-10vmax, 12vmax, 0) scale(1.25);
+  }
+}
+
+.auth-bg-grid {
+  position: absolute;
+  inset: -28px;
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--label) 22%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  animation: auth-bg-pan 8s linear infinite;
+  will-change: transform;
+}
+@keyframes auth-bg-pan {
+  to {
+    transform: translate3d(28px, 28px, 0);
+  }
+}
+
+.auth-bg-sweep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 200%;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    color-mix(in srgb, var(--label) 8%, transparent) 50%,
+    transparent 70%
+  );
+  animation: auth-bg-slide 16s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes auth-bg-slide {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="on"]) .auth-bg-blob,
+  :root:not([data-motion="on"]) .auth-bg-grid,
+  :root:not([data-motion="on"]) .auth-bg-sweep {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win */
+    animation: none !important;
+  }
+}
