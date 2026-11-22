@@ -41,9 +41,9 @@ export function SheetShell({
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
         {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-overlay data-[state=open]:animate-[fade-in_150ms_ease-out]" />
+          <Dialog.Overlay className="drawer-overlay fixed inset-0 z-50 bg-overlay" />
           <Dialog.Content
-            className="fixed inset-y-0 right-0 z-50 flex h-dvh w-[min(28rem,100vw)] flex-col border-l border-border bg-surface-2 shadow-sheet"
+            className="drawer-slide fixed inset-y-0 right-0 z-50 flex h-dvh w-[min(28rem,100vw)] flex-col border-l border-border bg-surface-2 shadow-sheet"
             {...(description ? {} : { 'aria-describedby': undefined })}
           >
             <div className="flex items-start justify-between gap-4 px-6 pt-5">

@@ -79,10 +79,10 @@ Tick a task only after tests pass and the app starts. Added by the build loop; t
 - [x] F16-T06 Tests (unit tests pass, and `test/e2e/motion-audit.spec.ts` passes in a REAL Chromium, run locally)
 
 **F17**
-- [ ] F17-T01 Sliding nav indicator
-- [ ] F17-T02 Drawer slide
-- [ ] F17-T03 Smooth scroll
-- [ ] F17-T04 Tests
+- [x] F17-T01 Sliding nav indicator (one `NavIndicator` per nav, measured from the active link, sidebar and mobile pill)
+- [x] F17-T02 Drawer slide (CSS keyframes in and out. Route-driven sheets unmount on close, so they slide in but cannot play the exit; sheets whose `open` flag toggles play both)
+- [x] F17-T03 Smooth scroll (`scroll-behavior: smooth` unless the OS asks for less, and "Always play" turns it on. Route changes jump to the top at once)
+- [x] F17-T04 Tests (component test, and `test/e2e/nav-motion.spec.ts` passing in real Chromium: highlight passes over History and Wallets and never vanishes, drawer travels leftwards, reduced motion is instant)
 
 ---
 
