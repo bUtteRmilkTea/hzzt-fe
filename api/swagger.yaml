@@ -381,7 +381,7 @@ definitions:
         type: string
       pct:
         description: a percentage of the total
-        example: "42.5"
+        example: "42.50"
         type: string
     type: object
   dashboard.ChangeDTO:
@@ -610,6 +610,27 @@ definitions:
       requestId:
         type: string
     type: object
+  investments.AcceptResponse:
+    properties:
+      investmentId:
+        type: string
+      spaceId:
+        type: string
+    type: object
+  investments.AllocationsResponse:
+    properties:
+      categories:
+        items:
+          $ref: "#/definitions/investments.CategoryAllocationDTO"
+        type: array
+      currency:
+        example: IDR
+        type: string
+      warnings:
+        items:
+          $ref: "#/definitions/currency.Warning"
+        type: array
+    type: object
   investments.BaseValues:
     properties:
       costBasis:
@@ -625,6 +646,80 @@ definitions:
       marketValue:
         type: string
       unrealizedPl:
+        type: string
+    type: object
+  investments.CategoryAllocationDTO:
+    properties:
+      assetType:
+        enum:
+          - CRYPTO
+          - ID_STOCK
+          - US_STOCK
+          - MUTUAL_FUND
+          - GLOBAL_ETF
+        type: string
+      assignedPct:
+        example: "70.00"
+        type: string
+      label:
+        example: Crypto
+        type: string
+      unallocatedPct:
+        example: "30.00"
+        type: string
+      wrappers:
+        items:
+          $ref: "#/definitions/investments.WrapperAllocationDTO"
+        type: array
+    type: object
+  investments.CategoryGroupDTO:
+    properties:
+      assetType:
+        enum:
+          - CRYPTO
+          - ID_STOCK
+          - US_STOCK
+          - MUTUAL_FUND
+          - GLOBAL_ETF
+        type: string
+      assignedPct:
+        description: AssignedPct is the sum of the wrapper percentages set in this
+          asset type; UnallocatedPct = 100 - assigned.
+        example: "70.00"
+        type: string
+      cost:
+        example: "700000"
+        type: string
+      label:
+        example: Crypto
+        type: string
+      pctOfTotal:
+        example: "60.00"
+        type: string
+      unallocatedPct:
+        example: "30.00"
+        type: string
+      unrealizedPl:
+        example: "200000"
+        type: string
+      unrealizedPlPct:
+        example: "28.57"
+        type: string
+      value:
+        example: "900000"
+        type: string
+      wrappers:
+        items:
+          $ref: "#/definitions/investments.WrapperGroupDTO"
+        type: array
+    type: object
+  investments.CategoryTotalsDTO:
+    properties:
+      assignedPct:
+        example: "70.00"
+        type: string
+      unallocatedPct:
+        example: "30.00"
         type: string
     type: object
   investments.CreateRequestDoc:
@@ -676,6 +771,12 @@ definitions:
         type: string
       symbol:
         type: string
+      wrapper:
+        description: Wrapper is the exchange, broker or platform holding the position
+          (1 to 60 characters). When omitted it is derived from details (exchangeOrWallet,
+          broker or platform).
+        example: Binance
+        type: string
     type: object
   investments.FieldMeta:
     properties:
@@ -707,6 +808,22 @@ definitions:
         type: string
       walletId:
         type: string
+    type: object
+  investments.GroupedResponse:
+    properties:
+      categories:
+        items:
+          $ref: "#/definitions/investments.CategoryGroupDTO"
+        type: array
+      currency:
+        example: IDR
+        type: string
+      total:
+        $ref: "#/definitions/investments.TotalsDTO"
+      warnings:
+        items:
+          $ref: "#/definitions/currency.Warning"
+        type: array
     type: object
   investments.InvestmentDTO:
     properties:
@@ -759,6 +876,11 @@ definitions:
         items:
           $ref: "#/definitions/investments.ParticipantDTO"
         type: array
+      pctOfTotal:
+        allOf:
+          - $ref: "#/definitions/money.Pct"
+        description: PctOfTotal is this investment's share of the portfolio's base-currency
+          value (only in the list response; null without a base value).
       priceMode:
         enum:
           - AUTO
@@ -789,6 +911,11 @@ definitions:
           - $ref: "#/definitions/investments.Valuation"
         description: "Valuation is the viewer's part: the whole investment unless
           it is shared."
+      wrapper:
+        description: Wrapper is the exchange, broker or platform the position is held
+          on; null when unknown.
+        example: Binance
+        type: string
     type: object
   investments.InvitationDTO:
     properties:
@@ -905,11 +1032,17 @@ definitions:
         type: string
       symbol:
         type: string
+      wrapper:
+        description: Wrapper sets the exchange, broker or platform holding the position;
+          null re-derives it from details.
+        type: string
     type: object
   investments.RealizedPLDTO:
     properties:
       amount:
-        example: "5990"
+        description: Amount is in the investment's quote currency, Base in the space's
+          base currency (null without an FX rate).
+        example: "5990.00"
         type: string
       base:
         type: string
@@ -929,6 +1062,60 @@ definitions:
         type: array
     required:
       - participants
+    type: object
+  investments.SetParticipantsResponse:
+    properties:
+      investment:
+        $ref: "#/definitions/investments.InvestmentDTO"
+      items:
+        items:
+          $ref: "#/definitions/investments.ParticipantDTO"
+        type: array
+    type: object
+  investments.SetTargetRequest:
+    properties:
+      targetPct:
+        description: TargetPct is a percentage from 0 to 100 with at most 2 decimals
+          ("40.00"); null clears it.
+        example: "40.00"
+        type: string
+    type: object
+  investments.SetTargetResponse:
+    properties:
+      actualPct:
+        description: ActualPct is the wrapper's share of its asset type's value; null
+          when the asset type is worth 0.
+        example: "33.33"
+        type: string
+      assetType:
+        enum:
+          - CRYPTO
+          - ID_STOCK
+          - US_STOCK
+          - MUTUAL_FUND
+          - GLOBAL_ETF
+        type: string
+      category:
+        $ref: "#/definitions/investments.CategoryTotalsDTO"
+      driftPct:
+        description: DriftPct is actualPct - targetPct; null unless both are known.
+        example: "-6.67"
+        type: string
+      key:
+        example: binance
+        type: string
+      label:
+        example: Binance
+        type: string
+      targetPct:
+        description: TargetPct is the percentage set for this wrapper; null when none
+          is set (not 0).
+        example: "40.00"
+        type: string
+      wrapper:
+        description: Wrapper is the display name; null for the unassigned group.
+        example: Binance
+        type: string
     type: object
   investments.ShareChangeDTO:
     properties:
@@ -962,6 +1149,21 @@ definitions:
         items:
           $ref: "#/definitions/currency.Warning"
         type: array
+    type: object
+  investments.TotalsDTO:
+    properties:
+      cost:
+        example: "700000"
+        type: string
+      unrealizedPl:
+        example: "200000"
+        type: string
+      unrealizedPlPct:
+        example: "28.57"
+        type: string
+      value:
+        example: "900000"
+        type: string
     type: object
   investments.TypeDefaults:
     properties:
@@ -1039,6 +1241,89 @@ definitions:
           $ref: "#/definitions/currency.Warning"
         type: array
     type: object
+  investments.WrapperAllocationDTO:
+    properties:
+      actualPct:
+        description: ActualPct is the wrapper's share of its asset type's value; null
+          when the asset type is worth 0.
+        example: "33.33"
+        type: string
+      assetType:
+        enum:
+          - CRYPTO
+          - ID_STOCK
+          - US_STOCK
+          - MUTUAL_FUND
+          - GLOBAL_ETF
+        type: string
+      driftPct:
+        description: DriftPct is actualPct - targetPct; null unless both are known.
+        example: "-6.67"
+        type: string
+      key:
+        example: binance
+        type: string
+      label:
+        example: Binance
+        type: string
+      targetPct:
+        description: TargetPct is the percentage set for this wrapper; null when none
+          is set (not 0).
+        example: "40.00"
+        type: string
+      wrapper:
+        description: Wrapper is the display name; null for the unassigned group.
+        example: Binance
+        type: string
+    type: object
+  investments.WrapperGroupDTO:
+    properties:
+      cost:
+        example: "700000"
+        type: string
+      count:
+        type: integer
+      driftPct:
+        example: "6.67"
+        type: string
+      items:
+        items:
+          $ref: "#/definitions/investments.InvestmentDTO"
+        type: array
+      key:
+        description: Key is the lower-cased, whitespace-normalised wrapper ("_unassigned"
+          for none).
+        example: binance
+        type: string
+      label:
+        description: Label is the wrapper, or "Unassigned".
+        example: Binance
+        type: string
+      pctOfCategory:
+        example: "66.67"
+        type: string
+      pctOfTotal:
+        example: "40.00"
+        type: string
+      targetPct:
+        description: TargetPct is the percentage set for this wrapper (null when none);
+          DriftPct = pctOfCategory - targetPct.
+        example: "60.00"
+        type: string
+      unrealizedPl:
+        example: "200000"
+        type: string
+      unrealizedPlPct:
+        example: "28.57"
+        type: string
+      value:
+        example: "900000"
+        type: string
+      wrapper:
+        description: Wrapper is the display name; null for investments without a wrapper.
+        example: Binance
+        type: string
+    type: object
   investments.acceptRequest:
     properties:
       spaceId:
@@ -1077,8 +1362,9 @@ definitions:
         example: IDR
         type: string
       currentValue:
-        description: a liability's outstanding amount
-        example: "500"
+        description: "in the asset's currency (IDR and JPY: no decimals, others 2);
+          a liability's outstanding amount"
+        example: "500.00"
         type: string
       dueDate:
         example: "2026-12-31"
@@ -1232,6 +1518,100 @@ definitions:
         example: BTC
         type: string
     type: object
+  money.Pct:
+    properties:
+      decimal.Decimal:
+        type: number
+    type: object
+  networth.AssetLineDTO:
+    properties:
+      baseValue:
+        type: string
+      currency:
+        example: IDR
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      pctOfTotal:
+        type: string
+      value:
+        description: Value is in the asset's currency, BaseValue in the space's base
+          currency (null without an FX rate).
+        type: string
+    type: object
+  networth.AssetSectionDTO:
+    properties:
+      items:
+        items:
+          $ref: "#/definitions/networth.AssetLineDTO"
+        type: array
+      total:
+        type: string
+    type: object
+  networth.AssetSummaryDTO:
+    properties:
+      asOf:
+        type: string
+      cash:
+        $ref: "#/definitions/networth.CashSectionDTO"
+      currency:
+        example: IDR
+        type: string
+      fixedAssets:
+        $ref: "#/definitions/networth.AssetSectionDTO"
+      investments:
+        $ref: "#/definitions/networth.InvestmentsSectionDTO"
+      liabilities:
+        $ref: "#/definitions/networth.AssetSectionDTO"
+      netWorth:
+        type: string
+      receivables:
+        $ref: "#/definitions/networth.AssetSectionDTO"
+      trackingMode:
+        enum:
+          - FULL_NET_WORTH
+          - CASH_ONLY
+        type: string
+      warnings:
+        items:
+          $ref: "#/definitions/currency.Warning"
+        type: array
+    type: object
+  networth.CashSectionDTO:
+    properties:
+      pctOfNetWorth:
+        type: string
+      total:
+        type: string
+      wallets:
+        items:
+          $ref: "#/definitions/networth.WalletLineDTO"
+        type: array
+    type: object
+  networth.CategoryLineDTO:
+    properties:
+      assetType:
+        enum:
+          - CRYPTO
+          - ID_STOCK
+          - US_STOCK
+          - MUTUAL_FUND
+          - GLOBAL_ETF
+        type: string
+      label:
+        example: Crypto
+        type: string
+      pctOfTotal:
+        type: string
+      unrealizedPl:
+        type: string
+      unrealizedPlPct:
+        type: string
+      value:
+        type: string
+    type: object
   networth.HistoryDTO:
     properties:
       changePct:
@@ -1239,6 +1619,9 @@ definitions:
         type: string
       currency:
         example: USD
+        type: string
+      investmentsChangePct:
+        description: InvestmentsChangePct is the same change for the portfolio value.
         type: string
       points:
         items:
@@ -1265,10 +1648,29 @@ definitions:
       value:
         type: string
     type: object
+  networth.InvestmentsSectionDTO:
+    properties:
+      categories:
+        items:
+          $ref: "#/definitions/networth.CategoryLineDTO"
+        type: array
+      cost:
+        type: string
+      total:
+        type: string
+      unrealizedPl:
+        type: string
+      unrealizedPlPct:
+        type: string
+    type: object
   networth.PointDTO:
     properties:
       date:
         example: "2026-11-18"
+        type: string
+      investments:
+        description: Investments is the portfolio value of the day (the investments
+          line of the net worth).
         type: string
       live:
         description: the point computed now for today
@@ -1304,6 +1706,33 @@ definitions:
         items:
           $ref: "#/definitions/currency.Warning"
         type: array
+    type: object
+  networth.WalletLineDTO:
+    properties:
+      balance:
+        description: Balance is in the wallet's currency, BaseBalance in the space's
+          base currency (null without an FX rate).
+        type: string
+      baseBalance:
+        type: string
+      currency:
+        example: USD
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      pctOfTotal:
+        description: PctOfTotal is the wallet's share of the cash total; the shares
+          add up to exactly 100.00.
+        type: string
+      type:
+        enum:
+          - BANK
+          - E_WALLET
+          - CASH
+          - OTHER
+        type: string
     type: object
   server.StatusResponse:
     properties:
@@ -1748,6 +2177,15 @@ definitions:
       templateId:
         type: string
     type: object
+  wallets.DisplayPrefs:
+    properties:
+      hideLogo:
+        type: boolean
+      hideName:
+        type: boolean
+      hideType:
+        type: boolean
+    type: object
   wallets.ListResponse:
     properties:
       items:
@@ -1756,6 +2194,15 @@ definitions:
         type: array
       total:
         $ref: "#/definitions/currency.AggregateResult"
+    type: object
+  wallets.PrefsRequest:
+    properties:
+      hideLogo:
+        type: boolean
+      hideName:
+        type: boolean
+      hideType:
+        type: boolean
     type: object
   wallets.Preset:
     properties:
@@ -1783,7 +2230,16 @@ definitions:
         example: "34.26"
         type: string
       balance:
+        description: "Balance, Reserved and Available are in the wallet's currency:
+          IDR and JPY show no decimals, others 2."
         example: "134.26"
+        type: string
+      baseBalance:
+        description: |-
+          BaseBalance and PctOfTotal are set in the list response only: the balance in the space's
+          base currency, and its share of the total (percentages add up to exactly 100.00). Null
+          without an FX rate, or when the total is 0.
+        example: "2150000"
         type: string
       cardStyle:
         $ref: "#/definitions/wallets.CardStyle"
@@ -1792,6 +2248,12 @@ definitions:
       currency:
         example: IDR
         type: string
+      displayPrefs:
+        allOf:
+          - $ref: "#/definitions/wallets.DisplayPrefs"
+        description: |-
+          DisplayPrefs are the calling user's own display choices for this wallet (all false by default);
+          other members never see them.
       icon:
         type: string
       id:
@@ -1802,11 +2264,14 @@ definitions:
         type: string
       overReserved:
         type: boolean
+      pctOfTotal:
+        example: "33.33"
+        type: string
       reserved:
         description: |-
           Reserved is the part of the balance earmarked for goals; Available = balance − reserved
           and may be negative when expenses pushed the wallet below its reserves (OverReserved).
-        example: "100"
+        example: "100.00"
         type: string
       sortOrder:
         type: integer
@@ -2611,9 +3076,13 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/investments.acceptRequest"
+      produces:
+        - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/investments.AcceptResponse"
         "400":
           description: Bad Request
           schema:
@@ -2844,6 +3313,40 @@ paths:
       summary: Mark the space as my active space
       tags:
         - spaces
+  /spaces/{spaceId}/assets/summary:
+    get:
+      description: Cash per wallet (with its base-currency balance and share of the
+        cash total), investments per asset type (value, unrealised profit/loss, share
+        of the investments total), and fixed assets, money owed (receivables) and
+        debts (liabilities) with their items, all converted to the space base currency
+        with one FX snapshot, so the totals equal GET /net-worth/summary. Investments
+        count my share, shared-in ones included. Anything without a usable FX rate
+        has a null base value, is left out of the totals and reported in `warnings`.
+        Amounts show no decimals for IDR and JPY and 2 for every other currency; percentages
+        have 2 decimals and the slices of a section add up to exactly 100.00. In CASH_ONLY
+        tracking mode only `cash` is returned.
+      parameters:
+        - description: Space ID
+          in: path
+          name: spaceId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/networth.AssetSummaryDTO"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+      security:
+        - BearerAuth: []
+      summary: The asset page in one response
+      tags:
+        - net-worth
   /spaces/{spaceId}/categories:
     get:
       description: "With includeStats=true each category carries `stats` for the period
@@ -3669,6 +4172,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "403":
+          description: OWNER_ONLY (investment shared into this space)
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
         "404":
           description: Not Found
           schema:
@@ -3679,6 +4186,9 @@ paths:
       tags:
         - investments
     get:
+      description: "Also opens investments shared into this space by someone else:
+        the response is then `ownership: SHARED_IN`, valued with the caller's share
+        and the space's base currency, with other participants' emails masked."
       parameters:
         - description: Space ID
           in: path
@@ -3740,6 +4250,10 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/httpx.ErrorEnvelope"
+        "403":
+          description: OWNER_ONLY (investment shared into this space)
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
         "404":
           description: Not Found
           schema:
@@ -3755,6 +4269,8 @@ paths:
         - investments
   /spaces/{spaceId}/investments/{id}/participants:
     delete:
+      description: Answers 204. With `?return=investment` it answers 200 with the
+        investment as it is now, so the client can update in place.
       parameters:
         - description: Space ID
           in: path
@@ -3766,7 +4282,17 @@ paths:
           name: id
           required: true
           type: string
+        - description: "investment: answer 200 with the investment instead of 204"
+          in: query
+          name: return
+          type: string
+      produces:
+        - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/investments.InvestmentDTO"
         "204":
           description: No Content
         "403":
@@ -3850,7 +4376,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/investments.ParticipantsResponse"
+            $ref: "#/definitions/investments.SetParticipantsResponse"
         "400":
           description: Bad Request
           schema:
@@ -3894,6 +4420,10 @@ paths:
           description: OK
           schema:
             $ref: "#/definitions/investments.InvestmentDTO"
+        "403":
+          description: OWNER_ONLY (investment shared into this space)
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
         "404":
           description: Not Found
           schema:
@@ -3951,6 +4481,149 @@ paths:
         only)
       tags:
         - sharing
+  /spaces/{spaceId}/investments/grouped:
+    get:
+      description: "Groups the same valued list as GET /investments by asset type,
+        then by wrapper (exchange, broker or platform; compared case- and whitespace-insensitively;
+        none is `wrapper: null`, key `_unassigned`). Sums use the viewer's base-currency
+        values, so they equal `summary` of the flat list; items without a usable FX
+        rate are listed but left out of every sum and reported in `warnings`. `pctOfCategory`
+        and `pctOfTotal` are percentages with 2 decimals whose slices add up to exactly
+        100.00 (null when the denominator is 0), so pie data is `categories[].pctOfTotal`
+        and `wrappers[].pctOfCategory`. `items=false` leaves the items out."
+      parameters:
+        - description: Space ID
+          in: path
+          name: spaceId
+          required: true
+          type: string
+        - description: "shared: also group investments other people shared into this
+            space (valued for my share)"
+          in: query
+          name: include
+          type: string
+        - description: "false: omit the items of each wrapper (default true)"
+          in: query
+          name: items
+          type: boolean
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/investments.GroupedResponse"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+      security:
+        - BearerAuth: []
+      summary: Investments grouped by asset type and wrapper
+      tags:
+        - investments
+  /spaces/{spaceId}/investments/wrappers:
+    get:
+      description: "Per asset type: each wrapper (exchange, broker or platform) with
+        its `targetPct` (null when none is set), its `actualPct` share of the asset
+        type's base-currency value and `driftPct` (actual - target), plus the type's
+        `assignedPct` and `unallocatedPct` (100 - assigned). A wrapper whose percentage
+        is set but that no longer holds any investment is still listed (actualPct
+        0.00). The same fields are embedded in GET /investments/grouped."
+      parameters:
+        - description: Space ID
+          in: path
+          name: spaceId
+          required: true
+          type: string
+        - description: "shared: also count investments other people shared into this
+            space for the actual share"
+          in: query
+          name: include
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/investments.AllocationsResponse"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+      security:
+        - BearerAuth: []
+      summary: Planned and actual share of every wrapper
+      tags:
+        - investments
+  /spaces/{spaceId}/investments/wrappers/{assetType}/{wrapperKey}:
+    patch:
+      consumes:
+        - application/json
+      description: "Edits one wrapper at a time. `wrapperKey` is the wrapper lower-cased
+        and URL-encoded (any casing and extra whitespace is accepted; `_unassigned`
+        is rejected). The percentages set in an asset type may add up to at most 100.00;
+        the rest stays unallocated (422 ALLOCATION_EXCEEDS_100, with `details.assigned`
+        by the other wrappers and `details.available`). `targetPct: null` clears the
+        percentage. The wrapper must hold a live investment or already have a percentage
+        (404 WRAPPER_NOT_FOUND). Any member of the space may edit; every write records
+        who did it. The response carries the asset type's new assigned and unallocated
+        percentage."
+      parameters:
+        - description: Space ID
+          in: path
+          name: spaceId
+          required: true
+          type: string
+        - description: CRYPTO, ID_STOCK, US_STOCK, MUTUAL_FUND or GLOBAL_ETF
+          in: path
+          name: assetType
+          required: true
+          type: string
+        - description: Wrapper, lower-cased and URL-encoded
+          in: path
+          name: wrapperKey
+          required: true
+          type: string
+        - description: Percentage
+          in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/investments.SetTargetRequest"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/investments.SetTargetResponse"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+        "404":
+          description: space or WRAPPER_NOT_FOUND
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+        "422":
+          description: ALLOCATION_EXCEEDS_100
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+      security:
+        - BearerAuth: []
+      summary: Set or clear the percentage of one wrapper
+      tags:
+        - investments
   /spaces/{spaceId}/invitations:
     post:
       parameters:
@@ -4739,6 +5412,10 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/httpx.ErrorEnvelope"
+        "403":
+          description: OWNER_ONLY (BUY/SELL on an investment shared into this space)
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
         "404":
           description: space, wallet or investment not found
           schema:
@@ -4771,6 +5448,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "403":
+          description: OWNER_ONLY (BUY/SELL on an investment shared into this space)
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
         "404":
           description: Not Found
           schema:
@@ -4822,6 +5503,10 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/httpx.ErrorEnvelope"
+        "403":
+          description: OWNER_ONLY (BUY/SELL on an investment shared into this space)
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
         "404":
           description: Not Found
           schema:
@@ -4844,7 +5529,9 @@ paths:
     get:
       description: Favorites first, then sortOrder. `total` is converted to the space
         base currency; wallets without a usable FX rate are left out and reported
-        in `total.warnings`.
+        in `total.warnings`. Each item also carries `baseBalance` and `pctOfTotal`
+        (percent of the total, 2 decimals, adding up to exactly 100.00; null without
+        an FX rate) for pie charts.
       parameters:
         - description: Space ID
           in: path
@@ -5053,6 +5740,51 @@ paths:
       security:
         - BearerAuth: []
       summary: Set the wallet balance
+      tags:
+        - wallets
+  /spaces/{spaceId}/wallets/{id}/display-prefs:
+    patch:
+      consumes:
+        - application/json
+      description: Per user and synced across devices; other members of the space
+        never see them. Fields that are not sent keep their value; a result with nothing
+        hidden is the default and is not stored. Also returned as `displayPrefs` by
+        GET /wallets and GET /wallets/{id}.
+      parameters:
+        - description: Space ID
+          in: path
+          name: spaceId
+          required: true
+          type: string
+        - description: Wallet ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Preferences to change
+          in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/wallets.PrefsRequest"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/wallets.DisplayPrefs"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+        "404":
+          description: space or WALLET_NOT_FOUND
+          schema:
+            $ref: "#/definitions/httpx.ErrorEnvelope"
+      security:
+        - BearerAuth: []
+      summary: Set my display preferences of a wallet (hide logo, name, type)
       tags:
         - wallets
   /spaces/{spaceId}/wallets/{id}/top-up:

@@ -1442,12 +1442,14 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description No Content */
-                204: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["investments.AcceptResponse"];
+                    };
                 };
                 /** @description Bad Request */
                 400: {
@@ -1455,7 +1457,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
                 /** @description Not Found */
@@ -1464,7 +1466,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
                 /** @description SHARE_INVITATION_ANSWERED */
@@ -1473,7 +1475,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
             };
@@ -1879,6 +1881,57 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/assets/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The asset page in one response
+         * @description Cash per wallet (with its base-currency balance and share of the cash total), investments per asset type (value, unrealised profit/loss, share of the investments total), and fixed assets, money owed (receivables) and debts (liabilities) with their items, all converted to the space base currency with one FX snapshot, so the totals equal GET /net-worth/summary. Investments count my share, shared-in ones included. Anything without a usable FX rate has a null base value, is left out of the totals and reported in `warnings`. Amounts show no decimals for IDR and JPY and 2 for every other currency; percentages have 2 decimals and the slices of a section add up to exactly 100.00. In CASH_ONLY tracking mode only `cash` is returned.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["networth.AssetSummaryDTO"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3084,7 +3137,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an investment with its valuation */
+        /**
+         * Get an investment with its valuation
+         * @description Also opens investments shared into this space by someone else: the response is then `ownership: SHARED_IN`, valued with the caller's share and the space's base currency, with other participants' emails masked.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -3143,6 +3199,15 @@ export interface paths {
                     };
                     content?: never;
                 };
+                /** @description OWNER_ONLY (investment shared into this space) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
                 /** @description Not Found */
                 404: {
                     headers: {
@@ -3190,6 +3255,15 @@ export interface paths {
                 };
                 /** @description Bad Request */
                 400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description OWNER_ONLY (investment shared into this space) */
+                403: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -3299,7 +3373,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["investments.ParticipantsResponse"];
+                        "application/json": components["schemas"]["investments.SetParticipantsResponse"];
                     };
                 };
                 /** @description Bad Request */
@@ -3341,10 +3415,16 @@ export interface paths {
             };
         };
         post?: never;
-        /** Stop sharing: 100% returns to the owner and everyone else is removed (owner only) */
+        /**
+         * Stop sharing: 100% returns to the owner and everyone else is removed (owner only)
+         * @description Answers 204. With `?return=investment` it answers 200 with the investment as it is now, so the client can update in place.
+         */
         delete: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description investment: answer 200 with the investment instead of 204 */
+                    return?: string;
+                };
                 header?: never;
                 path: {
                     /** @description Space ID */
@@ -3356,6 +3436,15 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.InvestmentDTO"];
+                    };
+                };
                 /** @description No Content */
                 204: {
                     headers: {
@@ -3369,7 +3458,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
                 /** @description Not Found */
@@ -3378,7 +3467,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
             };
@@ -3422,6 +3511,15 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["investments.InvestmentDTO"];
+                    };
+                };
+                /** @description OWNER_ONLY (investment shared into this space) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
                 /** @description Not Found */
@@ -3525,6 +3623,212 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/investments/grouped": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Investments grouped by asset type and wrapper
+         * @description Groups the same valued list as GET /investments by asset type, then by wrapper (exchange, broker or platform; compared case- and whitespace-insensitively; none is `wrapper: null`, key `_unassigned`). Sums use the viewer's base-currency values, so they equal `summary` of the flat list; items without a usable FX rate are listed but left out of every sum and reported in `warnings`. `pctOfCategory` and `pctOfTotal` are percentages with 2 decimals whose slices add up to exactly 100.00 (null when the denominator is 0), so pie data is `categories[].pctOfTotal` and `wrappers[].pctOfCategory`. `items=false` leaves the items out.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description shared: also group investments other people shared into this space (valued for my share) */
+                    include?: string;
+                    /** @description false: omit the items of each wrapper (default true) */
+                    items?: boolean;
+                };
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.GroupedResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/investments/wrappers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Planned and actual share of every wrapper
+         * @description Per asset type: each wrapper (exchange, broker or platform) with its `targetPct` (null when none is set), its `actualPct` share of the asset type's base-currency value and `driftPct` (actual - target), plus the type's `assignedPct` and `unallocatedPct` (100 - assigned). A wrapper whose percentage is set but that no longer holds any investment is still listed (actualPct 0.00). The same fields are embedded in GET /investments/grouped.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description shared: also count investments other people shared into this space for the actual share */
+                    include?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.AllocationsResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/investments/wrappers/{assetType}/{wrapperKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set or clear the percentage of one wrapper
+         * @description Edits one wrapper at a time. `wrapperKey` is the wrapper lower-cased and URL-encoded (any casing and extra whitespace is accepted; `_unassigned` is rejected). The percentages set in an asset type may add up to at most 100.00; the rest stays unallocated (422 ALLOCATION_EXCEEDS_100, with `details.assigned` by the other wrappers and `details.available`). `targetPct: null` clears the percentage. The wrapper must hold a live investment or already have a percentage (404 WRAPPER_NOT_FOUND). Any member of the space may edit; every write records who did it. The response carries the asset type's new assigned and unallocated percentage.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description CRYPTO, ID_STOCK, US_STOCK, MUTUAL_FUND or GLOBAL_ETF */
+                    assetType: string;
+                    /** @description Wrapper, lower-cased and URL-encoded */
+                    wrapperKey: string;
+                };
+                cookie?: never;
+            };
+            /** @description Percentage */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["investments.SetTargetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.SetTargetResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description space or WRAPPER_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description ALLOCATION_EXCEEDS_100 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/spaces/{spaceId}/invitations": {
@@ -4681,6 +4985,15 @@ export interface paths {
                         "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
+                /** @description OWNER_ONLY (BUY/SELL on an investment shared into this space) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
                 /** @description space, wallet or investment not found */
                 404: {
                     headers: {
@@ -4741,6 +5054,15 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+                /** @description OWNER_ONLY (BUY/SELL on an investment shared into this space) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
                 };
                 /** @description Not Found */
                 404: {
@@ -4805,6 +5127,15 @@ export interface paths {
                         "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
+                /** @description OWNER_ONLY (BUY/SELL on an investment shared into this space) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
                 /** @description Not Found */
                 404: {
                     headers: {
@@ -4845,7 +5176,7 @@ export interface paths {
         };
         /**
          * List wallets with the converted total
-         * @description Favorites first, then sortOrder. `total` is converted to the space base currency; wallets without a usable FX rate are left out and reported in `total.warnings`.
+         * @description Favorites first, then sortOrder. `total` is converted to the space base currency; wallets without a usable FX rate are left out and reported in `total.warnings`. Each item also carries `baseBalance` and `pctOfTotal` (percent of the total, 2 decimals, adding up to exactly 100.00; null without an FX rate) for pie charts.
          */
         get: {
             parameters: {
@@ -5155,6 +5486,73 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/wallets/{id}/display-prefs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set my display preferences of a wallet (hide logo, name, type)
+         * @description Per user and synced across devices; other members of the space never see them. Fields that are not sent keep their value; a result with nothing hidden is the default and is not stored. Also returned as `displayPrefs` by GET /wallets and GET /wallets/{id}.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Wallet ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Preferences to change */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["wallets.PrefsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["wallets.DisplayPrefs"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description space or WALLET_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/spaces/{spaceId}/wallets/{id}/top-up": {
@@ -5544,7 +5942,7 @@ export interface components {
             name?: string;
             /**
              * @description a percentage of the total
-             * @example 42.5
+             * @example 42.50
              */
             pct?: string;
         };
@@ -5664,6 +6062,16 @@ export interface components {
             error?: components["schemas"]["httpx.ErrorBody"];
             requestId?: string;
         };
+        "investments.AcceptResponse": {
+            investmentId?: string;
+            spaceId?: string;
+        };
+        "investments.AllocationsResponse": {
+            categories?: components["schemas"]["investments.CategoryAllocationDTO"][];
+            /** @example IDR */
+            currency?: string;
+            warnings?: components["schemas"]["currency.Warning"][];
+        };
         "investments.BaseValues": {
             costBasis?: string;
             /** @example IDR */
@@ -5675,6 +6083,47 @@ export interface components {
             fxRate?: string;
             marketValue?: string;
             unrealizedPl?: string;
+        };
+        "investments.CategoryAllocationDTO": {
+            /** @enum {string} */
+            assetType?: "CRYPTO" | "ID_STOCK" | "US_STOCK" | "MUTUAL_FUND" | "GLOBAL_ETF";
+            /** @example 70.00 */
+            assignedPct?: string;
+            /** @example Crypto */
+            label?: string;
+            /** @example 30.00 */
+            unallocatedPct?: string;
+            wrappers?: components["schemas"]["investments.WrapperAllocationDTO"][];
+        };
+        "investments.CategoryGroupDTO": {
+            /** @enum {string} */
+            assetType?: "CRYPTO" | "ID_STOCK" | "US_STOCK" | "MUTUAL_FUND" | "GLOBAL_ETF";
+            /**
+             * @description AssignedPct is the sum of the wrapper percentages set in this asset type; UnallocatedPct = 100 - assigned.
+             * @example 70.00
+             */
+            assignedPct?: string;
+            /** @example 700000 */
+            cost?: string;
+            /** @example Crypto */
+            label?: string;
+            /** @example 60.00 */
+            pctOfTotal?: string;
+            /** @example 30.00 */
+            unallocatedPct?: string;
+            /** @example 200000 */
+            unrealizedPl?: string;
+            /** @example 28.57 */
+            unrealizedPlPct?: string;
+            /** @example 900000 */
+            value?: string;
+            wrappers?: components["schemas"]["investments.WrapperGroupDTO"][];
+        };
+        "investments.CategoryTotalsDTO": {
+            /** @example 70.00 */
+            assignedPct?: string;
+            /** @example 30.00 */
+            unallocatedPct?: string;
         };
         "investments.CreateRequestDoc": {
             /** @enum {string} */
@@ -5702,6 +6151,11 @@ export interface components {
             quantity?: string;
             quoteCurrency?: string;
             symbol?: string;
+            /**
+             * @description Wrapper is the exchange, broker or platform holding the position (1 to 60 characters). When omitted it is derived from details (exchangeOrWallet, broker or platform).
+             * @example Binance
+             */
+            wrapper?: string;
         };
         "investments.FieldMeta": {
             /** @enum {string} */
@@ -5717,6 +6171,13 @@ export interface components {
             /** @example 1000000 */
             amount?: string;
             walletId?: string;
+        };
+        "investments.GroupedResponse": {
+            categories?: components["schemas"]["investments.CategoryGroupDTO"][];
+            /** @example IDR */
+            currency?: string;
+            total?: components["schemas"]["investments.TotalsDTO"];
+            warnings?: components["schemas"]["currency.Warning"][];
         };
         "investments.InvestmentDTO": {
             /** @enum {string} */
@@ -5743,6 +6204,8 @@ export interface components {
              */
             ownership?: "OWNER" | "SHARED_IN";
             participants?: components["schemas"]["investments.ParticipantDTO"][];
+            /** @description PctOfTotal is this investment's share of the portfolio's base-currency value (only in the list response; null without a base value). */
+            pctOfTotal?: components["schemas"]["money.Pct"];
             /** @enum {string} */
             priceMode?: "AUTO" | "MANUAL";
             /** @example 2026-01-31 */
@@ -5758,6 +6221,11 @@ export interface components {
             updatedAt?: string;
             /** @description Valuation is the viewer's part: the whole investment unless it is shared. */
             valuation?: components["schemas"]["investments.Valuation"];
+            /**
+             * @description Wrapper is the exchange, broker or platform the position is held on; null when unknown.
+             * @example Binance
+             */
+            wrapper?: string;
         };
         "investments.InvitationDTO": {
             investment?: {
@@ -5814,9 +6282,14 @@ export interface components {
             quantity?: string;
             quoteCurrency?: string;
             symbol?: string;
+            /** @description Wrapper sets the exchange, broker or platform holding the position; null re-derives it from details. */
+            wrapper?: string;
         };
         "investments.RealizedPLDTO": {
-            /** @example 5990 */
+            /**
+             * @description Amount is in the investment's quote currency, Base in the space's base currency (null without an FX rate).
+             * @example 5990.00
+             */
             amount?: string;
             base?: string;
             /** @example USD */
@@ -5825,6 +6298,46 @@ export interface components {
         };
         "investments.SetParticipantsRequest": {
             participants: components["schemas"]["investments.participantRequest"][];
+        };
+        "investments.SetParticipantsResponse": {
+            investment?: components["schemas"]["investments.InvestmentDTO"];
+            items?: components["schemas"]["investments.ParticipantDTO"][];
+        };
+        "investments.SetTargetRequest": {
+            /**
+             * @description TargetPct is a percentage from 0 to 100 with at most 2 decimals ("40.00"); null clears it.
+             * @example 40.00
+             */
+            targetPct?: string;
+        };
+        "investments.SetTargetResponse": {
+            /**
+             * @description ActualPct is the wrapper's share of its asset type's value; null when the asset type is worth 0.
+             * @example 33.33
+             */
+            actualPct?: string;
+            /** @enum {string} */
+            assetType?: "CRYPTO" | "ID_STOCK" | "US_STOCK" | "MUTUAL_FUND" | "GLOBAL_ETF";
+            category?: components["schemas"]["investments.CategoryTotalsDTO"];
+            /**
+             * @description DriftPct is actualPct - targetPct; null unless both are known.
+             * @example -6.67
+             */
+            driftPct?: string;
+            /** @example binance */
+            key?: string;
+            /** @example Binance */
+            label?: string;
+            /**
+             * @description TargetPct is the percentage set for this wrapper; null when none is set (not 0).
+             * @example 40.00
+             */
+            targetPct?: string;
+            /**
+             * @description Wrapper is the display name; null for the unassigned group.
+             * @example Binance
+             */
+            wrapper?: string;
         };
         "investments.ShareChangeDTO": {
             after?: Record<string, never>;
@@ -5842,6 +6355,16 @@ export interface components {
             /** @description UnrealizedPLPct is a percentage; null when the total cost is 0. */
             unrealizedPlPct?: string;
             warnings?: components["schemas"]["currency.Warning"][];
+        };
+        "investments.TotalsDTO": {
+            /** @example 700000 */
+            cost?: string;
+            /** @example 200000 */
+            unrealizedPl?: string;
+            /** @example 28.57 */
+            unrealizedPlPct?: string;
+            /** @example 900000 */
+            value?: string;
         };
         "investments.TypeDefaults": {
             estimatedAnnualChangePct?: string;
@@ -5880,6 +6403,72 @@ export interface components {
             unrealizedPlPct?: string;
             warnings?: components["schemas"]["currency.Warning"][];
         };
+        "investments.WrapperAllocationDTO": {
+            /**
+             * @description ActualPct is the wrapper's share of its asset type's value; null when the asset type is worth 0.
+             * @example 33.33
+             */
+            actualPct?: string;
+            /** @enum {string} */
+            assetType?: "CRYPTO" | "ID_STOCK" | "US_STOCK" | "MUTUAL_FUND" | "GLOBAL_ETF";
+            /**
+             * @description DriftPct is actualPct - targetPct; null unless both are known.
+             * @example -6.67
+             */
+            driftPct?: string;
+            /** @example binance */
+            key?: string;
+            /** @example Binance */
+            label?: string;
+            /**
+             * @description TargetPct is the percentage set for this wrapper; null when none is set (not 0).
+             * @example 40.00
+             */
+            targetPct?: string;
+            /**
+             * @description Wrapper is the display name; null for the unassigned group.
+             * @example Binance
+             */
+            wrapper?: string;
+        };
+        "investments.WrapperGroupDTO": {
+            /** @example 700000 */
+            cost?: string;
+            count?: number;
+            /** @example 6.67 */
+            driftPct?: string;
+            items?: components["schemas"]["investments.InvestmentDTO"][];
+            /**
+             * @description Key is the lower-cased, whitespace-normalised wrapper ("_unassigned" for none).
+             * @example binance
+             */
+            key?: string;
+            /**
+             * @description Label is the wrapper, or "Unassigned".
+             * @example Binance
+             */
+            label?: string;
+            /** @example 66.67 */
+            pctOfCategory?: string;
+            /** @example 40.00 */
+            pctOfTotal?: string;
+            /**
+             * @description TargetPct is the percentage set for this wrapper (null when none); DriftPct = pctOfCategory - targetPct.
+             * @example 60.00
+             */
+            targetPct?: string;
+            /** @example 200000 */
+            unrealizedPl?: string;
+            /** @example 28.57 */
+            unrealizedPlPct?: string;
+            /** @example 900000 */
+            value?: string;
+            /**
+             * @description Wrapper is the display name; null for investments without a wrapper.
+             * @example Binance
+             */
+            wrapper?: string;
+        };
         "investments.acceptRequest": {
             spaceId: string;
         };
@@ -5897,8 +6486,8 @@ export interface components {
             /** @example IDR */
             currency?: string;
             /**
-             * @description a liability's outstanding amount
-             * @example 500
+             * @description in the asset's currency (IDR and JPY: no decimals, others 2); a liability's outstanding amount
+             * @example 500.00
              */
             currentValue?: string;
             /** @example 2026-12-31 */
@@ -5972,11 +6561,59 @@ export interface components {
             /** @example BTC */
             symbol?: string;
         };
+        "money.Pct": {
+            "decimal.Decimal"?: number;
+        };
+        "networth.AssetLineDTO": {
+            baseValue?: string;
+            /** @example IDR */
+            currency?: string;
+            id?: string;
+            name?: string;
+            pctOfTotal?: string;
+            /** @description Value is in the asset's currency, BaseValue in the space's base currency (null without an FX rate). */
+            value?: string;
+        };
+        "networth.AssetSectionDTO": {
+            items?: components["schemas"]["networth.AssetLineDTO"][];
+            total?: string;
+        };
+        "networth.AssetSummaryDTO": {
+            asOf?: string;
+            cash?: components["schemas"]["networth.CashSectionDTO"];
+            /** @example IDR */
+            currency?: string;
+            fixedAssets?: components["schemas"]["networth.AssetSectionDTO"];
+            investments?: components["schemas"]["networth.InvestmentsSectionDTO"];
+            liabilities?: components["schemas"]["networth.AssetSectionDTO"];
+            netWorth?: string;
+            receivables?: components["schemas"]["networth.AssetSectionDTO"];
+            /** @enum {string} */
+            trackingMode?: "FULL_NET_WORTH" | "CASH_ONLY";
+            warnings?: components["schemas"]["currency.Warning"][];
+        };
+        "networth.CashSectionDTO": {
+            pctOfNetWorth?: string;
+            total?: string;
+            wallets?: components["schemas"]["networth.WalletLineDTO"][];
+        };
+        "networth.CategoryLineDTO": {
+            /** @enum {string} */
+            assetType?: "CRYPTO" | "ID_STOCK" | "US_STOCK" | "MUTUAL_FUND" | "GLOBAL_ETF";
+            /** @example Crypto */
+            label?: string;
+            pctOfTotal?: string;
+            unrealizedPl?: string;
+            unrealizedPlPct?: string;
+            value?: string;
+        };
         "networth.HistoryDTO": {
             /** @description first → last point, a percentage; null when it cannot be computed */
             changePct?: string;
             /** @example USD */
             currency?: string;
+            /** @description InvestmentsChangePct is the same change for the portfolio value. */
+            investmentsChangePct?: string;
             points?: components["schemas"]["networth.PointDTO"][];
             /** @enum {string} */
             range?: "1M" | "3M" | "6M" | "1Y" | "ALL";
@@ -5988,9 +6625,18 @@ export interface components {
             unrealizedPlPct?: string;
             value?: string;
         };
+        "networth.InvestmentsSectionDTO": {
+            categories?: components["schemas"]["networth.CategoryLineDTO"][];
+            cost?: string;
+            total?: string;
+            unrealizedPl?: string;
+            unrealizedPlPct?: string;
+        };
         "networth.PointDTO": {
             /** @example 2026-11-18 */
             date?: string;
+            /** @description Investments is the portfolio value of the day (the investments line of the net worth). */
+            investments?: string;
             /** @description the point computed now for today */
             live?: boolean;
             netWorth?: string;
@@ -6008,6 +6654,19 @@ export interface components {
             /** @enum {string} */
             trackingMode?: "FULL_NET_WORTH" | "CASH_ONLY";
             warnings?: components["schemas"]["currency.Warning"][];
+        };
+        "networth.WalletLineDTO": {
+            /** @description Balance is in the wallet's currency, BaseBalance in the space's base currency (null without an FX rate). */
+            balance?: string;
+            baseBalance?: string;
+            /** @example USD */
+            currency?: string;
+            id?: string;
+            name?: string;
+            /** @description PctOfTotal is the wallet's share of the cash total; the shares add up to exactly 100.00. */
+            pctOfTotal?: string;
+            /** @enum {string} */
+            type?: "BANK" | "E_WALLET" | "CASH" | "OTHER";
         };
         "server.StatusResponse": {
             /** @example ok */
@@ -6219,9 +6878,19 @@ export interface components {
             presetId?: string;
             templateId?: string;
         };
+        "wallets.DisplayPrefs": {
+            hideLogo?: boolean;
+            hideName?: boolean;
+            hideType?: boolean;
+        };
         "wallets.ListResponse": {
             items?: components["schemas"]["wallets.WalletDTO"][];
             total?: components["schemas"]["currency.AggregateResult"];
+        };
+        "wallets.PrefsRequest": {
+            hideLogo?: boolean;
+            hideName?: boolean;
+            hideType?: boolean;
         };
         "wallets.Preset": {
             colors?: string[];
@@ -6236,21 +6905,38 @@ export interface components {
         "wallets.WalletDTO": {
             /** @example 34.26 */
             available?: string;
-            /** @example 134.26 */
+            /**
+             * @description Balance, Reserved and Available are in the wallet's currency: IDR and JPY show no decimals, others 2.
+             * @example 134.26
+             */
             balance?: string;
+            /**
+             * @description BaseBalance and PctOfTotal are set in the list response only: the balance in the space's
+             *     base currency, and its share of the total (percentages add up to exactly 100.00). Null
+             *     without an FX rate, or when the total is 0.
+             * @example 2150000
+             */
+            baseBalance?: string;
             cardStyle?: components["schemas"]["wallets.CardStyle"];
             createdAt?: string;
             /** @example IDR */
             currency?: string;
+            /**
+             * @description DisplayPrefs are the calling user's own display choices for this wallet (all false by default);
+             *     other members never see them.
+             */
+            displayPrefs?: components["schemas"]["wallets.DisplayPrefs"];
             icon?: string;
             id?: string;
             isFavorite?: boolean;
             name?: string;
             overReserved?: boolean;
+            /** @example 33.33 */
+            pctOfTotal?: string;
             /**
              * @description Reserved is the part of the balance earmarked for goals; Available = balance − reserved
              *     and may be negative when expenses pushed the wallet below its reserves (OverReserved).
-             * @example 100
+             * @example 100.00
              */
             reserved?: string;
             sortOrder?: number;

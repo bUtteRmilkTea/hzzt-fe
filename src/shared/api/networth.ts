@@ -64,7 +64,10 @@ export function useNetWorthSummary(spaceId: string) {
 export interface NetWorthHistory {
   currency: string
   changePct: string | null
-  points: Array<{ date: string; netWorth: string; live: boolean }>
+  /** Change of the portfolio value over the same points; null when it cannot be computed. */
+  investmentsChangePct: string | null
+  /** `investments` is the portfolio value of that day (0 for a day with no holdings). */
+  points: Array<{ date: string; netWorth: string; investments: string; live: boolean }>
 }
 
 export function useNetWorthHistory(spaceId: string, range: HistoryRange) {
@@ -79,9 +82,13 @@ export function useNetWorthHistory(spaceId: string, range: HistoryRange) {
       return {
         currency: d?.currency ?? '',
         changePct: d?.changePct ? toMoneyString(d.changePct) : null,
+        investmentsChangePct: d?.investmentsChangePct
+          ? toMoneyString(d.investmentsChangePct)
+          : null,
         points: (d?.points ?? []).map((p) => ({
           date: p.date ?? '',
           netWorth: toMoneyString(p.netWorth),
+          investments: toMoneyString(p.investments),
           live: Boolean(p.live),
         })),
       }
