@@ -11,9 +11,9 @@ import {
   AnalyticsCard,
   BreakdownCard,
   CalendarCard,
+  GoalsCard,
   NetWorthCard,
   OverviewCard,
-  QuickActions,
 } from './cards'
 import type { Range } from './search'
 import { monthOf } from './search'
@@ -65,7 +65,7 @@ export function HomeScreen() {
           style={staggerStyle(1)}
         >
           <OverviewCard period={period} />
-          <QuickActions />
+          <GoalsCard />
         </div>
         <div className={cn('lg:col-span-4 [&>*]:h-full', cell, STAGGER)} style={staggerStyle(2)}>
           <BreakdownCard period={period} />

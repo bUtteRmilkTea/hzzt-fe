@@ -21,7 +21,7 @@ export function HistorySummaryRail({ period }: { period: Period }) {
     <aside
       aria-label="Period summary"
       data-testid="history-rail"
-      className="sticky top-4 hidden w-72 shrink-0 flex-col gap-4 self-start rounded-lg border border-border bg-surface-1 p-4 xl:flex"
+      className="sticky top-4 hidden w-[22rem] shrink-0 flex-col gap-4 self-start rounded-lg border border-border bg-surface-1 p-4 xl:flex"
     >
       <div>
         <h2 className="text-base font-semibold">{periodLabel(period)}</h2>
@@ -30,27 +30,27 @@ export function HistorySummaryRail({ period }: { period: Period }) {
       {overview.isPending ? (
         <Skeleton className="h-16" />
       ) : overview.isSuccess ? (
-        <dl className="grid grid-cols-2 gap-3">
+        <dl className="grid grid-cols-2 gap-3 border-b border-border pb-4">
           <div>
             <dt className="text-sm text-label-secondary">In</dt>
-            <dd className="font-semibold">
+            <dd className="text-lg font-semibold">
               <Amount animate value={overview.data.income} currency={currency} tone="auto" />
             </dd>
           </div>
           <div>
             <dt className="text-sm text-label-secondary">Out</dt>
-            <dd className="font-semibold">
+            <dd className="text-lg font-semibold">
               <Amount animate value={overview.data.expense} currency={currency} tone="expense" />
             </dd>
           </div>
         </dl>
       ) : null}
       {breakdown.isPending ? (
-        <Skeleton className="h-44" />
+        <Skeleton className="h-72" />
       ) : breakdown.isSuccess && breakdown.data.items.length > 0 ? (
         <DonutChart
           draw
-          size={160}
+          size={232}
           label="Spending by category"
           currency={breakdown.data.currency || currency}
           centre={{

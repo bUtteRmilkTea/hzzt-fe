@@ -35,23 +35,31 @@ export function TransactionRow({
   transaction: t,
   pending,
   showWallet,
+  dense,
 }: {
   transaction: TransactionDTO
   /** An optimistic row that the server has not confirmed yet. */
   pending?: boolean
   /** Show the wallet as its own column from 1024px (History). */
   showWallet?: boolean
+  /** A tighter row (48px) for long lists such as History. */
+  dense?: boolean
 }) {
   return (
     <div
       data-pending={pending || undefined}
-      className={cn('flex h-16 items-center gap-3 py-2', pending && 'opacity-60')}
+      className={cn(
+        'flex items-center gap-3',
+        dense ? 'h-12 py-1' : 'h-16 py-2',
+        pending && 'opacity-60',
+      )}
     >
       <span
         aria-hidden
         style={t.category?.color ? { backgroundColor: t.category.color } : undefined}
         className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-full text-lg',
+          'flex shrink-0 items-center justify-center rounded-full',
+          dense ? 'size-8 text-base' : 'size-10 text-lg',
           !t.category?.color && 'bg-surface-3',
         )}
       >

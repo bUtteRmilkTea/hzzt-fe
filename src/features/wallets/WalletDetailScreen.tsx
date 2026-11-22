@@ -118,61 +118,70 @@ export function WalletDetailScreen() {
           </Button>
         }
       />
-      <WalletCard
-        name={w.name ?? ''}
-        icon={w.icon ?? '💳'}
-        balance={w.balance ?? '0'}
-        currency={currency}
-        type={w.type ?? 'OTHER'}
-        cardStyle={w.cardStyle}
-        isFavorite={w.isFavorite}
-        display={prefsOf(w)}
-      />
-      <p className="text-center text-sm text-label-secondary">
-        Balance{' '}
-        <Amount
-          animate
-          value={w.balance ?? '0'}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:gap-8">
+        <WalletCard
+          size="compact"
+          name={w.name ?? ''}
+          icon={w.icon ?? '💳'}
+          balance={w.balance ?? '0'}
           currency={currency}
-          className="font-semibold text-label"
+          type={w.type ?? 'OTHER'}
+          cardStyle={w.cardStyle}
+          isFavorite={w.isFavorite}
+          display={prefsOf(w)}
         />
-      </p>
-      {w.reserved && w.reserved !== '0' ? (
-        <div
-          className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 px-4 py-3 text-sm"
-          data-testid="reserve-lines"
-        >
-          <p className="flex justify-between">
-            <span className="text-label-secondary">Reserved for goals</span>
-            <Amount value={w.reserved} currency={currency} />
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-label-secondary lg:text-base">
+            Balance{' '}
+            <Amount
+              animate
+              value={w.balance ?? '0'}
+              currency={currency}
+              className="font-semibold text-label lg:text-2xl"
+            />
           </p>
-          <p className="flex justify-between">
-            <span className="text-label-secondary">Available</span>
-            <Amount value={w.available ?? '0'} currency={currency} className="font-semibold" />
-          </p>
-          {/* A warning, never an error: spending can take a wallet below what is reserved in it. */}
-          {w.overReserved ? (
-            <p role="status" className="pt-1 text-warning">
-              This wallet has less than is reserved in it.
-            </p>
+          {w.reserved && w.reserved !== '0' ? (
+            <div
+              className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 px-4 py-3 text-sm"
+              data-testid="reserve-lines"
+            >
+              <p className="flex justify-between">
+                <span className="text-label-secondary">Reserved for goals</span>
+                <Amount value={w.reserved} currency={currency} />
+              </p>
+              <p className="flex justify-between">
+                <span className="text-label-secondary">Available</span>
+                <Amount value={w.available ?? '0'} currency={currency} className="font-semibold" />
+              </p>
+              {/* A warning, never an error: spending can take a wallet below what is reserved in it. */}
+              {w.overReserved ? (
+                <p role="status" className="pt-1 text-warning">
+                  This wallet has less than is reserved in it.
+                </p>
+              ) : null}
+            </div>
           ) : null}
+          <div className="flex gap-3">
+            <Button className="flex-1" onClick={() => setTopUp(true)}>
+              <Plus aria-hidden className="size-5" />
+              Add balance
+            </Button>
+            <Button variant="secondary" className="flex-1" asChild>
+              <Link
+                to="/s/$spaceId/transactions/new"
+                params={{ spaceId: space.id }}
+                search={{
+                  type: 'TRANSFER',
+                  from: id,
+                  returnTo: `/s/${space.id}/wallets/${id}`,
+                }}
+              >
+                <ArrowLeftRight aria-hidden className="size-5" />
+                Transfer
+              </Link>
+            </Button>
+          </div>
         </div>
-      ) : null}
-      <div className="flex gap-3">
-        <Button className="flex-1" onClick={() => setTopUp(true)}>
-          <Plus aria-hidden className="size-5" />
-          Add balance
-        </Button>
-        <Button variant="secondary" className="flex-1" asChild>
-          <Link
-            to="/s/$spaceId/transactions/new"
-            params={{ spaceId: space.id }}
-            search={{ type: 'TRANSFER', from: id }}
-          >
-            <ArrowLeftRight aria-hidden className="size-5" />
-            Transfer
-          </Link>
-        </Button>
       </div>
 
       <section aria-labelledby="txn-heading" className="flex flex-col gap-2">

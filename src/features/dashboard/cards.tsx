@@ -3,12 +3,14 @@ import { format, getISODay, parseISO } from 'date-fns'
 import { ChevronLeft, ChevronRight, Target } from 'lucide-react'
 import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
+import { useGoals } from '@/features/goals/hooks'
 import { useNetWorthHistory, useNetWorthSummary } from '@/shared/api/networth'
 import { BarChart, DonutChart, LineChart } from '@/shared/charts'
+import { useGrow } from '@/shared/motion/useGrow'
 import { type Period, periodToSearch } from '@/shared/period'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
-import { cardClass, cardInteractive } from '@/shared/ui/Card'
+import { cardClass } from '@/shared/ui/Card'
 import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { useLayout } from '@/shared/ui/layout'
@@ -381,25 +383,90 @@ export function CalendarCard({ month, onMonth }: { month: string; onMonth: (m: s
   )
 }
 
-// ---- quick actions -------------------------------------------------------------
+// ---- goals ---------------------------------------------------------------------
 
-/** Only Goal is wired in v1. Import, Insight and Consult are absent, not shown disabled. */
-export function QuickActions() {
-  const { space } = useSpace()
+/** A thin progress bar that grows from empty the first time it is seen. */
+function GoalBar({ pct, achieved }: { pct: string | undefined; achieved: boolean }) {
+  const n = Math.min(100, Math.max(0, Number(pct) || 0))
+  const [ref, grown] = useGrow(n)
   return (
-    <nav aria-label="Quick actions" className="flex gap-3">
-      <Link
-        to="/s/$spaceId/goals"
-        params={{ spaceId: space.id }}
+    <div
+      ref={ref}
+      role="progressbar"
+      aria-label="Goal progress"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={n}
+      className="h-2 overflow-hidden rounded-full bg-surface-3"
+    >
+      <div
+        style={{ width: `${grown}%` }}
         className={cn(
-          cardClass,
-          cardInteractive,
-          'flex min-h-14 flex-1 items-center justify-center gap-2 p-0 font-medium lg:p-0',
+          'h-full rounded-full transition-[width] duration-700 ease-out',
+          achieved ? 'bg-positive' : 'bg-accent',
         )}
-      >
-        <Target aria-hidden className="size-5 text-accent" />
-        Goals
-      </Link>
-    </nav>
+      />
+    </div>
+  )
+}
+
+/** Up to three active goals with progress, or an empty state with one action. */
+export function GoalsCard() {
+  const { space } = useSpace()
+  const q = useGoals(space.id)
+  const link = (
+    <Link
+      to="/s/$spaceId/goals"
+      params={{ spaceId: space.id }}
+      className="text-sm font-medium text-accent hover:underline"
+    >
+      View all
+    </Link>
+  )
+  if (q.isPending) return <Skeleton className="h-32" />
+  if (q.isError) return <Retry what="your goals" onRetry={() => void q.refetch()} />
+  const active = q.data.filter((g) => !g.achievedAt).slice(0, 3)
+  return (
+    <Card title="Goals" action={link}>
+      {active.length === 0 ? (
+        <div className="flex flex-col items-start gap-3" data-testid="goals-empty">
+          <p className="text-sm text-label-secondary">Set a target and watch your progress here.</p>
+          <Button size="sm" asChild>
+            <Link to="/s/$spaceId/goals/new" params={{ spaceId: space.id }}>
+              Add goal
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-4" data-testid="goals-list">
+          {active.map((g) => (
+            <li key={g.id}>
+              <Link
+                to="/s/$spaceId/goals/$id"
+                params={{ spaceId: space.id, id: g.id as string }}
+                className="flex flex-col gap-1.5"
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2 font-medium">
+                    <Target aria-hidden className="size-4 shrink-0 text-accent" />
+                    <span className="truncate">
+                      {g.icon} {g.name}
+                    </span>
+                  </span>
+                  <span className="tabular text-sm text-label-secondary">
+                    {Math.round(Number(g.progressPct) || 0)}%
+                  </span>
+                </span>
+                <GoalBar pct={g.progressPct} achieved={false} />
+                <span className="text-sm text-label-secondary">
+                  <Amount value={g.progress ?? '0'} currency={g.currency ?? ''} /> of{' '}
+                  <Amount value={g.targetAmount ?? '0'} currency={g.currency ?? ''} />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   )
 }

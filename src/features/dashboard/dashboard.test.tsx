@@ -371,13 +371,47 @@ describe('calendar', () => {
   })
 })
 
-describe('quick actions', () => {
-  it('only Goals is wired; Import, Insight and Consult are absent rather than disabled', async () => {
+describe('goals card (F15-T02)', () => {
+  const goal = (n: number, over: Record<string, unknown> = {}) => ({
+    id: `g-${n}`,
+    name: `Goal ${n}`,
+    icon: '🎯',
+    currency: 'IDR',
+    targetAmount: '1000000',
+    progress: '250000',
+    progressPct: '25',
+    ...over,
+  })
+
+  it('shows at most 3 active goals with progress, and skips achieved ones', async () => {
     install()
+    server.use(
+      http.get(`${BASE}/spaces/s-1/goals`, () =>
+        HttpResponse.json({
+          items: [
+            goal(1),
+            goal(2, { achievedAt: '2026-11-01T00:00:00Z' }),
+            goal(3),
+            goal(4),
+            goal(5),
+          ],
+        }),
+      ),
+    )
     renderApp('/s/s-1')
-    const nav = await screen.findByRole('navigation', { name: 'Quick actions' })
-    expect(within(nav).getAllByRole('link')).toHaveLength(1)
-    expect(within(nav).getByRole('link', { name: 'Goals' })).toBeInTheDocument()
+    const list = await screen.findByTestId('goals-list')
+    expect(within(list).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(list).queryByText(/Goal 2/)).not.toBeInTheDocument()
+    expect(within(list).getAllByRole('progressbar', { name: 'Goal progress' })).toHaveLength(3)
+    expect(screen.getByRole('link', { name: 'View all' })).toBeInTheDocument()
+  })
+
+  it('shows an empty state with one action when there are no goals', async () => {
+    install()
+    server.use(http.get(`${BASE}/spaces/s-1/goals`, () => HttpResponse.json({ items: [] })))
+    renderApp('/s/s-1')
+    const empty = await screen.findByTestId('goals-empty')
+    expect(within(empty).getByRole('link', { name: 'Add goal' })).toBeInTheDocument()
     for (const name of [/Import/, /Insight/, /Consult/])
       expect(screen.queryByText(name)).not.toBeInTheDocument()
   })

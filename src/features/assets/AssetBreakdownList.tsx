@@ -19,6 +19,10 @@ export interface BreakdownRow {
 export interface BreakdownGroup {
   key: string
   title?: string | undefined
+  /** A line under the title, such as "3 holdings · 42.50%". */
+  subtitle?: string | undefined
+  /** Rows left out by the per-group cap. */
+  more?: number | undefined
   /** Total of the group, shown beside its title. */
   total?: { value: string; currency: string } | undefined
   rows: BreakdownRow[]
@@ -85,6 +89,7 @@ export function AssetBreakdownList({
               {g.total ? <Amount value={g.total.value} currency={g.total.currency} /> : null}
             </div>
           ) : null}
+          {g.subtitle ? <p className="px-2 text-xs text-label-tertiary">{g.subtitle}</p> : null}
           <ul className="flex flex-col">
             {g.rows.map((r, i) => (
               <li key={r.key} className={STAGGER} style={staggerStyle(i)}>
@@ -92,6 +97,11 @@ export function AssetBreakdownList({
               </li>
             ))}
           </ul>
+          {g.more ? (
+            <p className="px-2 text-sm text-label-secondary" data-testid="group-more">
+              +{g.more} more
+            </p>
+          ) : null}
         </div>
       ))}
     </div>

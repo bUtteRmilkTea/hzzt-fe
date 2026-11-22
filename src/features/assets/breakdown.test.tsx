@@ -63,7 +63,9 @@ describe('assets page breakdown (S6)', () => {
 
     const inv = screen.getByRole('region', { name: 'Investments' })
     expect(await within(inv).findByText('Bitcoin')).toBeInTheDocument()
-    expect(within(inv).getByRole('heading', { name: 'Crypto' })).toBeInTheDocument()
+    // No broker on this fixture, so it lands under "Other"; the asset type moves to the row's second line.
+    expect(within(inv).getByRole('heading', { name: 'Other' })).toBeInTheDocument()
+    expect(within(inv).getByText(/BTC · Crypto/)).toBeInTheDocument()
     const pl = within(inv).getByTestId('row-pl')
     expect(pl).toHaveTextContent('+IDR 2,400,000')
     expect(pl).toHaveTextContent('(30%)')
