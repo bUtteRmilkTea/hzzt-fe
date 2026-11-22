@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from './cn'
 
-/** `wide`: dashboards and lists (max 1200px). `form`: forms, detail and settings screens (max 960px). */
+/** `wide`: dashboards and lists (max 1680px). `form`: forms, detail and settings screens (max 1120px). */
 export type PageWidth = 'wide' | 'form'
 
 interface PageProps extends HTMLAttributes<HTMLDivElement> {
@@ -15,7 +15,12 @@ const WIDTH: Record<PageWidth, string> = {
   form: 'max-w-[var(--page-max-form)]',
 }
 
-const GAP = { 4: 'gap-4', 5: 'gap-5', 6: 'gap-6', 8: 'gap-8' } as const
+const GAP = {
+  4: 'gap-4 lg:gap-6',
+  5: 'gap-5 lg:gap-6',
+  6: 'gap-6 lg:gap-8',
+  8: 'gap-8',
+} as const
 
 /**
  * The one page container. Every screen uses it, so widths never drift per page.

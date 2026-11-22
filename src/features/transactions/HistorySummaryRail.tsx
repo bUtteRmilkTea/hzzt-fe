@@ -34,13 +34,13 @@ export function HistorySummaryRail({ period }: { period: Period }) {
           <div>
             <dt className="text-sm text-label-secondary">In</dt>
             <dd className="font-semibold">
-              <Amount value={overview.data.income} currency={currency} tone="auto" />
+              <Amount animate value={overview.data.income} currency={currency} tone="auto" />
             </dd>
           </div>
           <div>
             <dt className="text-sm text-label-secondary">Out</dt>
             <dd className="font-semibold">
-              <Amount value={overview.data.expense} currency={currency} tone="expense" />
+              <Amount animate value={overview.data.expense} currency={currency} tone="expense" />
             </dd>
           </div>
         </dl>

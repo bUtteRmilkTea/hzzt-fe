@@ -8,8 +8,10 @@ import { BarChart, DonutChart, LineChart } from '@/shared/charts'
 import { type Period, periodToSearch } from '@/shared/period'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
+import { cardClass, cardInteractive } from '@/shared/ui/Card'
 import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { useLayout } from '@/shared/ui/layout'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { StatCard } from '@/shared/ui/StatCard'
@@ -26,10 +28,7 @@ const Card = ({
   children: React.ReactNode
   action?: React.ReactNode
 }) => (
-  <section
-    aria-label={title}
-    className="flex flex-col gap-3 rounded-lg border border-border bg-surface-1 p-4"
-  >
+  <section aria-label={title} className={cn(cardClass, 'flex flex-col gap-3 lg:gap-4')}>
     <div className="flex items-center justify-between gap-3">
       <h2 className="text-lg font-semibold">{title}</h2>
       {action}
@@ -77,7 +76,7 @@ export function OverviewCard({ period }: { period: Period }) {
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           label="Expenses"
-          value={<Amount value={o.expense} currency={o.currency || space.baseCurrency} />}
+          value={<Amount animate value={o.expense} currency={o.currency || space.baseCurrency} />}
           note={
             <span data-testid="expense-change">
               <ChangeText pct={o.change.expensePct} /> vs previous
@@ -86,7 +85,7 @@ export function OverviewCard({ period }: { period: Period }) {
         />
         <StatCard
           label="Income"
-          value={<Amount value={o.income} currency={o.currency || space.baseCurrency} />}
+          value={<Amount animate value={o.income} currency={o.currency || space.baseCurrency} />}
           note={
             <span data-testid="income-change">
               <ChangeText pct={o.change.incomePct} /> vs previous
@@ -103,6 +102,7 @@ export function OverviewCard({ period }: { period: Period }) {
 
 export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Range) => void }) {
   const { space } = useSpace()
+  const { isWide } = useLayout()
   const summary = useNetWorthSummary(space.id)
   const history = useNetWorthHistory(space.id, range)
   const change = history.data?.changePct
@@ -115,7 +115,7 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
           <Amount
             value={summary.data.netWorth}
             currency={summary.data.currency || space.baseCurrency}
-            className="text-2xl font-semibold"
+            className="text-3xl font-semibold lg:text-4xl"
             animate
           />
           {change !== null && change !== undefined ? (
@@ -139,7 +139,13 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
         options={RANGES.map((r) => ({ value: r, label: r === 'ALL' ? 'All' : r }))}
       />
       {history.isPending ? (
-        <LineChart loading data={[]} currency={space.baseCurrency} label="Net worth loading" />
+        <LineChart
+          loading
+          height={isWide ? 240 : 160}
+          data={[]}
+          currency={space.baseCurrency}
+          label="Net worth loading"
+        />
       ) : history.isError ? (
         <Retry what="the chart" onRetry={() => void history.refetch()} />
       ) : (
@@ -147,6 +153,7 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
           data={history.data.points.map((p) => ({ date: p.date, value: p.netWorth, live: p.live }))}
           currency={history.data.currency || space.baseCurrency}
           label={`Net worth over ${range === 'ALL' ? 'all time' : `the last ${range}`}`}
+          height={isWide ? 240 : 160}
           draw
         />
       )}
@@ -383,7 +390,11 @@ export function QuickActions() {
       <Link
         to="/s/$spaceId/goals"
         params={{ spaceId: space.id }}
-        className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-surface-1 font-medium"
+        className={cn(
+          cardClass,
+          cardInteractive,
+          'flex min-h-14 flex-1 items-center justify-center gap-2 p-0 font-medium lg:p-0',
+        )}
       >
         <Target aria-hidden className="size-5 text-accent" />
         Goals

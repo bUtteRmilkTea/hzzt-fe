@@ -60,7 +60,7 @@ export function AssetDetailScreen() {
               : 'Value'}
         </p>
         <p className="text-3xl font-semibold" data-testid="asset-value">
-          <Amount value={toMoneyString(a.currentValue)} currency={currency} />
+          <Amount animate value={toMoneyString(a.currentValue)} currency={currency} />
         </p>
         {a.counterpartyName ? (
           <p className="text-sm text-label-secondary">

@@ -5,11 +5,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { useDebounce } from '@/shared/hooks/useDebounce'
 import { Button } from '@/shared/ui/Button'
+import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Input } from '@/shared/ui/Input'
 import { Page } from '@/shared/ui/Page'
 import { PeriodPicker } from '@/shared/ui/PeriodPicker'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 import { DayGroupHeader, TransactionRow } from '@/shared/ui/TransactionRow'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { ActiveFilterChips } from './ActiveFilterChips'
@@ -221,7 +223,8 @@ export function HistoryScreen() {
                       <Link
                         to="/s/$spaceId/transactions/$id"
                         params={{ spaceId: space.id, id: row.txn.id as string }}
-                        className="block border-b border-border"
+                        className={cn('block border-b border-border', v.index < 12 && STAGGER)}
+                        style={v.index < 12 ? staggerStyle(v.index) : undefined}
                       >
                         <TransactionRow
                           transaction={row.txn}

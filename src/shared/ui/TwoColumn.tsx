@@ -13,11 +13,14 @@ interface TwoColumnProps extends HTMLAttributes<HTMLDivElement> {
  */
 export function TwoColumn({ left, right, className, ...props }: TwoColumnProps) {
   return (
-    <div className={cn('flex flex-col gap-4 lg:flex-row lg:items-start', className)} {...props}>
-      <div className="flex min-w-0 flex-1 flex-col gap-4" data-column="left">
+    <div
+      className={cn('flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6', className)}
+      {...props}
+    >
+      <div className="flex min-w-0 flex-1 flex-col gap-4 lg:gap-6" data-column="left">
         {left}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-4" data-column="right">
+      <div className="flex min-w-0 flex-1 flex-col gap-4 lg:gap-6" data-column="right">
         {right}
       </div>
     </div>

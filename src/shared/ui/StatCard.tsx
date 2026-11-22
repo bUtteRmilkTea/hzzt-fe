@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { cardClass } from './Card'
 import { cn } from './cn'
 
 interface StatCardProps {
@@ -12,7 +13,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, note, className }: StatCardProps) {
   return (
-    <div className={cn('rounded-lg border border-border bg-surface-1 p-4', className)}>
+    <div className={cn(cardClass, className)}>
       <p className="text-sm text-label-secondary">{label}</p>
       <p className="text-xl font-semibold">{value}</p>
       {note ? <p className="mt-1 text-sm text-label-secondary">{note}</p> : null}

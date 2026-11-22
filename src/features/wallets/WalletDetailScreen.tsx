@@ -130,7 +130,12 @@ export function WalletDetailScreen() {
       />
       <p className="text-center text-sm text-label-secondary">
         Balance{' '}
-        <Amount value={w.balance ?? '0'} currency={currency} className="font-semibold text-label" />
+        <Amount
+          animate
+          value={w.balance ?? '0'}
+          currency={currency}
+          className="font-semibold text-label"
+        />
       </p>
       {w.reserved && w.reserved !== '0' ? (
         <div

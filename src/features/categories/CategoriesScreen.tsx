@@ -6,24 +6,69 @@ import { useSpace } from '@/app/providers/SpaceProvider'
 import type { CategoryDTO, CategoryType } from '@/shared/api/categories'
 import { api } from '@/shared/api/client'
 import { errorMessage } from '@/shared/api/errors'
+import { DonutChart } from '@/shared/charts'
 import { toMoneyString } from '@/shared/money'
+import { DEFAULT_PERIOD } from '@/shared/period'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
+import { PageGrid, Panel } from '@/shared/ui/PageGrid'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 import { useToast } from '@/shared/ui/Toast'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
+import { useBreakdown } from '../dashboard/hooks'
 import { moveItem } from '../wallets/hooks'
 import { BudgetProgress } from './BudgetProgress'
 import { CategoryFormSheet } from './CategoryFormSheet'
 import { useCategories, useInvalidateCategories, useReorderCategories } from './hooks'
 
 type Sheet = { kind: 'new' } | { kind: 'edit'; category: CategoryDTO } | null
+
+/** Where this period's money went, from the server's category breakdown. Sits beside the list from lg. */
+function CategoryRail({ type }: { type: CategoryType }) {
+  const { space } = useSpace()
+  const q = useBreakdown(space.id, DEFAULT_PERIOD, type)
+  if (q.isPending) return <Skeleton className="h-72" />
+  if (!q.isSuccess || q.data.items.length === 0) return null
+  return (
+    <Panel
+      span={4}
+      aria-label="Category split"
+      data-testid="category-rail"
+      className="lg:sticky lg:top-4 lg:self-start"
+    >
+      <h2 className="mb-3 text-base font-semibold">
+        {type === 'EXPENSE' ? 'Where it went' : 'Where it came from'}
+      </h2>
+      <DonutChart
+        draw
+        size={176}
+        label={`${type === 'EXPENSE' ? 'Expenses' : 'Income'} by category`}
+        currency={q.data.currency || space.baseCurrency}
+        centre={{
+          value: String(q.data.items.reduce((n, i) => n + i.count, 0)),
+          caption: 'transactions',
+        }}
+        slices={q.data.items.map((i) => ({
+          key: i.key,
+          amount: i.amount,
+          name: i.name,
+          icon: i.icon,
+          color: i.color ?? 'var(--label-tertiary)',
+          pct: i.pct,
+          count: i.count,
+          interactive: false,
+        }))}
+      />
+    </Panel>
+  )
+}
 
 export function CategoriesScreen() {
   const { space } = useSpace()
@@ -120,24 +165,29 @@ export function CategoriesScreen() {
               </Button>
             </div>
           ) : null}
-          <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-            {categories.data.map((c, i, all) => (
-              <li key={c.id}>
-                <CategoryRow
-                  category={c}
-                  type={type}
-                  fallbackCurrency={space.baseCurrency}
-                  reordering={reordering}
-                  canMoveUp={i > 0}
-                  canMoveDown={i < all.length - 1}
-                  onMoveUp={() => move(i, i - 1)}
-                  onMoveDown={() => move(i, i + 1)}
-                  onEdit={() => setSheet({ kind: 'edit', category: c })}
-                  onDelete={() => setToDelete(c)}
-                />
-              </li>
-            ))}
-          </ul>
+          <PageGrid>
+            <div className="min-w-0 lg:col-span-8">
+              <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+                {categories.data.map((c, i, all) => (
+                  <li key={c.id} className={STAGGER} style={staggerStyle(i)}>
+                    <CategoryRow
+                      category={c}
+                      type={type}
+                      fallbackCurrency={space.baseCurrency}
+                      reordering={reordering}
+                      canMoveUp={i > 0}
+                      canMoveDown={i < all.length - 1}
+                      onMoveUp={() => move(i, i - 1)}
+                      onMoveDown={() => move(i, i + 1)}
+                      onEdit={() => setSheet({ kind: 'edit', category: c })}
+                      onDelete={() => setToDelete(c)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <CategoryRail type={type} />
+          </PageGrid>
         </>
       )}
 
@@ -208,6 +258,7 @@ function CategoryRow({
             <p className="text-sm text-label-secondary">
               {type === 'EXPENSE' ? 'Spent' : 'Received'}{' '}
               <Amount
+                animate
                 value={toMoneyString(type === 'EXPENSE' ? stats.spent : stats.received)}
                 currency={currency}
               />

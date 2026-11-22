@@ -126,8 +126,9 @@ describe('detail screen (F13-T04)', () => {
     server.use(http.get(`${I}/c0`, () => HttpResponse.json(items[0])))
     renderApp('/s/s-1/investments/c0')
     const card = await screen.findByTestId('valuation')
-    // The screen-reader copy is the exact final value at every frame.
-    expect(card.querySelector('.sr-only')).toHaveTextContent('IDR 900')
+    // The page text is the exact final value; the counting frame is a separate attribute.
+    expect(card.querySelector('[data-frame]')).not.toBeNull()
+    expect(card).toHaveTextContent('IDR 900')
     for (const line of card.querySelectorAll('p.border-t'))
       expect(line).toHaveClass('border-border')
     expect(card.querySelectorAll('.rounded-lg.border')).toHaveLength(0) // no nested card inside the card

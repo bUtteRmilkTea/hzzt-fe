@@ -4,11 +4,14 @@ import { Plus } from 'lucide-react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
+import { cardClass, cardInteractive } from '@/shared/ui/Card'
+import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressRing } from '@/shared/ui/ProgressRing'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { type GoalDTO, useGoals } from './hooks'
 
@@ -24,7 +27,7 @@ export function GoalCard({ goal: g, spaceId }: { goal: GoalDTO; spaceId: string 
     <Link
       to="/s/$spaceId/goals/$id"
       params={{ spaceId, id: g.id as string }}
-      className="flex items-center gap-4 rounded-lg border border-border bg-surface-1 p-4"
+      className={cn(cardClass, cardInteractive, 'flex items-center gap-4')}
     >
       <ProgressRing pct={g.progressPct} label={pctLabel(g.progressPct)} achieved={achieved} />
       <div className="min-w-0 flex-1">
@@ -37,7 +40,7 @@ export function GoalCard({ goal: g, spaceId }: { goal: GoalDTO; spaceId: string 
           ) : null}
         </p>
         <p className="text-sm text-label-secondary">
-          <Amount value={g.progress ?? '0'} currency={g.currency ?? ''} /> of{' '}
+          <Amount animate value={g.progress ?? '0'} currency={g.currency ?? ''} /> of{' '}
           <Amount value={g.targetAmount ?? '0'} currency={g.currency ?? ''} />
         </p>
         <p className="text-sm text-label-secondary">
@@ -98,9 +101,9 @@ export function GoalsScreen() {
       ) : (
         <>
           <WarningsStrip warnings={goals.data.flatMap((g) => g.warnings ?? [])} />
-          <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-            {goals.data.map((g) => (
-              <li key={g.id}>
+          <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+            {goals.data.map((g, i) => (
+              <li key={g.id} className={STAGGER} style={staggerStyle(i)}>
                 <GoalCard goal={g} spaceId={space.id} />
               </li>
             ))}

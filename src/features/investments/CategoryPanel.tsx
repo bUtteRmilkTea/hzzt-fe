@@ -1,8 +1,10 @@
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { Amount } from '@/shared/ui/Amount'
+import { cardClass } from '@/shared/ui/Card'
 import { Collapsible } from '@/shared/ui/Collapsible'
 import { cn } from '@/shared/ui/cn'
+import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 import { InvestmentRow } from './InvestmentRow'
 import { TargetBar } from './TargetBar'
 import type { InvestmentGroup, WrapperGroup } from './valuation'
@@ -67,8 +69,10 @@ function WrapperSection({
       )}
       <Collapsible open={open} id={bodyId}>
         <div className="flex flex-col pl-6">
-          {w.items.map((i) => (
-            <InvestmentRow key={i.id} investment={i} spaceId={spaceId} />
+          {w.items.map((i, n) => (
+            <div key={i.id} className={STAGGER} style={staggerStyle(n)}>
+              <InvestmentRow investment={i} spaceId={spaceId} />
+            </div>
           ))}
         </div>
       </Collapsible>
@@ -90,14 +94,16 @@ export function CategoryPanel({
 }) {
   const currency = group.currency
   return (
-    <section
-      aria-label={label}
-      className="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-1 p-4"
-    >
+    <section aria-label={label} className={cn(cardClass, 'flex flex-col gap-3')}>
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-lg font-semibold">{label}</h2>
         {currency ? (
-          <Amount value={group.value} currency={currency} className="text-lg font-semibold" />
+          <Amount
+            animate
+            value={group.value}
+            currency={currency}
+            className="text-lg font-semibold"
+          />
         ) : null}
       </div>
       {group.wrappers.map((w) => (

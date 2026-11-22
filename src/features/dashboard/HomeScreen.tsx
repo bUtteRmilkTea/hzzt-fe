@@ -2,9 +2,11 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { periodFromSearch, periodToSearch } from '@/shared/period'
+import { cn } from '@/shared/ui/cn'
 import { Page } from '@/shared/ui/Page'
 import { PageGrid } from '@/shared/ui/PageGrid'
 import { PeriodPicker } from '@/shared/ui/PeriodPicker'
+import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 import {
   AnalyticsCard,
   BreakdownCard,
@@ -15,6 +17,8 @@ import {
 } from './cards'
 import type { Range } from './search'
 import { monthOf } from './search'
+
+const cell = 'min-w-0'
 
 /** The home dashboard. Everything on it is a function of the URL: period, calendar month and chart range. */
 export function HomeScreen() {
@@ -52,23 +56,24 @@ export function HomeScreen() {
         />
       </div>
 
-      <PageGrid data-testid="home-grid" className="gap-4 lg:gap-6">
-        <div className="min-w-0 lg:col-span-4 [&>*]:h-full">
-          <OverviewCard period={period} />
-        </div>
-        <div className="min-w-0 lg:col-span-8 [&>*]:h-full">
+      <PageGrid data-testid="home-grid">
+        <div className={cn('lg:col-span-8 [&>*]:h-full', cell, STAGGER)} style={staggerStyle(0)}>
           <NetWorthCard range={range} onRange={(r) => go({ range: r === '1M' ? undefined : r })} />
         </div>
-        <div className="min-w-0 lg:col-span-4 [&>*]:h-full">
-          <BreakdownCard period={period} />
-        </div>
-        <div className="min-w-0 lg:col-span-4 [&>*]:h-full">
-          <AnalyticsCard period={period} />
-        </div>
-        <div className="min-w-0 lg:col-span-4 [&>*]:h-full">
+        <div
+          className={cn('flex flex-col gap-4 lg:col-span-4 lg:gap-6', cell, STAGGER)}
+          style={staggerStyle(1)}
+        >
+          <OverviewCard period={period} />
           <QuickActions />
         </div>
-        <div className="min-w-0 lg:col-span-12">
+        <div className={cn('lg:col-span-4 [&>*]:h-full', cell, STAGGER)} style={staggerStyle(2)}>
+          <BreakdownCard period={period} />
+        </div>
+        <div className={cn('lg:col-span-4 [&>*]:h-full', cell, STAGGER)} style={staggerStyle(3)}>
+          <AnalyticsCard period={period} />
+        </div>
+        <div className={cn('lg:col-span-4 [&>*]:h-full', cell, STAGGER)} style={staggerStyle(4)}>
           <CalendarCard
             month={month}
             onMonth={(m) => go({ month: m === monthOf(new Date()) ? undefined : m })}

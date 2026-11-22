@@ -66,7 +66,7 @@ describe('assets layout (F12)', () => {
     const hero = await screen.findByRole('region', { name: 'Net worth' })
     expect(await within(hero).findByTestId('line-chart')).toBeInTheDocument()
     expect(hero.querySelector('[data-draw]')).not.toBeNull()
-    expect(hero.querySelector('[data-counting], .sr-only')).not.toBeNull()
+    expect(hero.querySelector('[data-frame]')).not.toBeNull()
 
     const column = (name: string) =>
       screen.getByRole('region', { name }).closest('[data-column]')?.getAttribute('data-column')
@@ -87,13 +87,16 @@ describe('assets layout (F12)', () => {
     const user = userEvent.setup()
     renderApp('/s/s-1/assets')
     const cashRegion = await screen.findByRole('region', { name: 'Cash' })
-    const cashHtml = cashRegion.innerHTML
+    // The count-up frame is an attribute that changes while counting; the structure must not.
+    const structure = (el: HTMLElement) =>
+      el.innerHTML.replace(/ data-frame="[^"]*"/g, '').replace(/ data-counting=""/g, '')
+    const cashHtml = structure(cashRegion)
     const inv = screen.getByRole('region', { name: 'Investments' })
     await within(inv).findByText('Coin 0')
     await user.click(within(inv).getByRole('button', { name: 'Investments' }))
     expect(within(inv).getByTestId('section-summary')).toHaveTextContent('7 items · Coin 0')
     expect(screen.getByRole('region', { name: 'Cash' })).toBe(cashRegion)
-    expect(cashRegion.innerHTML).toBe(cashHtml)
+    expect(structure(cashRegion)).toBe(cashHtml)
   })
 
   it('lists at most 5 investments inline, with a link to open all of them', async () => {

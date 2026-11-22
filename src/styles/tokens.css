@@ -61,9 +61,12 @@
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
 
   /* Layout */
-  --page-max-wide: 1200px;
-  --page-max-form: 960px;
+  --page-max-wide: 1680px;
+  --page-max-form: 1120px;
   --gutter: 16px;
+  /* One gap between cards everywhere: 16px, 24px from 1024px */
+  --gap: 16px;
+  --gap-lg: 24px;
 
   /* Motion */
   --dur-fast: 150ms;

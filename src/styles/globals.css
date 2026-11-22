@@ -140,3 +140,48 @@
     stroke-dasharray: none;
   }
 }
+
+/* Card hover and press (plan: motion obvious). Transform and shadow only, so nothing reflows. */
+.card-interactive {
+  transition:
+    transform var(--dur-base) cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color var(--dur-fast) ease-out,
+    box-shadow var(--dur-base) ease-out;
+}
+@media (hover: hover) {
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  }
+}
+.card-interactive:active {
+  transform: scale(0.985);
+  transition-duration: 80ms;
+}
+
+/* List rows and cards ease in one after another. `--i` is the row index; beyond 12 rows they appear at once. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.stagger-in {
+  animation: row-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: calc(min(var(--i, 0), 12) * 45ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stagger-in {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win */
+    animation: none !important;
+  }
+  .card-interactive:hover,
+  .card-interactive:active {
+    transform: none;
+  }
+}

@@ -8,6 +8,7 @@ import { LineChart } from '@/shared/charts'
 import { toMoneyString } from '@/shared/money'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
+import { cardClass } from '@/shared/ui/Card'
 import { Collapsible } from '@/shared/ui/Collapsible'
 import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -45,7 +46,10 @@ function Section({
 }) {
   const [open, setOpen] = useState(true)
   return (
-    <section aria-label={title} className="rounded-lg border border-border bg-surface-1">
+    <section
+      aria-label={title}
+      className="rounded-lg border border-border bg-surface-1 shadow-card"
+    >
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <button
           type="button"
@@ -73,7 +77,7 @@ function Section({
           </span>
         </button>
         <span className="font-semibold">
-          <Amount value={total} currency={currency} />
+          <Amount animate value={total} currency={currency} />
         </span>
         {action}
       </div>
@@ -264,7 +268,7 @@ export function AssetsScreen() {
         <>
           <section
             aria-label={cashOnly ? 'Cash total' : 'Net worth'}
-            className="flex flex-col gap-3 rounded-lg border border-border bg-surface-1 p-4"
+            className={cn(cardClass, 'flex flex-col gap-3')}
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <div>

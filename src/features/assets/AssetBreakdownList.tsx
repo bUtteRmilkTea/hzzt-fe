@@ -1,6 +1,7 @@
 import { Link, type LinkProps } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { Amount } from '@/shared/ui/Amount'
+import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 
 export interface BreakdownRow {
   key: string
@@ -85,8 +86,8 @@ export function AssetBreakdownList({
             </div>
           ) : null}
           <ul className="flex flex-col">
-            {g.rows.map((r) => (
-              <li key={r.key}>
+            {g.rows.map((r, i) => (
+              <li key={r.key} className={STAGGER} style={staggerStyle(i)}>
                 <Row row={r} />
               </li>
             ))}

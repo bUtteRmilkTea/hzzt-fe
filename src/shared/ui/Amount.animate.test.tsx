@@ -34,7 +34,7 @@ describe('interpolateMoney', () => {
 describe('<Amount animate>', () => {
   it('counts up from 0 and its last frame is exactly the formatted server value', () => {
     const { container } = render(<Amount value="134.26" currency="USD" animate />)
-    const visible = () => container.querySelector('[aria-hidden]:not(.invisible)')?.textContent
+    const visible = () => container.querySelector('[data-frame]')?.getAttribute('data-frame')
     expect(visible()).toBe('$0.00')
     step(1000)
     step(1350)
@@ -46,11 +46,12 @@ describe('<Amount animate>', () => {
     expect(queue).toHaveLength(0)
   })
 
-  it('exposes only the final value to screen readers, at every frame', () => {
+  it('keeps only the final value in the page text at every frame; the frame is an attribute', () => {
     const { container } = render(<Amount value="134.26" currency="USD" animate />)
-    step(1000)
-    step(1300)
-    expect(container.querySelector('.sr-only')?.textContent).toBe('$134.26')
+    for (const ts of [1000, 1200, 1300, 1800]) {
+      step(ts)
+      expect(container.textContent).toBe('$134.26')
+    }
   })
 
   it('counts again from the old value when the value changes', () => {
@@ -60,17 +61,17 @@ describe('<Amount animate>', () => {
     rerender(<Amount value="200" currency="USD" animate />)
     step(6000)
     step(6350)
-    const mid = container.querySelector('[aria-hidden]:not(.invisible)')?.textContent
+    const mid = container.querySelector('[data-frame]')?.getAttribute('data-frame')
     expect(mid).not.toBe('$100.00')
     expect(mid).not.toBe('$200.00')
     step(7000)
-    expect(container.querySelector('[aria-hidden]:not(.invisible)')?.textContent).toBe('$200.00')
+    expect(container.querySelector('[data-frame]')?.getAttribute('data-frame')).toBe('$200.00')
   })
 
   it('is instant under reduced motion', () => {
     vi.stubGlobal('matchMedia', () => ({ matches: true }))
     const { container } = render(<Amount value="134.26" currency="USD" animate />)
-    expect(container.querySelector('[aria-hidden]:not(.invisible)')?.textContent).toBe('$134.26')
+    expect(container.querySelector('[data-frame]')?.getAttribute('data-frame')).toBe('$134.26')
     expect(queue).toHaveLength(0)
   })
 

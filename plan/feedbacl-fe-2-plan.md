@@ -186,3 +186,19 @@ Tick a task only after tests pass and the app starts. Added by the build loop; t
 2. Provide a screenshot of the investment detail page.
 3. Start F11-T01 and F11-T02. Widths and column stretching cause most of the visible problems.
 4. Confirm whether "home asset" meant the Assets page only, or also the Home dashboard.
+
+---
+
+## 7. F14: Desktop density and motion (from review feedback)
+
+Added after F11 to F13 shipped, on request: the pages still left dead space, the motion was too subtle, and the layouts did not match the inspo videos (not yet compared: the videos could not be decoded in the authoring environment).
+
+- [x] F14-T01 Width: wide tier 1200 to 1680, form tier 960 to 1120
+- [x] F14-T02 One gap: 16px, 24px from lg, on Page, PageGrid, TwoColumn and CardGrid. One `Card` surface (`cardClass`) for every card
+- [x] F14-T03 Home: net worth (8) beside overview and goals (4), then breakdown, analytics and calendar in three equal columns
+- [x] F14-T04 Wallets: card grid on desktop (the deck stays on phones) with a sticky total and share rail
+- [x] F14-T05 Categories: category split donut beside the list. Goals: up to 4 columns
+- [x] F14-T06 Count-up on every headline number (`<Amount animate>`, now painted from `data-frame` so the page text is only ever the final value)
+- [x] F14-T07 Row and card stagger, card hover lift and press
+- [x] F14-T08 Tests (unit pass; `test/e2e/density.spec.ts` written, NOT run: no browser libs locally)
+

@@ -142,7 +142,7 @@ export function GoalDetailScreen() {
         <div className="flex flex-col gap-0.5">
           {achieved ? <p className="font-semibold text-positive">Goal achieved</p> : null}
           <p className="text-xl font-semibold">
-            <Amount value={g.progress ?? '0'} currency={currency} />
+            <Amount animate value={g.progress ?? '0'} currency={currency} />
           </p>
           <p className="text-sm text-label-secondary">
             of <Amount value={g.targetAmount ?? '0'} currency={currency} />

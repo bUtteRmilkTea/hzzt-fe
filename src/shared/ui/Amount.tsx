@@ -58,21 +58,18 @@ export function Amount({
   const finalText = format(value, currency, { signDisplay, compact })
 
   if (animate) {
-    // Reserved width: an invisible copy of the final text sizes the box, so counting never shifts layout.
-    // Screen readers get the final value only, never an intermediate frame.
+    // The real text is the final value: it sizes the box (so counting never shifts layout) and is
+    // what screen readers and copy/paste get. The counting frame is painted by CSS from `data-frame`
+    // on top of it, so no intermediate figure is ever part of the page text.
     return (
-      <span className={cn('tabular inline-grid', toneClass, className)}>
-        <span aria-hidden className="invisible col-start-1 row-start-1">
-          {finalText}
-        </span>
+      <span className={cn('tabular relative inline-block', toneClass, className)}>
+        <span className="opacity-0">{finalText}</span>
         <span
           aria-hidden
-          className="col-start-1 row-start-1"
+          data-frame={format(shown, currency, { signDisplay, compact })}
           data-counting={shown !== value || undefined}
-        >
-          {format(shown, currency, { signDisplay, compact })}
-        </span>
-        <span className="sr-only">{finalText}</span>
+          className="absolute inset-0 text-[inherit] after:content-[attr(data-frame)]"
+        />
       </span>
     )
   }

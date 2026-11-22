@@ -1,9 +1,12 @@
 import type { HTMLAttributes } from 'react'
+import { cardClass } from './Card'
 import { cn } from './cn'
 
 /** 12-column page grid: single column on mobile, 12 columns from `lg` (1024px). */
 export function PageGrid({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('grid grid-cols-1 gap-6 lg:grid-cols-12', className)} {...props} />
+  return (
+    <div className={cn('grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6', className)} {...props} />
+  )
 }
 
 /** Column spans for a PageGrid child. Full class names so Tailwind can see them. */
@@ -22,23 +25,17 @@ interface PanelProps extends HTMLAttributes<HTMLElement> {
 
 /** A grid cell: hairline-bordered surface that spans `span` of 12 columns from `lg`. */
 export function Panel({ span = 12, className, ...props }: PanelProps) {
-  return (
-    <section
-      className={cn(
-        'min-w-0 rounded-lg border border-border bg-surface-1 p-4 shadow-card',
-        SPAN[span],
-        className,
-      )}
-      {...props}
-    />
-  )
+  return <section className={cn(cardClass, SPAN[span], className)} {...props} />
 }
 
 /** Responsive equal-width card grid: 1 column, 2 from `lg`, 3 from `xl`. */
 export function CardGrid({ className, ...props }: HTMLAttributes<HTMLUListElement>) {
   return (
     <ul
-      className={cn('grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3', className)}
+      className={cn(
+        'grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 xl:grid-cols-3 2xl:grid-cols-4',
+        className,
+      )}
       {...props}
     />
   )
