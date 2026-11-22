@@ -13,6 +13,7 @@ import { useLayout } from '@/shared/ui/layout'
 import { Page } from '@/shared/ui/Page'
 import { PageGrid, Panel } from '@/shared/ui/PageGrid'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { SortableItem, SortableList } from '@/shared/ui/SortableList'
 import { STAGGER, staggerStyle } from '@/shared/ui/stagger'
 import { useToast } from '@/shared/ui/Toast'
 import { WalletCard } from '@/shared/ui/WalletCard'
@@ -34,21 +35,38 @@ function TotalCard({ value, currency }: { value: string; currency: string }) {
   )
 }
 
-/** From 1024px: a grid of cards, not the overlapped deck, so each card stays a sensible size. */
+/**
+ * A sortable list of wallet cards: from 1024px a grid, below it the single column shown while
+ * reordering. Each card drags by its grip handle; the card itself is still a link.
+ */
 function WalletGrid({
   wallets,
   spaceId,
   renderAside,
+  onReorder,
+  layout,
 }: {
   wallets: readonly WalletDTO[]
   spaceId: string
   renderAside: (w: WalletDTO, i: number) => React.ReactNode
+  onReorder: (from: number, to: number) => void
+  layout: 'grid' | 'list'
 }) {
   return (
-    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6 2xl:grid-cols-3">
+    <SortableList
+      ids={wallets.map((w) => w.id as string)}
+      onReorder={onReorder}
+      layout={layout}
+      className={cn(
+        'grid grid-cols-1 gap-4',
+        layout === 'grid' && 'sm:grid-cols-2 lg:gap-6 2xl:grid-cols-3',
+      )}
+    >
       {wallets.map((w, i) => (
-        <li
+        <SortableItem
           key={w.id}
+          id={w.id as string}
+          label={`Reorder ${w.name}`}
           data-testid="wallet-grid-item"
           className={cn('flex min-w-0 flex-col gap-2', STAGGER)}
           style={staggerStyle(i)}
@@ -71,9 +89,9 @@ function WalletGrid({
             />
           </Link>
           {renderAside(w, i)}
-        </li>
+        </SortableItem>
       ))}
-    </ul>
+    </SortableList>
   )
 }
 
@@ -94,36 +112,42 @@ export function WalletsScreen() {
     reorder.mutate(ids, { onError: (err) => toast.show(errorMessage(err), 'error') })
   }
 
-  const renderAside = (w: WalletDTO, i: number) =>
-    reordering ? (
-      <div className="flex gap-1">
-        <Button
-          variant="secondary"
-          size="icon"
-          aria-label={`Move ${w.name} up`}
-          disabled={i === 0}
-          onClick={() => move(i, i - 1)}
-        >
-          <ArrowUp aria-hidden className="size-5" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          aria-label={`Move ${w.name} down`}
-          disabled={i === (wallets.data?.items.length ?? 0) - 1}
-          onClick={() => move(i, i + 1)}
-        >
-          <ArrowDown aria-hidden className="size-5" />
-        </Button>
-      </div>
-    ) : null
+  const moveButtons = (w: WalletDTO, i: number) => (
+    <div className="flex gap-1">
+      <Button
+        variant="secondary"
+        size="icon"
+        aria-label={`Move ${w.name} up`}
+        disabled={i === 0}
+        onClick={() => move(i, i - 1)}
+      >
+        <ArrowUp aria-hidden className="size-5" />
+      </Button>
+      <Button
+        variant="secondary"
+        size="icon"
+        aria-label={`Move ${w.name} down`}
+        disabled={i === (wallets.data?.items.length ?? 0) - 1}
+        onClick={() => move(i, i + 1)}
+      >
+        <ArrowDown aria-hidden className="size-5" />
+      </Button>
+    </div>
+  )
+
+  // Reorder mode (below 1024px): the buttons are always shown. From 1024px the grid is always
+  // draggable, and the buttons stay for keyboard users: visible only while one has focus.
+  const renderAside = (w: WalletDTO, i: number) => (reordering ? moveButtons(w, i) : null)
+  const renderGridAside = (w: WalletDTO, i: number) => (
+    <div className="sr-only focus-within:not-sr-only">{moveButtons(w, i)}</div>
+  )
 
   return (
     <Page>
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-medium">Wallets</h1>
         <div className="flex gap-2">
-          {wallets.data && wallets.data.items.length > 1 ? (
+          {!isWide && wallets.data && wallets.data.items.length > 1 ? (
             <Button variant="ghost" size="sm" onClick={() => setReordering((r) => !r)}>
               {reordering ? 'Done' : 'Reorder'}
             </Button>
@@ -173,9 +197,19 @@ export function WalletsScreen() {
           <div className="min-w-0 lg:col-span-8 lg:row-span-2 lg:row-start-1">
             {isWide ? (
               <WalletGrid
+                layout="grid"
                 wallets={wallets.data.items}
                 spaceId={space.id}
-                renderAside={(w, i) => renderAside(w, i)}
+                renderAside={renderGridAside}
+                onReorder={move}
+              />
+            ) : reordering ? (
+              <WalletGrid
+                layout="list"
+                wallets={wallets.data.items}
+                spaceId={space.id}
+                renderAside={renderAside}
+                onReorder={move}
               />
             ) : (
               <WalletStack

@@ -41,13 +41,18 @@ describe('wallet stack', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/s/s-1/wallets/w-2'))
   })
 
-  it('reorder mode forces the stack open', async () => {
+  it('reorder mode swaps the deck for a list with a drag handle and move buttons per wallet', async () => {
     server.use(http.get(W, () => HttpResponse.json(walletList([cash, bank]))))
     const user = userEvent.setup()
     renderApp('/s/s-1/wallets')
     await user.click(await screen.findByRole('button', { name: 'Reorder' }))
     expect(await screen.findByRole('button', { name: 'Move Cash up' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Collapse' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Reorder Cash' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reorder BCA' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Collapse' })).not.toBeInTheDocument()
+    expect(screen.queryByTestId('wallet-stack-item')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    expect(screen.queryByRole('button', { name: 'Reorder Cash' })).not.toBeInTheDocument()
   })
 
   it('hides logo, name and type independently from the server display prefs', async () => {
