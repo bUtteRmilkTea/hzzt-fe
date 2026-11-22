@@ -10,6 +10,7 @@ import { queryKeys } from '@/shared/api/queryKeys'
 import { Button } from '@/shared/ui/Button'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SettingsGroup, SettingsRow } from '@/shared/ui/SettingsRow'
 import { SheetShell } from '@/shared/ui/SheetShell'
@@ -38,7 +39,7 @@ export function SecurityScreen() {
   const close = () => setMode(null)
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <Page width="form" gap={6}>
       <PageHeader title="Security" backToSettings />
       <SettingsGroup>
         <SettingsRow label="App lock">
@@ -73,7 +74,7 @@ export function SecurityScreen() {
       {mode === 'enable' ? <EnableSheet onClose={close} /> : null}
       {mode === 'disable' ? <DisableSheet onClose={close} /> : null}
       {mode === 'change' ? <ChangePinSheet onClose={close} /> : null}
-    </div>
+    </Page>
   )
 }
 

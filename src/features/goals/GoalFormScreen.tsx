@@ -17,6 +17,7 @@ import { EmojiPicker } from '@/shared/ui/EmojiPicker'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
 import { MoneyInput } from '@/shared/ui/MoneyInput'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { PALETTE } from '@/shared/ui/palette'
 import { Select } from '@/shared/ui/Select'
@@ -116,7 +117,7 @@ export function GoalFormScreen() {
   })
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title="Add goal" />
       <form noValidate onSubmit={submit} className="flex flex-col gap-5">
         {formError ? (
@@ -231,6 +232,6 @@ export function GoalFormScreen() {
           {create.isPending ? 'Adding…' : 'Add goal'}
         </Button>
       </form>
-    </div>
+    </Page>
   )
 }

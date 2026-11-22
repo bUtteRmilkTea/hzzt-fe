@@ -1,4 +1,8 @@
+import type { CSSProperties } from 'react'
+import { Decimal } from '@/shared/money'
 import { Amount } from '@/shared/ui/Amount'
+import { cn } from '@/shared/ui/cn'
+import { useCountUp } from '@/shared/ui/useCountUp'
 import { donutGeometry, type Slice } from './geometry'
 
 export interface DonutSlice extends Slice {
@@ -21,6 +25,8 @@ interface DonutChartProps {
   centre: { value: string; caption: string }
   onSelect?: (key: string) => void
   size?: number
+  /** Sweep the slices in, and count the centre number up. */
+  draw?: boolean
 }
 
 /** A category donut with a count in the middle, a legend, and slices that can be tapped through. */
@@ -31,7 +37,12 @@ export function DonutChart({
   centre,
   onSelect,
   size = 180,
+  draw,
 }: DonutChartProps) {
+  // The centre is a transaction count: count it up with the same Decimal interpolation as <Amount animate>.
+  const countable = Boolean(draw) && /^\d+$/.test(centre.value)
+  const counted = useCountUp(centre.value, countable)
+  const centreText = countable ? new Decimal(counted).toDecimalPlaces(0).toString() : centre.value
   const outer = size / 2 - 4
   const arcs = donutGeometry(slices, outer, outer * 0.62)
   const byKey = new Map(slices.map((s) => [s.key, s]))
@@ -47,7 +58,7 @@ export function DonutChart({
       <svg width={size} height={size} role="img" aria-label={label} className="block">
         <title>{label}</title>
         <g transform={`translate(${size / 2},${size / 2})`}>
-          {arcs.map((a) => {
+          {arcs.map((a, i) => {
             const s = byKey.get(a.key)
             if (!s) return null
             const tappable = Boolean(onSelect) && s.interactive !== false
@@ -55,17 +66,17 @@ export function DonutChart({
               <path
                 key={a.key}
                 d={a.path}
-                style={{ fill: s.color }}
+                style={{ fill: s.color, ...(draw ? ({ '--i': i } as CSSProperties) : {}) }}
                 data-slice={a.key}
                 // Pointer users can tap a slice. Keyboard and screen-reader users use the legend buttons below.
                 aria-hidden
                 onClick={tappable ? () => onSelect?.(a.key) : undefined}
-                className={tappable ? 'cursor-pointer' : undefined}
+                className={cn(tappable && 'cursor-pointer', draw && 'chart-slice')}
               />
             )
           })}
           <text textAnchor="middle" y={-2} className="fill-label text-2xl font-semibold">
-            {centre.value}
+            {centreText}
           </text>
           <text textAnchor="middle" y={16} className="fill-label-secondary text-[11px]">
             {centre.caption}

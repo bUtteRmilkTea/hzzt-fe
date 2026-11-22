@@ -9,6 +9,7 @@ import { toAppError } from '@/shared/api/errors'
 import { Button } from '@/shared/ui/Button'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { useToast } from '@/shared/ui/Toast'
 import { applyServerError } from './useServerErrors'
@@ -49,12 +50,12 @@ type PasswordValues = z.infer<typeof passwordSchema>
 
 export function ProfileScreen() {
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8">
+    <Page width="form" gap={8}>
       <PageHeader title="Profile" backToSettings />
       <ProfileForm />
       <ChangePasswordForm />
       <SignOut />
-    </div>
+    </Page>
   )
 }
 

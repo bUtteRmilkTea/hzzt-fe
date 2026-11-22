@@ -207,7 +207,7 @@ describe('category breakdown', () => {
     install()
     renderApp('/s/s-1')
     const donut = await screen.findByTestId('donut-chart')
-    expect(within(donut).getByText('14')).toBeInTheDocument() // 8 + 4 + 2
+    expect(await within(donut).findByText('14', {}, { timeout: 3000 })).toBeInTheDocument() // 8 + 4 + 2, counted up
     expect(within(donut).getByText('transactions')).toBeInTheDocument()
     expect(within(donut).getByRole('button', { name: /Food/ })).toHaveTextContent('60.00%')
     expect(within(donut).getAllByText('Uncategorised').length).toBeGreaterThan(0) // legend + screen-reader table

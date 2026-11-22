@@ -5,6 +5,7 @@ import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { Chip } from '@/shared/ui/Chip'
+import { Collapsible } from '@/shared/ui/Collapsible'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
@@ -16,6 +17,7 @@ import { SheetShell } from '@/shared/ui/SheetShell'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { Switch } from '@/shared/ui/Switch'
 import { useToast } from '@/shared/ui/Toast'
+import { TwoColumn } from '@/shared/ui/TwoColumn'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const id = `g-${title.toLowerCase().replace(/\s+/g, '-')}`
@@ -39,6 +41,7 @@ export function Gallery() {
   const [on, setOn] = useState(true)
   const [calc, setCalc] = useState('')
   const [num, setNum] = useState('')
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8">
@@ -78,7 +81,7 @@ export function Gallery() {
             />
           </div>
           <div className="text-2xl font-semibold">
-            <Amount value="1234567.5" currency="IDR" />
+            <Amount value="1234567.5" currency="IDR" animate />
           </div>
           <Amount value="-42.1" currency="USD" tone="auto" signDisplay="always" />
           <Amount value="1250.005" currency="USD" tone="auto" signDisplay="always" />
@@ -180,6 +183,37 @@ export function Gallery() {
             Show error toast
           </Button>
         </div>
+      </Section>
+
+      <Section title="Two columns">
+        <TwoColumn
+          data-testid="two-column"
+          left={
+            <Card data-testid="col-left-card">
+              <h3 className="font-semibold">Cash</h3>
+              <Amount value="1250.5" currency="USD" />
+            </Card>
+          }
+          right={
+            <Card>
+              <h3 className="font-semibold">Investments</h3>
+              <Button
+                variant="secondary"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((v) => !v)}
+              >
+                {expanded ? 'Collapse' : 'Expand'}
+              </Button>
+              <Collapsible open={expanded} data-testid="collapsible">
+                <ul className="flex flex-col gap-2 pt-2">
+                  {['Bybit', 'Ajaib', 'Stockbit', 'Binance', 'Pluang'].map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </Collapsible>
+            </Card>
+          }
+        />
       </Section>
 
       <SheetShell

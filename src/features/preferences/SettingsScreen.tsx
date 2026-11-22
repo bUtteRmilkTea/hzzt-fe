@@ -1,5 +1,6 @@
 import { usePreferences } from '@/app/providers/PreferencesProvider'
 import { useSpace } from '@/app/providers/SpaceProvider'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { SettingsGroup, SettingsRow } from '@/shared/ui/SettingsRow'
@@ -9,7 +10,7 @@ export function SettingsScreen() {
   const { preferences, update } = usePreferences()
   const { space } = useSpace()
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <Page width="form" gap={6}>
       <PageHeader title="Settings" />
       <SettingsGroup>
         <SettingsRow label="Profile" to="/settings/profile" />
@@ -49,6 +50,6 @@ export function SettingsScreen() {
         </div>
       </SettingsGroup>
       <p className="text-center text-sm text-label-tertiary">HZZT v{__APP_VERSION__}</p>
-    </div>
+    </Page>
   )
 }

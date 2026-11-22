@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Input } from '@/shared/ui/Input'
 import { useLayout } from '@/shared/ui/layout'
+import { Page } from '@/shared/ui/Page'
 import { PeriodPicker } from '@/shared/ui/PeriodPicker'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { DayGroupHeader, TransactionRow } from '@/shared/ui/TransactionRow'
@@ -91,7 +92,7 @@ export function HistoryScreen() {
   const filtered = hasAnyFilter(filters)
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] gap-6">
+    <Page className="flex-row gap-6">
       {isWide ? <FilterPanel /> : null}
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <h1 className="text-xl font-semibold">History</h1>
@@ -239,6 +240,6 @@ export function HistoryScreen() {
 
         <Outlet />
       </div>
-    </div>
+    </Page>
   )
 }

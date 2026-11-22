@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
@@ -50,10 +51,15 @@ export function InvestmentDetailScreen() {
     return () => clearTimeout(t)
   }, [cooldown])
 
-  if (investment.isPending) return <Skeleton className="mx-auto h-64 max-w-4xl" />
+  if (investment.isPending)
+    return (
+      <Page width="form">
+        <Skeleton className="h-64" />
+      </Page>
+    )
   if (investment.isError && isNotFound(investment.error)) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <Page width="form">
         <EmptyState
           title="You no longer have access"
           description="This investment was removed or is no longer shared with you."
@@ -63,17 +69,17 @@ export function InvestmentDetailScreen() {
             </Link>
           }
         />
-      </div>
+      </Page>
     )
   }
   if (investment.isError || !investment.data) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <Page width="form">
         <EmptyState
           title="Couldn't load this investment"
           action={<Button onClick={() => void investment.refetch()}>Try again</Button>}
         />
-      </div>
+      </Page>
     )
   }
 
@@ -102,7 +108,7 @@ export function InvestmentDetailScreen() {
     })
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title={i.name ?? 'Investment'} />
       <p className="-mt-3 flex flex-wrap items-center gap-2 text-sm text-label-secondary">
         <span aria-hidden>{i.icon}</span> {i.symbol}
@@ -262,6 +268,6 @@ export function InvestmentDetailScreen() {
           })
         }
       />
-    </div>
+    </Page>
   )
 }

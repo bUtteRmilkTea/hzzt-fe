@@ -5,6 +5,7 @@ import { useSpace } from '@/app/providers/SpaceProvider'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressRing } from '@/shared/ui/ProgressRing'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -59,7 +60,7 @@ export function GoalsScreen() {
   const { space } = useSpace()
   const goals = useGoals(space.id)
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
+    <Page>
       <PageHeader
         title="Goals"
         backToSettings
@@ -106,6 +107,6 @@ export function GoalsScreen() {
           </ul>
         </>
       )}
-    </div>
+    </Page>
   )
 }

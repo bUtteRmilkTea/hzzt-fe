@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { ProgressRing } from '@/shared/ui/ProgressRing'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -104,15 +105,20 @@ export function GoalDetailScreen() {
   const remove = useDeleteGoal(space.id, id)
   const [confirm, setConfirm] = useState(false)
 
-  if (goal.isPending) return <Skeleton className="mx-auto h-64 max-w-4xl" />
+  if (goal.isPending)
+    return (
+      <Page width="form">
+        <Skeleton className="h-64" />
+      </Page>
+    )
   if (goal.isError || !goal.data) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <Page width="form">
         <EmptyState
           title="Couldn't load this goal"
           action={<Button onClick={() => void goal.refetch()}>Try again</Button>}
         />
-      </div>
+      </Page>
     )
   }
   const g = goal.data
@@ -123,7 +129,7 @@ export function GoalDetailScreen() {
   )
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title={g.name ?? 'Goal'} />
       <Card className="flex items-center gap-5" data-testid="goal-summary">
         <ProgressRing
@@ -208,6 +214,6 @@ export function GoalDetailScreen() {
           })
         }
       />
-    </div>
+    </Page>
   )
 }

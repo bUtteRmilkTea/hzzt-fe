@@ -7,6 +7,7 @@ import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { Panel } from '@/shared/ui/PageGrid'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -27,7 +28,7 @@ export function InvestmentsScreen() {
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+    <Page>
       <PageHeader
         title="Investments"
         action={
@@ -130,6 +131,6 @@ export function InvestmentsScreen() {
           )}
         </>
       )}
-    </div>
+    </Page>
   )
 }

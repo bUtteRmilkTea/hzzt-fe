@@ -243,6 +243,7 @@ Every phase follows these. An agent that deviates says so in its report.
 - Colour, radius, spacing, shadow and motion values come from the tokens in Appendix B. A raw hex value in a component is a review failure, except for user-chosen wallet card colours.
 - Both themes ship. `prefers-color-scheme` is the default, with an override in `localStorage` applied before first paint by an inline script, so the page never flashes.
 - Motion uses springs, not duration easing, for anything that moves under a finger. All of it respects `prefers-reduced-motion`.
+- Data motion (addendum F11, D-F15): count-up about 700 ms, line draw about 900 ms, bars grow with a 40 ms stagger, donut slices sweep in. Use CSS and `requestAnimationFrame`, no animation library, and instant under reduced motion. **One hero number per screen region** counts up (`<Amount animate>`), never every row. Count-ups interpolate with Decimal, end on the exact server string, and never run or render a digit while amounts are hidden.
 - Every screen defines three states besides the happy path: loading (skeletons shaped like the real content, never a spinner on a full page), empty (an illustration-free card with one action, as on the Goals screen), and error.
 
 ### 5.7 Accessibility
@@ -721,6 +722,10 @@ Starting values, derived from the reference screenshots. F1 implements these; ad
   --spring-sheet: 380 stiffness / 32 damping;
   --spring-press: 500 stiffness / 30 damping;
   --dur-fast: 150ms;  --dur-base: 220ms;
+  --dur-count: 700ms; --dur-draw: 900ms; --dur-bar: 500ms; --dur-sweep: 700ms; --bar-stagger: 40ms;
+
+  /* Layout (addendum F11) */
+  --page-max-wide: 1200px;  --page-max-form: 960px;  --gutter: 16px;
 
   /* Type */
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter var', 'Segoe UI', Roboto, sans-serif;

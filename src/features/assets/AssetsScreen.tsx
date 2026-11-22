@@ -9,6 +9,7 @@ import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { StatCard } from '@/shared/ui/StatCard'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
@@ -134,7 +135,7 @@ export function AssetsScreen() {
   const change = history.data?.changePct
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+    <Page>
       <h1 className="text-xl font-semibold">Assets</h1>
 
       {summary.isPending ? (
@@ -243,6 +244,6 @@ export function AssetsScreen() {
           </div>
         </>
       )}
-    </div>
+    </Page>
   )
 }

@@ -18,6 +18,7 @@ import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
 import { MoneyInput } from '@/shared/ui/MoneyInput'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Select } from '@/shared/ui/Select'
@@ -42,7 +43,7 @@ export function EditWalletScreen() {
   const wallet = useWallet(space.id, id)
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8">
+    <Page width="form" gap={8}>
       <PageHeader title="Edit wallet" />
       {wallet.isPending ? (
         <Skeleton className="h-64" />
@@ -58,7 +59,7 @@ export function EditWalletScreen() {
           <AdjustBalance wallet={wallet.data} />
         </>
       )}
-    </div>
+    </Page>
   )
 }
 

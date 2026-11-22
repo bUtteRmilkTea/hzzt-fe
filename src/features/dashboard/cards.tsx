@@ -116,6 +116,7 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
             value={summary.data.netWorth}
             currency={summary.data.currency || space.baseCurrency}
             className="text-2xl font-semibold"
+            animate
           />
           {change !== null && change !== undefined ? (
             <span
@@ -138,7 +139,7 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
         options={RANGES.map((r) => ({ value: r, label: r === 'ALL' ? 'All' : r }))}
       />
       {history.isPending ? (
-        <Skeleton className="h-40" />
+        <LineChart loading data={[]} currency={space.baseCurrency} label="Net worth loading" />
       ) : history.isError ? (
         <Retry what="the chart" onRetry={() => void history.refetch()} />
       ) : (
@@ -146,6 +147,7 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
           data={history.data.points.map((p) => ({ date: p.date, value: p.netWorth, live: p.live }))}
           currency={history.data.currency || space.baseCurrency}
           label={`Net worth over ${range === 'ALL' ? 'all time' : `the last ${range}`}`}
+          draw
         />
       )}
     </Card>
@@ -179,6 +181,7 @@ export function BreakdownCard({ period }: { period: Period }) {
           <WarningsStrip warnings={q.data.warnings} />
           <DonutChart
             label={`${type === 'EXPENSE' ? 'Expenses' : 'Income'} by category`}
+            draw
             currency={q.data.currency || space.baseCurrency}
             centre={{
               value: String(q.data.items.reduce((n, i) => n + i.count, 0)),
@@ -230,6 +233,7 @@ export function AnalyticsCard({ period }: { period: Period }) {
             groups={q.data.buckets}
             currency={q.data.currency || space.baseCurrency}
             label="Income and expenses over the period"
+            draw
           />
           {overview.isSuccess ? (
             <dl

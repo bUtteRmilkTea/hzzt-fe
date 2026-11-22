@@ -67,3 +67,76 @@
     opacity: 1;
   }
 }
+
+/* Chart motion (plan addendum D-F15). Reduced motion is handled by the global rule above. */
+@keyframes chart-line-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes chart-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes chart-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes chart-slice-sweep {
+  from {
+    opacity: 0;
+    transform: scale(0.85) rotate(-25deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+.chart-line-draw {
+  stroke-dasharray: 1;
+  animation: chart-line-draw var(--dur-draw) cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.chart-area-in {
+  animation: chart-fade-in 400ms ease-out calc(var(--dur-draw) * 0.75) both;
+}
+.chart-dot-in {
+  animation: chart-fade-in 250ms ease-out var(--dur-draw) both;
+}
+.chart-bar {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: chart-bar-grow var(--dur-bar) cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * var(--bar-stagger));
+}
+.chart-slice {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: chart-slice-sweep var(--dur-sweep) cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Delayed chart animations would otherwise leave elements hidden for their delay. */
+@media (prefers-reduced-motion: reduce) {
+  .chart-line-draw,
+  .chart-area-in,
+  .chart-dot-in,
+  .chart-bar,
+  .chart-slice {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over the chart classes */
+    animation: none !important;
+  }
+  .chart-line-draw {
+    stroke-dasharray: none;
+  }
+}

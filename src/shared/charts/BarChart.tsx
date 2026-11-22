@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import { Amount } from '@/shared/ui/Amount'
+import { cn } from '@/shared/ui/cn'
 import { type BarGroup, barGeometry } from './geometry'
 import { useChartWidth } from './useChartWidth'
 
@@ -7,12 +9,14 @@ interface BarChartProps {
   currency: string
   label: string
   height?: number
+  /** Grow the bars up from the baseline, staggered. */
+  draw?: boolean
 }
 
 const MARGIN = { top: 8, right: 8, bottom: 28, left: 8 }
 
 /** Income and expense side by side per bucket. Bucket labels are drawn exactly as the server sent them. */
-export function BarChart({ groups, currency, label, height = 180 }: BarChartProps) {
+export function BarChart({ groups, currency, label, height = 180, draw }: BarChartProps) {
   const { ref, width } = useChartWidth()
   const empty = groups.length === 0 || groups.every((g) => g.income === '0' && g.expense === '0')
   if (empty)
@@ -35,16 +39,20 @@ export function BarChart({ groups, currency, label, height = 180 }: BarChartProp
           y2={g.baseline}
           className="stroke-border-strong"
         />
-        {g.bars.map((b) => (
+        {g.bars.map((b, i) => (
           <rect
             key={`${b.label}-${b.kind}`}
             data-kind={b.kind}
+            style={draw ? ({ '--i': Math.floor(i / 2) } as CSSProperties) : undefined}
             x={b.x}
             y={b.y}
             width={Math.max(0, b.width)}
             height={b.height}
             rx={3}
-            className={b.kind === 'income' ? 'fill-positive' : 'fill-negative'}
+            className={cn(
+              b.kind === 'income' ? 'fill-positive' : 'fill-negative',
+              draw && 'chart-bar',
+            )}
           />
         ))}
         {g.labels.map((l) => (

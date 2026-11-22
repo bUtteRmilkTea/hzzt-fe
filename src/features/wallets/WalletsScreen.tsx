@@ -7,6 +7,7 @@ import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageGrid, Panel } from '@/shared/ui/PageGrid'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
@@ -33,7 +34,7 @@ export function WalletsScreen() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
+    <Page>
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Wallets</h1>
         <div className="flex gap-2">
@@ -130,6 +131,6 @@ export function WalletsScreen() {
       )}
 
       {creating ? <CreateWalletSheet onClose={() => setCreating(false)} /> : null}
-    </div>
+    </Page>
   )
 }

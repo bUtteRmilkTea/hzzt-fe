@@ -12,6 +12,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -63,7 +64,7 @@ export function CategoriesScreen() {
   const warnings = (categories.data ?? []).flatMap((c) => c.stats?.warnings ?? [])
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
+    <Page>
       <PageHeader
         title="Categories"
         backToSettings
@@ -158,7 +159,7 @@ export function CategoriesScreen() {
         pending={remove.isPending}
         onConfirm={() => toDelete?.id && remove.mutate(toDelete.id)}
       />
-    </div>
+    </Page>
   )
 }
 

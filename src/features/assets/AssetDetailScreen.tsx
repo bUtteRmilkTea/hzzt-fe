@@ -9,6 +9,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
@@ -27,15 +28,20 @@ export function AssetDetailScreen() {
   const [settling, setSettling] = useState(false)
   const [confirm, setConfirm] = useState(false)
 
-  if (asset.isPending) return <Skeleton className="mx-auto h-48 max-w-4xl" />
+  if (asset.isPending)
+    return (
+      <Page width="form">
+        <Skeleton className="h-48" />
+      </Page>
+    )
   if (asset.isError || !asset.data) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <Page width="form">
         <EmptyState
           title="Couldn't load this item"
           action={<Button onClick={() => void asset.refetch()}>Try again</Button>}
         />
-      </div>
+      </Page>
     )
   }
   const a = asset.data
@@ -43,7 +49,7 @@ export function AssetDetailScreen() {
   const currency = a.currency ?? ''
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title={a.name ?? meta.noun} />
       <Card className="flex flex-col gap-1" data-testid="asset-card">
         <p className="text-sm text-label-secondary">
@@ -147,7 +153,7 @@ export function AssetDetailScreen() {
           })
         }
       />
-    </div>
+    </Page>
   )
 }
 
@@ -156,7 +162,7 @@ export function EditAssetScreen() {
   const { id } = useParams({ from: '/_authed/s/$spaceId/assets/$id/edit' })
   const asset = useManualAsset(space.id, id)
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title="Edit" />
       {asset.isPending ? (
         <Skeleton className="h-64" />
@@ -172,15 +178,15 @@ export function EditAssetScreen() {
           asset={asset.data}
         />
       )}
-    </div>
+    </Page>
   )
 }
 
 export function NewAssetScreen({ kind }: { kind: AssetKind }) {
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title={kindMeta(kind).addLabel} />
       <AssetForm kind={kind} />
-    </div>
+    </Page>
   )
 }

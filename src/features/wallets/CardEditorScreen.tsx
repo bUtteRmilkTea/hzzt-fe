@@ -16,6 +16,7 @@ import {
 } from '@/shared/ui/cardStyle'
 import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { DEFAULT_SPACE_COLOR, PALETTE } from '@/shared/ui/palette'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
@@ -63,7 +64,7 @@ export function CardEditorScreen() {
   const { id } = useParams({ from: '/_authed/s/$spaceId/wallets/$id/card' })
   const wallet = useWallet(space.id, id)
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title="Card style" />
       {wallet.isPending ? (
         <Skeleton className="aspect-[1.7/1] w-full" />
@@ -75,7 +76,7 @@ export function CardEditorScreen() {
       ) : (
         <Editor key={wallet.data.id} walletId={id} wallet={wallet.data} />
       )}
-    </div>
+    </Page>
   )
 }
 

@@ -10,6 +10,7 @@ import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { PeriodPicker } from '@/shared/ui/PeriodPicker'
 import { SheetShell } from '@/shared/ui/SheetShell'
@@ -81,16 +82,21 @@ export function WalletDetailScreen() {
     return [...byDay.entries()]
   }, [txns.data])
 
-  if (wallet.isPending) return <Skeleton className="mx-auto aspect-[1.7/1] max-w-4xl" />
+  if (wallet.isPending)
+    return (
+      <Page width="form">
+        <Skeleton className="aspect-[1.7/1]" />
+      </Page>
+    )
   if (wallet.isError || !wallet.data) {
     return (
-      <div className="mx-auto max-w-4xl">
+      <Page width="form">
         <EmptyState
           title="Couldn't load this wallet"
           description={wallet.isError ? errorMessage(wallet.error) : undefined}
           action={<Button onClick={() => void wallet.refetch()}>Try again</Button>}
         />
-      </div>
+      </Page>
     )
   }
 
@@ -98,7 +104,7 @@ export function WalletDetailScreen() {
   const currency = w.currency ?? ''
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader
         title={w.name ?? 'Wallet'}
         action={
@@ -302,6 +308,6 @@ export function WalletDetailScreen() {
           remove.mutate(true)
         }}
       />
-    </div>
+    </Page>
   )
 }

@@ -9,6 +9,7 @@ import { cn } from '@/shared/ui/cn'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
@@ -57,26 +58,30 @@ export function SharingScreen() {
   }, [participants.data, rows])
 
   if (investment.isPending || (participants.isPending && !sharedIn))
-    return <Skeleton className="mx-auto h-64 max-w-2xl" />
+    return (
+      <Page width="form">
+        <Skeleton className="h-64" />
+      </Page>
+    )
   if (sharedIn) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <Page width="form">
         <EmptyState
           title="Only the owner can change sharing"
           description="This investment is shared with you, so it is read-only."
         />
-      </div>
+      </Page>
     )
   }
   if (investment.isError || participants.isError || !rows) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <Page width="form">
         <EmptyState
           title="Couldn't load sharing"
           description={participants.isError ? errorMessage(participants.error) : undefined}
           action={<Button onClick={() => void participants.refetch()}>Try again</Button>}
         />
-      </div>
+      </Page>
     )
   }
 
@@ -87,7 +92,7 @@ export function SharingScreen() {
     setRows(rows.map((r) => (r.key === k ? { ...r, ...patch } : r)))
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
+    <Page width="form" gap={5}>
       <PageHeader title="Share" />
       <p className="-mt-3 text-sm text-label-secondary">
         Add people who share this investment, with their percentages. Someone with an account gets
@@ -193,6 +198,6 @@ export function SharingScreen() {
           {save.isPending ? 'Saving…' : 'Save sharing'}
         </Button>
       </div>
-    </div>
+    </Page>
   )
 }

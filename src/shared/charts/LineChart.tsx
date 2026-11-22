@@ -1,6 +1,7 @@
 import { format as formatDate, parseISO } from 'date-fns'
 import { signOf, toDecimal } from '@/shared/money'
 import { Amount } from '@/shared/ui/Amount'
+import { cn } from '@/shared/ui/cn'
 import { type LinePoint, lineGeometry } from './geometry'
 import { useChartWidth } from './useChartWidth'
 
@@ -12,6 +13,10 @@ interface LineChartProps {
   height?: number
   /** Override the colour trend; defaults to sign(last - first). */
   trend?: Trend
+  /** Draw the line left to right, then fade the area in. Redraws when the series changes. */
+  draw?: boolean
+  /** Show a chart-shaped skeleton instead of the plot (no data yet). */
+  loading?: boolean
 }
 
 export type Trend = 'up' | 'down' | 'flat'
@@ -51,6 +56,7 @@ const TREND_CLASS: Record<
   },
 }
 
+const SKELETON_BARS = [30, 38, 34, 46, 52, 48, 60, 66, 62, 74, 80, 78] as const
 const MARGIN = { top: 12, right: 12, bottom: 24, left: 12 }
 const fmtDay = (d: string) => formatDate(parseISO(`${d}T12:00:00`), 'd MMM')
 
@@ -59,8 +65,30 @@ const fmtDay = (d: string) => formatDate(parseISO(`${d}T12:00:00`), 'd MMM')
  * The live (today) point is marked. A single point renders as a dot, never an empty box.
  * No money is drawn inside the SVG (it would bypass hide-amounts); a hidden table carries the values.
  */
-export function LineChart({ data, currency, label, height = 160, trend }: LineChartProps) {
+export function LineChart({
+  data,
+  currency,
+  label,
+  height = 160,
+  trend,
+  draw,
+  loading,
+}: LineChartProps) {
   const { ref, width } = useChartWidth()
+  if (loading)
+    return (
+      <div
+        ref={ref}
+        aria-hidden
+        data-testid="line-chart-skeleton"
+        style={{ height }}
+        className="flex w-full animate-pulse items-end gap-1 rounded-md bg-surface-3/40 p-3"
+      >
+        {SKELETON_BARS.map((h) => (
+          <div key={h} className="flex-1 rounded-sm bg-surface-3" style={{ height: `${h}%` }} />
+        ))}
+      </div>
+    )
   if (data.length === 0)
     return <p className="py-6 text-center text-sm text-label-secondary">No data for this period.</p>
   const t = TREND_CLASS[trend ?? trendOf(data)]
@@ -68,9 +96,13 @@ export function LineChart({ data, currency, label, height = 160, trend }: LineCh
   const first = g.points[0]
   const last = g.points[g.points.length - 1]
 
+  // A new key restarts the CSS animations, so changing the range redraws the line.
+  const drawKey = draw ? `${data.length}:${first?.date}:${last?.date}` : 'static'
   return (
     <div ref={ref} className="w-full" data-testid="line-chart">
       <svg
+        key={drawKey}
+        data-draw={draw || undefined}
         data-trend={trend ?? trendOf(data)}
         width={width}
         height={height}
@@ -90,20 +122,26 @@ export function LineChart({ data, currency, label, height = 160, trend }: LineCh
           />
         ) : (
           <>
-            <path d={g.areaPath} className={t.fill} />
+            <path d={g.areaPath} className={cn(t.fill, draw && 'chart-area-in')} />
             <path
               d={g.path}
+              // pathLength=1 lets the dash animation run 1 to 0 without measuring the path.
+              pathLength={1}
               fill="none"
               strokeWidth={2}
               strokeLinecap="round"
-              className={t.stroke}
+              className={cn(t.stroke, draw && 'chart-line-draw')}
               style={t.glow ? { filter: `drop-shadow(${t.glow})` } : undefined}
             />
           </>
         )}
         {g.points.map((p) =>
           p.live || g.single ? (
-            <g key={p.date} data-live={p.live || undefined}>
+            <g
+              key={p.date}
+              data-live={p.live || undefined}
+              className={draw ? 'chart-dot-in' : undefined}
+            >
               <circle cx={p.x} cy={p.y} r={8} className={t.halo} />
               <circle cx={p.x} cy={p.y} r={4} className={t.dot} />
             </g>

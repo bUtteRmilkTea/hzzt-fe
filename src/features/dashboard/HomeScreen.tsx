@@ -2,6 +2,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { periodFromSearch, periodToSearch } from '@/shared/period'
+import { Page } from '@/shared/ui/Page'
 import { PageGrid } from '@/shared/ui/PageGrid'
 import { PeriodPicker } from '@/shared/ui/PeriodPicker'
 import {
@@ -33,7 +34,7 @@ export function HomeScreen() {
     })
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4">
+    <Page>
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Home</h1>
@@ -75,6 +76,6 @@ export function HomeScreen() {
         </div>
       </PageGrid>
       <p className="sr-only">Today is {format(new Date(), 'd MMMM yyyy')}</p>
-    </div>
+    </Page>
   )
 }

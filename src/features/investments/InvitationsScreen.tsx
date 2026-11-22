@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
+import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Select } from '@/shared/ui/Select'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -21,7 +22,7 @@ export function InvitationsScreen() {
   const [chosen, setChosen] = useState<Record<string, string>>({})
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4">
+    <Page width="form">
       <PageHeader title="Shared investments" />
       {invitations.isPending ? (
         <Skeleton className="h-28" />
@@ -108,6 +109,6 @@ export function InvitationsScreen() {
           })}
         </ul>
       )}
-    </div>
+    </Page>
   )
 }
