@@ -3,8 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>HZZT</title>
+    <script>
+      // Apply the stored theme before first paint so there is no flash. Keep in sync with ThemeProvider.
+      (() => {
+        try {
+          const t = localStorage.getItem('theme') || 'system';
+          const light =
+            t === 'light' ||
+            (t === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches);
+          if (light) document.documentElement.setAttribute('data-theme', 'light');
+        } catch {
+          // storage blocked: fall back to the dark default
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

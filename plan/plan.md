@@ -321,7 +321,7 @@ F0 and F1 need no backend at all, so you can start today. From F3 onward each ph
 | Phase | Title | Depends on | Backend needed | Status |
 | --- | --- | --- | --- | --- |
 | F0 | WSL environment, repository and tooling | — | — | Done (local e2e skipped: Chromium system libs not installed; CI runs it. Bundle check is `scripts/check-bundle.mjs` instead of size-limit) |
-| F1 | Design system, app shell and primitives | F0 | — | Backlog |
+| F1 | Design system, app shell and primitives | F0 | — | Done (local e2e skipped, CI runs it; mobile sheet focus trap and drag-dismiss verified only by e2e, not jsdom) |
 | F2 | API client, auth and session | F0, F1 | P2 | Backlog |
 | F3 | Spaces, settings, preferences and app lock | F2 | P3, P4, P5 | Backlog |
 | F4 | Wallets and the card style editor | F3 | P7 | Backlog |

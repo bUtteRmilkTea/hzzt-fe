@@ -1,7 +1,8 @@
+import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { App } from '@/app/App'
-import './styles/tokens.css'
+import { Providers } from '@/app/providers/Providers'
+import { router } from '@/app/router'
 import './styles/globals.css'
 
 async function enableMocking() {
@@ -17,7 +18,9 @@ if (!root) throw new Error('Root element #root not found')
 enableMocking().then(() => {
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
     </StrictMode>,
   )
 })

@@ -11,11 +11,22 @@
       "!playwright-report",
       "!test-results",
       "!pnpm-lock.yaml",
-      "!src/shared/api/schema.d.ts"
+      "!src/shared/api/schema.d.ts",
+      "!src/routeTree.gen.ts"
     ]
   },
-  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
-  "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" } },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -32,5 +43,10 @@
       }
     }
   },
-  "plugins": ["./.biome/no-raw-hex.grit"]
+  "plugins": ["./.biome/no-raw-hex.grit"],
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
 }

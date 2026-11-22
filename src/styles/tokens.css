@@ -1,1 +1,123 @@
-/* Design tokens. Intentionally empty until F1 (see plan/plan.md, Appendix B). */
+/* Design tokens (plan Appendix B). Dark is the default; light overrides under [data-theme='light']. */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #000000;
+  --surface-1: #121212;
+  --surface-2: #1c1c1e;
+  --surface-3: #2c2c2e;
+  --border: #2a2a2c;
+  --border-strong: #3a3a3c;
+  --overlay: rgb(0 0 0 / 0.55);
+
+  /* Text */
+  --label: #ffffff;
+  --label-secondary: #aeaeb2;
+  --label-tertiary: #8e8e93;
+
+  /* Accents */
+  --accent: #4480ee;
+  --accent-label: #ffffff;
+  --positive: #34c759;
+  --negative: #ff453a;
+  --warning: #ffd60a;
+  --transfer: #5e8ef7;
+
+  /* Radius */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-full: 999px;
+
+  /* Spacing, 4px base */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+
+  /* Elevation */
+  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.45);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+
+  /* Motion */
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+
+  /* Type */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter var", "Segoe UI", Roboto, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-2xl: 34px;
+
+  /* Translucent chrome (tab bar, sheet headers) */
+  --chrome: rgb(28 28 30 / 0.72);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f2f2f7;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #e9e9eb;
+  --border: #e5e5ea;
+  --border-strong: #d1d1d6;
+  --overlay: rgb(0 0 0 / 0.35);
+  --label: #000000;
+  --label-secondary: #3c3c43;
+  --label-tertiary: #6c6c70;
+  --accent: #1f5fd6;
+  --positive: #1f8a3d;
+  --negative: #d70015;
+  --warning: #8a6d00;
+  --transfer: #2f5fd0;
+  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.12);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.08);
+  --chrome: rgb(255 255 255 / 0.72);
+}
+
+/* Map tokens into Tailwind v4 utilities: bg-surface-1, text-label, rounded-md, ... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-overlay: var(--overlay);
+  --color-label: var(--label);
+  --color-label-secondary: var(--label-secondary);
+  --color-label-tertiary: var(--label-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-label: var(--accent-label);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-warning: var(--warning);
+  --color-transfer: var(--transfer);
+  --color-chrome: var(--chrome);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  --shadow-sheet: var(--shadow-sheet);
+  --shadow-card: var(--shadow-card);
+
+  --font-sans: var(--font-sans);
+
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+}
