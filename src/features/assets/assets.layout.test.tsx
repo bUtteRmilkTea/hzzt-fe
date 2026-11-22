@@ -45,10 +45,10 @@ beforeEach(() => {
 })
 
 describe('collapsedSummary / capRows', () => {
-  it('names the count and the first item', () => {
-    expect(collapsedSummary([])).toBe('Empty')
-    expect(collapsedSummary(['BCA'])).toBe('1 item · BCA')
-    expect(collapsedSummary(['BCA', 'Cash', 'Savings'])).toBe('3 items · BCA')
+  it('shows the count only', () => {
+    expect(collapsedSummary(0)).toBe('Empty')
+    expect(collapsedSummary(1)).toBe('1 item')
+    expect(collapsedSummary(3)).toBe('3 items')
   })
   it('keeps the first N rows across groups and drops emptied groups', () => {
     const groups = [{ rows: [1, 2, 3] }, { rows: [4, 5, 6] }, { rows: [7] }]
@@ -83,7 +83,7 @@ describe('assets layout (F12)', () => {
     expect(await screen.findByTestId('line-chart-skeleton')).toBeInTheDocument()
   })
 
-  it('collapsing Investments leaves Cash untouched and the summary shows count and first item', async () => {
+  it('collapsing Investments leaves Cash untouched and the summary shows the count only', async () => {
     const user = userEvent.setup()
     renderApp('/s/s-1/assets')
     const cashRegion = await screen.findByRole('region', { name: 'Cash' })
@@ -94,9 +94,47 @@ describe('assets layout (F12)', () => {
     const inv = screen.getByRole('region', { name: 'Investments' })
     await within(inv).findByText('Coin 0')
     await user.click(within(inv).getByRole('button', { name: 'Investments' }))
-    expect(within(inv).getByTestId('section-summary')).toHaveTextContent('7 items · Coin 0')
+    expect(within(inv).getByTestId('section-summary')).toHaveTextContent(/^7 items$/)
     expect(screen.getByRole('region', { name: 'Cash' })).toBe(cashRegion)
     expect(structure(cashRegion)).toBe(cashHtml)
+  })
+
+  it('uses icon links for Cash and Investments, with no text buttons', async () => {
+    renderApp('/s/s-1/assets')
+    const cashRegion = await screen.findByRole('region', { name: 'Cash' })
+    expect(within(cashRegion).getByRole('link', { name: 'Open wallets' })).toHaveAttribute(
+      'href',
+      '/s/s-1/wallets',
+    )
+    const inv = screen.getByRole('region', { name: 'Investments' })
+    expect(within(inv).getByRole('link', { name: 'Open investments' })).toHaveAttribute(
+      'href',
+      '/s/s-1/investments',
+    )
+    expect(within(inv).queryByText('Open')).not.toBeInTheDocument()
+    expect(within(cashRegion).queryByText('Wallets')).not.toBeInTheDocument()
+  })
+
+  it('a broker group is a dropdown: the first is open, the others closed, and it toggles', async () => {
+    const user = userEvent.setup()
+    renderApp('/s/s-1/assets')
+    const inv = await screen.findByRole('region', { name: 'Investments' })
+    await within(inv).findByText('Coin 0')
+    const toggles = within(inv)
+      .queryAllByRole('button', { expanded: false })
+      .filter((b) => b.getAttribute('aria-controls')?.startsWith('group-'))
+    const opens = within(inv)
+      .queryAllByRole('button', { expanded: true })
+      .filter((b) => b.getAttribute('aria-controls')?.startsWith('group-'))
+    // Every collapsible group is one or the other, and only the first starts open.
+    expect(opens.length).toBeLessThanOrEqual(1)
+    const first = opens[0] ?? toggles[0]
+    if (!first) return
+    const wasOpen = first.getAttribute('aria-expanded') === 'true'
+    await user.click(first)
+    expect(first).toHaveAttribute('aria-expanded', String(!wasOpen))
+    const body = document.getElementById(first.getAttribute('aria-controls') as string)
+    expect(body?.getAttribute('data-state')).toBe(wasOpen ? 'closed' : 'open')
   })
 
   it('lists at most 5 investments inline, with a link to open all of them', async () => {

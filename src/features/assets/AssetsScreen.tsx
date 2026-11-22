@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, Plus, Wallet } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { useInvestments, useInvestmentTypes } from '@/features/investments/hooks'
@@ -21,11 +21,10 @@ import { accountGroups, capEach, cashGroups } from './breakdown'
 import { useManualAssets, useNetWorthHistory, useNetWorthSummary } from './hooks'
 import { KINDS, type KindMeta } from './kinds'
 
-/** "3 items · BCA": the count and the first item, as the server ordered them. Shown while a section is collapsed. */
-export function collapsedSummary(names: readonly string[]): string {
-  const first = names[0]
-  if (first === undefined) return 'Empty'
-  return `${names.length} ${names.length === 1 ? 'item' : 'items'} · ${first}`
+/** "3 items": just the count. Shown while a section is collapsed. */
+export function collapsedSummary(count: number): string {
+  if (count === 0) return 'Empty'
+  return `${count} ${count === 1 ? 'item' : 'items'}`
 }
 
 function Section({
@@ -96,7 +95,7 @@ function ManualSection({ meta, currency }: { meta: KindMeta; currency: string })
       title={meta.section}
       total={list.data?.total.amount ?? '0'}
       currency={list.data?.total.currency || currency}
-      summary={collapsedSummary((list.data?.items ?? []).map((a) => a.name ?? ''))}
+      summary={collapsedSummary(list.data?.items.length ?? 0)}
       action={
         <Button variant="ghost" size="icon" aria-label={meta.addLabel} asChild>
           <Link
@@ -184,11 +183,11 @@ export function AssetsScreen() {
       title="Cash"
       total={s.cash}
       currency={currency}
-      summary={collapsedSummary((wallets.data?.items ?? []).map((w) => w.name ?? ''))}
+      summary={collapsedSummary(wallets.data?.items.length ?? 0)}
       action={
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/s/$spaceId/wallets" params={{ spaceId: space.id }}>
-            Wallets
+        <Button variant="ghost" size="icon" aria-label="Open wallets" asChild>
+          <Link to="/s/$spaceId/wallets" params={{ spaceId: space.id }} title="Open wallets">
+            <Wallet aria-hidden className="size-5" />
           </Link>
         </Button>
       }
@@ -197,6 +196,7 @@ export function AssetsScreen() {
         Everything in your wallets, converted to {currency}.
       </p>
       <AssetBreakdownList
+        collapsible
         groups={cashGroups(wallets.data?.items ?? [], space.id)}
         empty={<p className="text-sm text-label-secondary">No wallets yet.</p>}
       />
@@ -210,11 +210,15 @@ export function AssetsScreen() {
       title="Investments"
       total={s.investments?.value ?? '0'}
       currency={currency}
-      summary={collapsedSummary(investmentRows.map((r) => r.name))}
+      summary={collapsedSummary(investmentRows.length)}
       action={
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/s/$spaceId/investments" params={{ spaceId: space.id }}>
-            Open
+        <Button variant="ghost" size="icon" aria-label="Open investments" asChild>
+          <Link
+            to="/s/$spaceId/investments"
+            params={{ spaceId: space.id }}
+            title="Open investments"
+          >
+            <ArrowUpRight aria-hidden className="size-5" />
           </Link>
         </Button>
       }
@@ -238,6 +242,7 @@ export function AssetsScreen() {
         </p>
       ) : null}
       <AssetBreakdownList
+        collapsible
         groups={capEach(allInvestmentGroups, INLINE_INVESTMENTS)}
         empty={<p className="text-sm text-label-secondary">No investments yet.</p>}
       />
