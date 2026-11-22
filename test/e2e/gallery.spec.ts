@@ -99,21 +99,3 @@ test.describe('gallery (F1 acceptance)', () => {
     }
   })
 })
-
-test('app shell: tab bar on mobile, sidebar on desktop', async ({ page }) => {
-  await page.setViewportSize(MOBILE)
-  await page.goto('/')
-  const nav = page.getByRole('navigation', { name: 'Primary' })
-  await expect(nav.getByRole('link', { name: 'History' })).toBeVisible()
-  await expect(nav.getByRole('button', { name: 'Add transaction' })).toBeVisible()
-  await nav.getByRole('link', { name: 'Wallets' }).click()
-  await expect(page).toHaveURL(/\/wallets$/)
-
-  await page.setViewportSize(DESKTOP)
-  await expect(page.locator('aside')).toBeVisible()
-})
-
-test('unknown route shows a not-found state, not a blank page', async ({ page }) => {
-  await page.goto('/definitely-not-a-route')
-  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
-})

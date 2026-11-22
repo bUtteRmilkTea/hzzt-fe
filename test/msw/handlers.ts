@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'msw'
+import { anonHandlers } from './api'
 
-// Handlers are added per feature. From F2 on they are typed from shared/api/schema.d.ts.
-export const handlers: RequestHandler[] = []
+// Default: signed out. Tests call server.use(...authedHandlers) etc. to override.
+export const handlers: RequestHandler[] = [...anonHandlers]

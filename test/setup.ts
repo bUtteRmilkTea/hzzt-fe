@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { afterAll, afterEach, beforeAll } from 'vitest'
+import { resetSessionBoot } from '@/app/providers/SessionProvider'
+import { resetClientState } from '@/shared/api/client'
 import { installMatchMedia, setMedia } from './matchMedia'
 import { server } from './msw/server'
 
@@ -23,6 +25,8 @@ window.scrollTo = () => {}
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   server.resetHandlers()
+  resetClientState()
+  resetSessionBoot()
   setMedia({ desktop: false, light: false })
   localStorage.clear()
   document.documentElement.removeAttribute('data-theme')

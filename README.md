@@ -31,10 +31,11 @@ pnpm exec playwright install --with-deps chromium   # one time, needs sudo
 
 ## Environment
 
-| Variable            | Purpose                                                                                  |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `VITE_API_BASE_URL` | API prefix, e.g. `http://localhost:8080/api/v1`. Falls back to `/api/v1` (the dev proxy) |
-| `VITE_ENABLE_MSW`   | `true` serves MSW mocks in the browser during dev                                        |
+| Variable            | Purpose                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL` | API prefix the browser calls. Use `/api/v1` (same-origin, so the refresh cookie works) |
+| `API_PROXY_TARGET`  | Where Vite proxies `/api` in dev, e.g. `http://localhost:8080`                         |
+| `VITE_ENABLE_MSW`   | `true` serves MSW mocks in the browser during dev                                      |
 
 `.env` is gitignored. Never commit it or any secret.
 
@@ -44,3 +45,7 @@ pnpm exec playwright install --with-deps chromium   # one time, needs sudo
   `echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p`
 - A Windows `node.exe` on the PATH can shadow the Linux one. `which node` must not start with `/mnt/c`.
 - `.gitattributes` forces LF line endings. Keep `git config core.autocrlf input`.
+
+## API types
+
+The backend emits Swagger 2.0. `pnpm gen:api` converts it with `swagger2openapi` and generates `src/shared/api/schema.d.ts` with `openapi-typescript` (run through a pinned `dlx` with TypeScript 5.9, because TypeScript 7 has no compiler API). Both generated files are committed and CI fails if they drift. After a backend change: `pnpm sync:api`.

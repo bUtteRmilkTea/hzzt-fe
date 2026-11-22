@@ -15,6 +15,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: API types are up to date
+        run: |
+          pnpm gen:api
+          git diff --exit-code -- api/openapi.yaml src/shared/api/schema.d.ts
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

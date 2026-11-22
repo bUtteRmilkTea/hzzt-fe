@@ -1,26 +1,24 @@
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { render, screen } from '@testing-library/react'
-import { routeTree } from '@/routeTree.gen'
-import { Providers } from './providers/Providers'
+import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { authedHandlers } from '../../test/msw/api'
+import { server } from '../../test/msw/server'
+import { renderApp } from '../../test/renderApp'
 
-async function renderAt(path: string) {
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [path] }),
-  })
-  await router.load()
-  render(
-    <Providers>
-      <RouterProvider router={router} />
-    </Providers>,
-  )
-}
+describe('signed in', () => {
+  beforeEach(() => server.use(...authedHandlers))
 
-describe('routes', () => {
   it('renders the home placeholder inside the shell', async () => {
-    await renderAt('/')
+    renderApp('/')
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
+  })
+
+  it('shows who is signed in and signs out back to /login', async () => {
+    const { router } = renderApp('/')
+    expect(await screen.findByText('jane@example.com')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
   })
 
   it.each([
@@ -28,12 +26,30 @@ describe('routes', () => {
     ['/wallets', 'Wallets'],
     ['/assets', 'Assets'],
   ])('renders %s', async (path, title) => {
-    await renderAt(path)
+    renderApp(path)
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument()
   })
 
-  it('renders the gallery with every primitive and no crash', async () => {
-    await renderAt('/_gallery')
+  it('shows a not-found state for an unknown path', async () => {
+    renderApp('/definitely-not-a-route')
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+  })
+
+  it('opens the add sheet from the centre add button', async () => {
+    renderApp('/')
+    await userEvent.click(await screen.findByRole('button', { name: 'Add transaction' }))
+    expect(await screen.findByRole('dialog', { name: 'Add transaction' })).toBeInTheDocument()
+  })
+
+  it('redirects away from /login to home', async () => {
+    renderApp('/login')
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
+  })
+})
+
+describe('public', () => {
+  it('renders the gallery with every primitive and no crash (no login needed)', async () => {
+    renderApp('/_gallery')
     expect(await screen.findByRole('heading', { name: 'Component gallery' })).toBeInTheDocument()
     for (const region of [
       'Theme',
@@ -45,16 +61,5 @@ describe('routes', () => {
     ]) {
       expect(screen.getByRole('region', { name: region })).toBeInTheDocument()
     }
-  })
-
-  it('shows a not-found state for an unknown path', async () => {
-    await renderAt('/definitely-not-a-route')
-    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
-  })
-
-  it('opens the add sheet from the centre add button', async () => {
-    await renderAt('/')
-    screen.getByRole('button', { name: 'Add transaction' }).click()
-    expect(await screen.findByRole('dialog', { name: 'Add transaction' })).toBeInTheDocument()
   })
 })

@@ -62,7 +62,7 @@ Everything the backend lists as out of scope, plus: offline write queueing, a de
 | D-F02 | Charts | Resolved | Hand-rolled SVG with `d3-scale` and `d3-shape`. Only a line, a bar and a donut are needed; a chart library costs 40 to 90 KB for styling we would override anyway | F9 |
 | D-F03 | Themes | Resolved | Dark-first, both themes shipped, following the system setting with a manual override | F1 |
 | D-F04 | Language | Resolved | English only in v1, matching the backend's out-of-scope list | all |
-| D-F05 | OpenAPI pipeline | **Open** | `swaggo/swag` v1 emits Swagger 2.0; `openapi-typescript` needs OpenAPI 3.x. Either upgrade the backend to swag v2 (3.1 output) or convert 2.0 to 3.0 in the frontend build with `swagger2openapi`. Confirm swag v2's current stability before choosing | F2 |
+| D-F05 | OpenAPI pipeline | Resolved (F2) | The backend still emits Swagger 2.0 (swag v1, `docs/swagger.yaml`), so the frontend converts it: `swagger2openapi` then `openapi-typescript`, via `pnpm gen:api`. No backend change. The spec is vendored at `api/swagger.yaml` (refresh with `pnpm sync:api`); `api/openapi.yaml` and `src/shared/api/schema.d.ts` are committed and CI fails on drift. `openapi-typescript` runs through a pinned `dlx` with TypeScript 5.9 because it needs the TypeScript compiler API, which TypeScript 7 does not provide | F2 |
 | D-F06 | Global state library | Resolved | **None.** TanStack Query for server data, URL search params for view state, React Context for session-wide values, `useState` locally (Section 4.2) | all |
 | D-F07 | Runtime and package manager | Resolved | Node 22 LTS via `fnm` inside WSL, pnpm via Corepack, both version-pinned | F0 |
 | D-F08 | Routing library | Resolved | TanStack Router, for typed routes and typed search params, which carry the transaction filters | F0, F5 |
@@ -72,7 +72,7 @@ Everything the backend lists as out of scope, plus: offline write queueing, a de
 | D-F12 | Error reporting | Recommended | Sentry browser SDK, lazy-loaded, behind an env flag. Decide at F10 | F10 |
 | D-F13 | Hosting | Recommended | Static hosting on the same site as the API (Cloudflare Pages, Netlify or Vercel). Must match the backend's D-02 choice | F10 |
 
-D-F05 and D-F13 need your input before the phase that depends on them starts. Everything else is settled unless you reopen it.
+D-F13 needs your input before the phase that depends on them starts. Everything else is settled unless you reopen it.
 
 ## 3. Tech stack
 
@@ -322,7 +322,7 @@ F0 and F1 need no backend at all, so you can start today. From F3 onward each ph
 | --- | --- | --- | --- | --- |
 | F0 | WSL environment, repository and tooling | — | — | Done (local e2e skipped: Chromium system libs not installed; CI runs it. Bundle check is `scripts/check-bundle.mjs` instead of size-limit) |
 | F1 | Design system, app shell and primitives | F0 | — | Done (local e2e skipped, CI runs it; mobile sheet focus trap and drag-dismiss verified only by e2e, not jsdom) |
-| F2 | API client, auth and session | F0, F1 | P2 | Backlog |
+| F2 | API client, auth and session | F0, F1 | P2 | Done (local e2e skipped, CI runs it; `openapi-react-query` not used, plain `openapi-fetch` + TanStack Query) |
 | F3 | Spaces, settings, preferences and app lock | F2 | P3, P4, P5 | Backlog |
 | F4 | Wallets and the card style editor | F3 | P7 | Backlog |
 | F6 | Categories and budgets | F3 | P6, P8 | Backlog |

@@ -1,8 +1,7 @@
-import { RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { App } from '@/app/App'
 import { Providers } from '@/app/providers/Providers'
-import { router } from '@/app/router'
 import './styles/globals.css'
 
 async function enableMocking() {
@@ -19,7 +18,7 @@ enableMocking().then(() => {
   createRoot(root).render(
     <StrictMode>
       <Providers>
-        <RouterProvider router={router} />
+        <App />
       </Providers>
     </StrictMode>,
   )

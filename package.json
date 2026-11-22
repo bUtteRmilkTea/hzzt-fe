@@ -15,9 +15,12 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "size": "node scripts/check-bundle.mjs"
+    "size": "node scripts/check-bundle.mjs",
+    "gen:api": "swagger2openapi --yaml --patch api/swagger.yaml -o api/openapi.yaml && pnpm --package=typescript@5.9.3 --package=openapi-typescript@7.13.0 dlx openapi-typescript api/openapi.yaml -o src/shared/api/schema.d.ts && biome format --write api/openapi.yaml",
+    "sync:api": "cp ../hzzt/docs/swagger.yaml api/swagger.yaml && pnpm gen:api"
   },
   "dependencies": {
+    "@hookform/resolvers": "^7.0.7",
     "@radix-ui/react-dialog": "^1.3.1",
     "@radix-ui/react-select": "^2.4.1",
     "@radix-ui/react-slot": "^1.5.0",
@@ -31,10 +34,13 @@
     "decimal.js-light": "^2.5.1",
     "lucide-react": "^1.75.0",
     "motion": "^14.14.0",
+    "openapi-fetch": "^0.17.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-hook-form": "^7.92.0",
     "tailwind-merge": "^3.7.0",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.8",
@@ -52,6 +58,7 @@
     "jsdom": "^31.0.1",
     "msw": "^3.0.7",
     "rollup-plugin-visualizer": "^7.1.3",
+    "swagger2openapi": "^7.0.8",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",

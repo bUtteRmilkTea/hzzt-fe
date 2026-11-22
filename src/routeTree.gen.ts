@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as GalleryRouteImport } from './routes/[_]gallery'
-import { Route as AssetsRouteImport } from './routes/assets'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as WalletsRouteImport } from './routes/wallets'
+import { Route as GuestRouteImport } from './routes/_guest'
+import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedAssetsRouteImport } from './routes/_authed/assets'
+import { Route as AuthedHistoryRouteImport } from './routes/_authed/history'
+import { Route as AuthedWalletsRouteImport } from './routes/_authed/wallets'
+import { Route as GuestForgotPasswordRouteImport } from './routes/_guest/forgot-password'
+import { Route as GuestLoginRouteImport } from './routes/_guest/login'
+import { Route as GuestRegisterRouteImport } from './routes/_guest/register'
+import { Route as GuestResetPasswordRouteImport } from './routes/_guest/reset-password'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GalleryRoute = GalleryRouteImport.update({
@@ -25,67 +30,138 @@ const GalleryRoute = GalleryRouteImport.update({
   path: '/_gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AssetsRoute = AssetsRouteImport.update({
+const GuestRoute = GuestRouteImport.update({
+  id: '/_guest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedIndexRoute = AuthedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAssetsRoute = AuthedAssetsRouteImport.update({
   id: '/assets',
   path: '/assets',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
 } as any)
-const HistoryRoute = HistoryRouteImport.update({
+const AuthedHistoryRoute = AuthedHistoryRouteImport.update({
   id: '/history',
   path: '/history',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
 } as any)
-const WalletsRoute = WalletsRouteImport.update({
+const AuthedWalletsRoute = AuthedWalletsRouteImport.update({
   id: '/wallets',
   path: '/wallets',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRoute,
+} as any)
+const GuestForgotPasswordRoute = GuestForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => GuestRoute,
+} as any)
+const GuestLoginRoute = GuestLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => GuestRoute,
+} as any)
+const GuestRegisterRoute = GuestRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => GuestRoute,
+} as any)
+const GuestResetPasswordRoute = GuestResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => GuestRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthedIndexRoute
   '/_gallery': typeof GalleryRoute
-  '/assets': typeof AssetsRoute
-  '/history': typeof HistoryRoute
-  '/wallets': typeof WalletsRoute
+  '/assets': typeof AuthedAssetsRoute
+  '/history': typeof AuthedHistoryRoute
+  '/wallets': typeof AuthedWalletsRoute
+  '/forgot-password': typeof GuestForgotPasswordRoute
+  '/login': typeof GuestLoginRoute
+  '/register': typeof GuestRegisterRoute
+  '/reset-password': typeof GuestResetPasswordRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/_gallery': typeof GalleryRoute
-  '/assets': typeof AssetsRoute
-  '/history': typeof HistoryRoute
-  '/wallets': typeof WalletsRoute
+  '/': typeof AuthedIndexRoute
+  '/assets': typeof AuthedAssetsRoute
+  '/history': typeof AuthedHistoryRoute
+  '/wallets': typeof AuthedWalletsRoute
+  '/forgot-password': typeof GuestForgotPasswordRoute
+  '/login': typeof GuestLoginRoute
+  '/register': typeof GuestRegisterRoute
+  '/reset-password': typeof GuestResetPasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authed': typeof AuthedRouteWithChildren
   '/_gallery': typeof GalleryRoute
-  '/assets': typeof AssetsRoute
-  '/history': typeof HistoryRoute
-  '/wallets': typeof WalletsRoute
+  '/_guest': typeof GuestRouteWithChildren
+  '/_authed/assets': typeof AuthedAssetsRoute
+  '/_authed/history': typeof AuthedHistoryRoute
+  '/_authed/wallets': typeof AuthedWalletsRoute
+  '/_guest/forgot-password': typeof GuestForgotPasswordRoute
+  '/_guest/login': typeof GuestLoginRoute
+  '/_guest/register': typeof GuestRegisterRoute
+  '/_guest/reset-password': typeof GuestResetPasswordRoute
+  '/_authed/': typeof AuthedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/_gallery' | '/assets' | '/history' | '/wallets'
+  fullPaths:
+    | '/'
+    | '/_gallery'
+    | '/assets'
+    | '/history'
+    | '/wallets'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
+    | '/reset-password'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/_gallery' | '/assets' | '/history' | '/wallets'
-  id: '__root__' | '/' | '/_gallery' | '/assets' | '/history' | '/wallets'
+  to:
+    | '/_gallery'
+    | '/'
+    | '/assets'
+    | '/history'
+    | '/wallets'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
+    | '/reset-password'
+  id:
+    | '__root__'
+    | '/_authed'
+    | '/_gallery'
+    | '/_guest'
+    | '/_authed/assets'
+    | '/_authed/history'
+    | '/_authed/wallets'
+    | '/_guest/forgot-password'
+    | '/_guest/login'
+    | '/_guest/register'
+    | '/_guest/reset-password'
+    | '/_authed/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
   GalleryRoute: typeof GalleryRoute
-  AssetsRoute: typeof AssetsRoute
-  HistoryRoute: typeof HistoryRoute
-  WalletsRoute: typeof WalletsRoute
+  GuestRoute: typeof GuestRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_authed': {
+      id: '/_authed'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_gallery': {
@@ -95,36 +171,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/assets': {
-      id: '/assets'
+    '/_guest': {
+      id: '/_guest'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof GuestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/': {
+      id: '/_authed/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/assets': {
+      id: '/_authed/assets'
       path: '/assets'
       fullPath: '/assets'
-      preLoaderRoute: typeof AssetsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedAssetsRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/history': {
-      id: '/history'
+    '/_authed/history': {
+      id: '/_authed/history'
       path: '/history'
       fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedHistoryRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/wallets': {
-      id: '/wallets'
+    '/_authed/wallets': {
+      id: '/_authed/wallets'
       path: '/wallets'
       fullPath: '/wallets'
-      preLoaderRoute: typeof WalletsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthedWalletsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_guest/forgot-password': {
+      id: '/_guest/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof GuestForgotPasswordRouteImport
+      parentRoute: typeof GuestRoute
+    }
+    '/_guest/login': {
+      id: '/_guest/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof GuestLoginRouteImport
+      parentRoute: typeof GuestRoute
+    }
+    '/_guest/register': {
+      id: '/_guest/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof GuestRegisterRouteImport
+      parentRoute: typeof GuestRoute
+    }
+    '/_guest/reset-password': {
+      id: '/_guest/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof GuestResetPasswordRouteImport
+      parentRoute: typeof GuestRoute
     }
   }
 }
 
+interface AuthedRouteChildren {
+  AuthedAssetsRoute: typeof AuthedAssetsRoute
+  AuthedHistoryRoute: typeof AuthedHistoryRoute
+  AuthedWalletsRoute: typeof AuthedWalletsRoute
+  AuthedIndexRoute: typeof AuthedIndexRoute
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAssetsRoute: AuthedAssetsRoute,
+  AuthedHistoryRoute: AuthedHistoryRoute,
+  AuthedWalletsRoute: AuthedWalletsRoute,
+  AuthedIndexRoute: AuthedIndexRoute,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
+
+interface GuestRouteChildren {
+  GuestForgotPasswordRoute: typeof GuestForgotPasswordRoute
+  GuestLoginRoute: typeof GuestLoginRoute
+  GuestRegisterRoute: typeof GuestRegisterRoute
+  GuestResetPasswordRoute: typeof GuestResetPasswordRoute
+}
+
+const GuestRouteChildren: GuestRouteChildren = {
+  GuestForgotPasswordRoute: GuestForgotPasswordRoute,
+  GuestLoginRoute: GuestLoginRoute,
+  GuestRegisterRoute: GuestRegisterRoute,
+  GuestResetPasswordRoute: GuestResetPasswordRoute,
+}
+
+const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthedRoute: AuthedRouteWithChildren,
   GalleryRoute: GalleryRoute,
-  AssetsRoute: AssetsRoute,
-  HistoryRoute: HistoryRoute,
-  WalletsRoute: WalletsRoute,
+  GuestRoute: GuestRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
