@@ -242,3 +242,72 @@ html[data-motion="on"] {
 .drawer-overlay[data-state="closed"] {
   animation: overlay-out 200ms ease-in both;
 }
+
+/* F20: the auth panel scene. One loop is --auth-loop; the line draws, holds, then fades and restarts. */
+:root {
+  --auth-loop: 9s;
+}
+@keyframes auth-draw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  32% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  88% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes auth-area {
+  0%,
+  22% {
+    opacity: 0;
+  }
+  42%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes auth-drift {
+  from {
+    transform: translateY(-6px);
+  }
+  to {
+    transform: translateY(6px);
+  }
+}
+.auth-line {
+  stroke-dasharray: 1;
+  animation: auth-draw var(--auth-loop) cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+.auth-area {
+  animation: auth-area var(--auth-loop) ease-in-out infinite;
+}
+.auth-float-a {
+  animation: auth-drift 5s ease-in-out infinite alternate;
+}
+.auth-float-b {
+  animation: auth-drift 6.5s ease-in-out -2s infinite alternate;
+}
+/* Under OS reduced motion the scene is one finished frame: line drawn, cards still. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="on"]) .auth-line,
+  :root:not([data-motion="on"]) .auth-area,
+  :root:not([data-motion="on"]) .auth-float {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win */
+    animation: none !important;
+  }
+  :root:not([data-motion="on"]) .auth-line {
+    stroke-dasharray: none;
+  }
+}
