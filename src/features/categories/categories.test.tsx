@@ -264,6 +264,89 @@ describe('create and edit', () => {
     expect(within(sheet).queryByRole('alert', { name: '' })).toBeInTheDocument() // the field error itself, not a banner
   })
 
+  it('CATEGORY_EXISTS_SIMILAR offers Use existing and Create anyway, which retries with force=true (F38-T01)', async () => {
+    const calls: string[] = []
+    server.use(
+      categoriesHandler(seededIncome),
+      http.post(C, ({ request }) => {
+        const q = new URL(request.url).searchParams.get('force')
+        calls.push(q ?? '')
+        return q === 'true'
+          ? HttpResponse.json(cat({ id: 'i-new', name: 'Gaji', type: 'INCOME' }), { status: 201 })
+          : HttpResponse.json(
+              errorEnvelope('CATEGORY_EXISTS_SIMILAR', '', {
+                existingId: 'i-0',
+                existingName: 'Salary',
+              }),
+              { status: 409 },
+            )
+      }),
+      http.get(`${BASE}/categories/suggestions`, () => HttpResponse.json([])),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/categories?tab=INCOME')
+    await user.click(await screen.findByRole('button', { name: /^Add$/ }))
+    const sheet = await screen.findByRole('dialog', { name: /New income category/ })
+    await user.type(within(sheet).getByLabelText('Name'), 'Gaji')
+    await user.click(within(sheet).getByRole('button', { name: 'Save' }))
+    const box = await within(sheet).findByTestId('similar-category')
+    expect(box).toHaveTextContent('Salary')
+    expect(calls).toEqual(['']) // nothing forced yet
+    await user.click(within(box).getByRole('button', { name: 'Create anyway' }))
+    await waitFor(() => expect(calls).toEqual(['', 'true']))
+  })
+
+  it('Use existing closes the sheet without creating anything', async () => {
+    const posts = vi.fn()
+    server.use(
+      categoriesHandler(seededIncome),
+      http.post(C, () => {
+        posts()
+        return HttpResponse.json(
+          errorEnvelope('CATEGORY_EXISTS_SIMILAR', '', {
+            existingId: 'i-0',
+            existingName: 'Salary',
+          }),
+          { status: 409 },
+        )
+      }),
+      http.get(`${BASE}/categories/suggestions`, () => HttpResponse.json([])),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/categories?tab=INCOME')
+    await user.click(await screen.findByRole('button', { name: /^Add$/ }))
+    const sheet = await screen.findByRole('dialog', { name: /New income category/ })
+    await user.type(within(sheet).getByLabelText('Name'), 'Gaji')
+    await user.click(within(sheet).getByRole('button', { name: 'Save' }))
+    await user.click(await within(sheet).findByRole('button', { name: 'Use existing' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: /New income category/ })).not.toBeInTheDocument(),
+    )
+    expect(posts).toHaveBeenCalledTimes(1)
+  })
+
+  it('the icon follows the name until the user picks one (no sparkle fallback)', async () => {
+    server.use(
+      categoriesHandler(seededExpense),
+      http.get(`${BASE}/categories/suggestions`, () => HttpResponse.json([])),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/categories')
+    const sheet = await openNew(user)
+    // The picked emoji: the pressed one in the grid, else the custom field.
+    const icon = () =>
+      within(sheet)
+        .queryAllByRole('button', { pressed: true })
+        .map((b) => b.textContent)[0] ??
+      (within(sheet).getByLabelText('Custom emoji') as HTMLInputElement).value
+    await user.type(within(sheet).getByLabelText('Name'), 'Coffee')
+    expect(icon()).toBe('☕')
+    await user.clear(within(sheet).getByLabelText('Name'))
+    await user.type(within(sheet).getByLabelText('Name'), 'Zzzz')
+    expect(icon()).toBe('🏷️')
+    expect(icon()).not.toBe('✨')
+  })
+
   it('rejects an empty name and a zero budget before calling the server', async () => {
     const called = vi.fn()
     server.use(

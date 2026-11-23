@@ -1,6 +1,7 @@
 import { format, parseISO } from 'date-fns'
 import { ArrowLeftRight } from 'lucide-react'
 import type { components } from '@/shared/api/schema'
+import { categoryNameLabel, systemText, useLanguage } from '@/shared/i18n'
 import { Amount } from './Amount'
 import { cn } from './cn'
 
@@ -16,7 +17,8 @@ const TYPE_LABEL: Record<string, string> = {
 
 /** Display title: the user's title, else the category, else the type. */
 export function transactionTitle(t: TransactionDTO): string {
-  return t.title || t.category?.name || TYPE_LABEL[t.type ?? ''] || 'Transaction'
+  if (t.systemKey) return systemText(t) || TYPE_LABEL[t.type ?? ''] || 'Transaction'
+  return t.title || categoryNameLabel(t.category?.name) || TYPE_LABEL[t.type ?? ''] || 'Transaction'
 }
 
 /** Signed amount for display: outflows are negative. */
@@ -48,6 +50,7 @@ export function TransactionRow({
   /** A tighter row (48px) for long lists such as History. */
   dense?: boolean
 }) {
+  useLanguage() // re-render when the language changes
   return (
     <div
       data-pending={pending || undefined}
