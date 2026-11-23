@@ -368,6 +368,28 @@ describe('wallet detail', () => {
     expect(calls).toEqual([''])
   })
 
+  it('states the delete impact from the loaded rows and says "at least" when more pages exist', async () => {
+    server.use(
+      http.get(`${BASE}/spaces/s-1/transactions`, () =>
+        HttpResponse.json({
+          items: [txn({ id: 't-1' }), txn({ id: 't-2', type: 'TRANSFER' })],
+          nextCursor: 'more',
+        }),
+      ),
+      ...makeAuthedHandlers(),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/wallets/w-1')
+    await user.click(await screen.findByRole('button', { name: 'Wallet options' }))
+    await user.click(await screen.findByRole('button', { name: /Delete wallet/ }))
+    const confirm = await screen.findByRole('dialog', { name: 'Delete this wallet?' })
+    await waitFor(() =>
+      expect(confirm).toHaveTextContent('This also removes at least 1 transaction and 1 transfer.'),
+    )
+    // The destructive button is not the focused element.
+    expect(within(confirm).getByRole('button', { name: 'Delete wallet' })).not.toHaveFocus()
+  })
+
   it('explains WALLET_HAS_BALANCE in plain words and needs a second, explicit confirmation to force', async () => {
     const calls: string[] = []
     server.use(

@@ -31,8 +31,10 @@ export function useWalletTransactions(
   walletId: string,
   period: Period,
   limit = PAGE_SIZE,
+  enabled = true,
 ) {
   return useInfiniteQuery({
+    enabled,
     queryKey: queryKeys.space(spaceId).transactions({ walletId, period, limit }),
     refetchOnWindowFocus: true,
     initialPageParam: undefined as string | undefined,

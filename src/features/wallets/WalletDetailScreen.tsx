@@ -79,6 +79,16 @@ export function WalletDetailScreen() {
     },
   })
 
+  // Delete impact (F35-T03). No delete-impact endpoint yet, so count the wallet's loaded
+  // transactions, all time, and say "at least" when there are more pages.
+  const impact = useWalletTransactions(
+    space.id,
+    id,
+    { kind: 'preset', preset: 'ALL_TIME' },
+    100,
+    confirmDelete,
+  )
+
   const groups = useMemo(() => {
     const byDay = new Map<string, NonNullable<typeof txns.data>['pages'][number]['items']>()
     for (const page of txns.data?.pages ?? []) {
@@ -336,7 +346,7 @@ export function WalletDetailScreen() {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         title="Delete this wallet?"
-        description="The wallet and its transaction history will be removed."
+        description={deleteImpactText(impact)}
         confirmLabel="Delete wallet"
         destructive
         pending={remove.isPending}
@@ -357,4 +367,23 @@ export function WalletDetailScreen() {
       />
     </Page>
   )
+}
+
+/** What deleting removes, counted from the loaded rows ("at least" while more pages exist). */
+function deleteImpactText(q: {
+  data?: { pages: Array<{ items: Array<{ type?: string }> }> } | undefined
+  hasNextPage?: boolean
+  isPending: boolean
+  isError: boolean
+}): string {
+  const base = 'The wallet and its transaction history will be removed.'
+  if (q.isPending || q.isError || !q.data) return base
+  const items = q.data.pages.flatMap((p) => p.items)
+  if (items.length === 0) return base
+  const transfers = items.filter((t) => t.type === 'TRANSFER').length
+  const atLeast = q.hasNextPage ? 'at least ' : ''
+  const noun = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+  const parts = [noun(items.length - transfers, 'transaction', 'transactions')]
+  if (transfers > 0) parts.push(noun(transfers, 'transfer', 'transfers'))
+  return `${base} This also removes ${atLeast}${parts.join(' and ')}.`
 }
