@@ -12,7 +12,6 @@ import { EmojiPopover } from '@/shared/ui/EmojiPopover'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
-import { MoneyInput } from '@/shared/ui/MoneyInput'
 import { Page } from '@/shared/ui/Page'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
@@ -202,6 +201,17 @@ function groupThousands(v: string | undefined): string | null {
   const [int = '', frac] = v.split('.')
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   return frac ? `${grouped}.${frac.slice(0, 4).replace(/0+$/, '')}`.replace(/\.$/, '') : grouped
+}
+
+/**
+ * A quantity is a count of units, not money: it must never be rounded to a currency's decimals.
+ * Keep digits and a single decimal point (a comma counts as the point); the server's limit
+ * (`quantityScale`) is reported by validation, not enforced by dropping typed digits.
+ */
+export function cleanQuantity(raw: string): string {
+  const v = raw.replace(',', '.').replace(/[^\d.]/g, '')
+  const i = v.indexOf('.')
+  return i < 0 ? v : `${v.slice(0, i + 1)}${v.slice(i + 1).replace(/\./g, '')}`
 }
 
 function emptyValues(meta: TypeMeta): TypeFormValues {
@@ -432,11 +442,15 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
               name="quantity"
               render={({ field }) => (
                 <Field label="Quantity" error={err.quantity?.message}>
-                  <MoneyInput
-                    mode="numeric"
+                  <Input
+                    inputMode="decimal"
+                    autoComplete="off"
+                    placeholder="0"
+                    invalid={Boolean(err.quantity)}
+                    className="tabular text-right"
                     value={field.value}
-                    onChange={field.onChange}
-                    currency={quote}
+                    onChange={(e) => field.onChange(cleanQuantity(e.target.value))}
+                    onBlur={field.onBlur}
                   />
                 </Field>
               )}

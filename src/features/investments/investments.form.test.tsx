@@ -7,6 +7,7 @@ import { BASE, makeAuthedHandlers } from '../../../test/msw/api'
 import { list, metas } from '../../../test/msw/investments'
 import { server } from '../../../test/msw/server'
 import { renderApp } from '../../../test/renderApp'
+import { cleanQuantity } from './CreateInvestmentScreen'
 
 beforeEach(() => {
   server.use(...makeAuthedHandlers())
@@ -161,5 +162,31 @@ describe('add investment layout (F13-T05, T06)', () => {
     expect(rail.textContent).not.toMatch(/200/)
     // The rail only shows from lg, so phones keep a single column.
     expect(rail).toHaveClass('hidden', 'lg:flex')
+  })
+})
+
+describe('quantity is not a money amount', () => {
+  it('keeps 0.00566444 as typed for crypto (not rounded to the 2 decimals of USD)', async () => {
+    await open()
+    const user = userEvent.setup()
+    const qty = screen.getByLabelText('Quantity')
+    await user.type(qty, '0.00566444')
+    await user.tab()
+    expect(qty).toHaveValue('0.00566444')
+    expect(screen.queryByText(/decimal place/)).not.toBeInTheDocument()
+  })
+  it('does not round a long quantity, whatever the limit is', async () => {
+    await open()
+    const user = userEvent.setup()
+    const qty = screen.getByLabelText('Quantity')
+    await user.type(qty, '0.123456789')
+    await user.tab()
+    expect(qty).toHaveValue('0.123456789')
+  })
+  it('cleans what is typed without rounding', () => {
+    expect(cleanQuantity('0,00566444')).toBe('0.00566444')
+    expect(cleanQuantity('1.2.3')).toBe('1.23')
+    expect(cleanQuantity('12abc')).toBe('12')
+    expect(cleanQuantity('')).toBe('')
   })
 })
