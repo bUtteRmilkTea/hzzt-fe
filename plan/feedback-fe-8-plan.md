@@ -87,12 +87,12 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [x] F33-T07 Tests and Playwright
 
 **F34** (investments; BE Phases G and H)
-- [ ] F34-T01 Price source badge, stale and override notes (L1, D-F49)
-- [ ] F34-T02 Portfolio card note for holdings not at live prices (L1)
-- [ ] F34-T03 Crypto form: Auto is the default when the type supports it (L1)
-- [ ] F34-T04 Currency fields per asset: prefix, no manual rate by default (T4)
-- [ ] F34-T05 One value rule in the form, no silent 5.5% (T8)
-- [ ] F34-T06 Tests and Playwright
+- [x] F34-T01 Price source badge, stale and override notes (L1, D-F49) (Nov 23: row, detail and Assets rows; the override warning and Use live price (PATCH manualCurrentValue null) are built since the API now has them)
+- [x] F34-T02 Portfolio card note for holdings not at live prices (L1) (Nov 23: shown on the Investments hero and the Assets investments section, counted from the list. The link to a filtered list is NOT built, there is no list filter; not on Home, Home has no portfolio card)
+- [x] F34-T03 Crypto form: Auto is the default when the type supports it (L1) (Nov 23: Auto by default. Deviation: "Change" on the picked instrument keeps Auto and shows the search again, only choosing Manual clears the instrument; Auto with a symbol and no picked instrument is allowed, the server resolves it)
+- [x] F34-T04 Currency fields per asset: prefix, no manual rate by default (T4) (Nov 23: prefixes on price, average, fees and manual value; typed rate behind a switch; provider rate text from GET /fx/latest. This build had no USD/IDR fields on the Indonesian stock form)
+- [x] F34-T05 One value rule in the form, no silent 5.5% (T8) (Nov 23: added the optional Manual current value field the rule needs, as the form had none; the 5.5 client fallback is removed)
+- [x] F34-T06 Tests and Playwright (Nov 23: fake CMC added to the e2e fake API; three stale investment e2e specs fixed, `investments.spec.ts:19` still fails as before, a Sell step of the fake)
 
 **F35** (Assets and wallets; Ready now)
 - [x] F35-T01 Every wrapper group is collapsible (L2, D-F48)
@@ -121,11 +121,11 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [x] F39-T04 Contributions note, coverage note, tests and Playwright (Nov 23: built on the F33 branch because it needs the LineChart tooltip, see the PR)
 
 **F38** (localization, icons, filter, settings; BE Phase F for `systemKey`, Phase I for the filter)
-- [ ] F38-T01 Language setting and `systemKey` strings (T12, D-F51)
-- [ ] F38-T02 Vector icons for system UI and a default icon per category (T13)
-- [ ] F38-T03 Filter sheet grouped by type, multi-select with a count badge (T14)
-- [ ] F38-T04 Settings in sections with search (T15)
-- [ ] F38-T05 Tests and Playwright
+- [x] F38-T01 Language setting and `systemKey` strings (T12, D-F51) (Nov 23: no i18n library; typed dictionary en/id for the 11 default categories and 3 system entries; applied to transaction titles, category pickers, filters, categories list and the Home breakdown; a renamed default category is never replaced. Gaji/Salary: the 409 with Use existing and Create anyway (force=true). Q11 treated as wanted, as the plan assumed)
+- [x] F38-T02 Vector icons for system UI and a default icon per category (T13) (Nov 23: the Expense/Income/Transfer tabs got lucide icons, they were text only in this build; the default icon follows the name through a static map, neutral tag as fallback, Subscriptions and Snacks differ. No emoji glyph problem was reproduced)
+- [x] F38-T03 Filter sheet grouped by type, multi-select with a count badge (T14) (Nov 23: unblocked, `categoryIds` is already supported; Expense and Income groups with Select all, the badge counts the date range plus each selected category and wallet)
+- [x] F38-T04 Settings in sections with search (T15) (Nov 23: this build has 10 rows, not 25. Sections: Account, Money setup, On this device. Automation, Data and Support have no rows here so they do not exist. Row map: Account = Profile, Space, App lock; Money setup = Categories, Goals, Currency; On this device = Hide amounts, Language, Animations, Keyboard; Sign out stays at the bottom)
+- [x] F38-T05 Tests and Playwright
 
 ### F33: Numbers that can be trusted
 

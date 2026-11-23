@@ -40,7 +40,7 @@ function WrapperSection({
           aria-expanded={open}
           aria-controls={bodyId}
           onClick={() => setOpen((o) => !o)}
-          className="flex min-h-10 min-w-0 flex-1 items-center gap-2 text-left"
+          className="flex min-h-12 min-w-0 flex-1 items-center gap-2 text-left"
         >
           <ChevronDown
             aria-hidden

@@ -18,7 +18,7 @@ export interface SheetShellProps {
 }
 
 const closeButton =
-  'inline-flex size-11 items-center justify-center rounded-full text-label-secondary hover:bg-surface-3'
+  'inline-flex size-12 items-center justify-center rounded-full text-label-secondary hover:bg-surface-3'
 
 /**
  * One API, two presentations: a drag-to-dismiss bottom sheet (Vaul) below 1024px
@@ -46,7 +46,7 @@ export function SheetShell({
             className="drawer-slide fixed inset-y-0 right-0 z-50 flex h-dvh w-[min(28rem,100vw)] flex-col border-l border-border bg-surface-2 shadow-sheet"
             {...(description ? {} : { 'aria-describedby': undefined })}
           >
-            <div className="flex items-start justify-between gap-4 px-6 pt-5">
+            <div className="sheet-top flex items-start justify-between gap-4 px-6">
               <div>
                 <Dialog.Title className="text-lg font-medium">{title}</Dialog.Title>
                 {description ? (
@@ -74,7 +74,7 @@ export function SheetShell({
         <Drawer.Overlay className="fixed inset-0 z-50 bg-overlay" />
         <Drawer.Content
           className={cn(
-            'fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col rounded-t-xl border border-b-0 border-border bg-surface-2 shadow-sheet outline-none',
+            'sheet-max-h fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-xl border border-b-0 border-border bg-surface-2 shadow-sheet outline-none',
           )}
           {...(description ? {} : { 'aria-describedby': undefined })}
         >

@@ -135,7 +135,7 @@ export function HistoryScreen() {
               params={{ spaceId: space.id }}
               search={(prev) => prev}
               aria-label={count > 0 ? `Filters, ${count} active` : 'Filters'}
-              className="relative inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-surface-1 px-4 text-sm font-medium"
+              className="relative inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full border border-border bg-surface-1 px-4 text-sm font-medium"
             >
               <ListFilter aria-hidden className="size-4" />
               Filters

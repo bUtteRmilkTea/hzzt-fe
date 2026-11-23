@@ -103,11 +103,12 @@ function WalletGrid({
           <Link
             to="/s/$spaceId/wallets/$id"
             params={{ spaceId, id: w.id as string }}
-            aria-label={`${w.name}, open wallet`}
             draggable={false}
             className="card-interactive block rounded-lg [-webkit-user-drag:none]"
           >
+            {/* The name is the card's own text, so it contains what is visible (WCAG 2.5.3). */}
             {card(w)}
+            <span className="sr-only">, open wallet</span>
           </Link>
           {renderAside(w, i)}
         </SortableItem>

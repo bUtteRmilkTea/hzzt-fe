@@ -41,6 +41,19 @@ describe('add investment layout (F13-T05, T06)', () => {
     expect(Math.floor(at('Current price') / 2)).toBe(Math.floor(at('Fees') / 2))
   })
 
+  it('Add investment is disabled until a name is typed and says why (F37-T03)', async () => {
+    await open()
+    const user = userEvent.setup()
+    const bar = screen.getByTestId('submit-bar')
+    const btn = within(bar).getByRole('button', { name: 'Add investment' })
+    expect(btn).toBeDisabled()
+    expect(btn).toHaveAttribute('aria-disabled', 'true')
+    expect(btn).toHaveAccessibleDescription('Enter a name to add this investment')
+    await user.type(screen.getByLabelText('Name'), 'Bitcoin')
+    expect(btn).toBeEnabled()
+    expect(btn).not.toHaveAttribute('aria-describedby')
+  })
+
   it('hides the 24-emoji grid behind the icon tile until it is opened, then closes on Escape', async () => {
     await open()
     const user = userEvent.setup()
