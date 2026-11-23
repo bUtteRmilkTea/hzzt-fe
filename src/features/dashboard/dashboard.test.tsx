@@ -136,6 +136,44 @@ describe('overview', () => {
   })
 })
 
+describe('net worth percentages (F33-T05, D-F44)', () => {
+  const hist = (over: object) => ({
+    currency: 'IDR',
+    range: '1M',
+    changePct: '20.7',
+    points: [
+      { date: '2026-11-01', netWorth: '90000000' },
+      { date: '2026-11-19', netWorth: '95000000', live: true },
+    ],
+    ...over,
+  })
+
+  it('headlines the return excluding deposits and keeps the value change as a smaller line', async () => {
+    install({ history: hist({ performancePct: '-3.1' }) })
+    const user = userEvent.setup()
+    renderApp('/s/s-1')
+    expect(await screen.findByTestId('nw-performance')).toHaveTextContent('-3.1%')
+    expect(screen.getByTestId('nw-performance')).toHaveClass('text-negative')
+    expect(screen.getByText('Return, excl. deposits')).toBeInTheDocument()
+    expect(screen.getByTestId('nw-change')).toHaveTextContent('+20.7%')
+    expect(screen.getByText('Change in value')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'What is this?' }))
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'Deposits and withdrawals are not counted as return.',
+    )
+  })
+
+  it('shows only the value change when the server has no return figure', async () => {
+    install({ history: hist({}) })
+    renderApp('/s/s-1')
+    expect(await screen.findByTestId('nw-change')).toHaveTextContent('+20.7%')
+    expect(screen.queryByTestId('nw-performance')).not.toBeInTheDocument()
+    expect(screen.getByText('Change in value')).toBeInTheDocument()
+    expect(screen.queryByText('Return, excl. deposits')).not.toBeInTheDocument()
+    expect(screen.queryByText(/growth/i)).not.toBeInTheDocument()
+  })
+})
+
 describe('net worth chart', () => {
   it('draws the line with the live point marked, and the change badge', async () => {
     install()
@@ -269,7 +307,7 @@ describe('category breakdown', () => {
   it('shows an empty-data state', async () => {
     install({ breakdown: breakdown({ items: [], uncategorized: undefined, total: '0' }) })
     renderApp('/s/s-1')
-    expect(await screen.findByText('Nothing to show for this period.')).toBeInTheDocument()
+    expect(await screen.findByText('No transactions yet')).toBeInTheDocument()
   })
 })
 
@@ -309,6 +347,37 @@ describe('analytics', () => {
   })
 })
 
+describe('calendar cells never add other kinds (F33-T02)', () => {
+  it('shows the net for an income plus expense day, and no number for a transfer-only day', async () => {
+    install({
+      days: {
+        // 150 in, 224.52 out: the cell shows the server net, not 374.52.
+        [`${thisMonth}-05`]: { count: 2, income: '150', expense: '224.52', net: '-74.52' },
+        // A day with only a transfer: the server returns no income and no expense.
+        [`${thisMonth}-06`]: { count: 1, income: '0', expense: '0', net: '0' },
+      },
+    })
+    renderApp('/s/s-1')
+    const list = await screen.findByRole('list', { name: /Activity in/ })
+    const days = within(list).getAllByRole('button')
+    expect(days[4]).toHaveTextContent('-IDR 75')
+    expect(days[4]).not.toHaveTextContent('374')
+    expect(days[5]?.textContent).toBe('6') // only the day number
+    expect(within(days[5] as HTMLElement).getByTestId('count-dot')).toBeInTheDocument()
+  })
+})
+
+describe('breakdown empty state (F33-T01)', () => {
+  it('asks for a first transaction, never a first category', async () => {
+    install({ breakdown: breakdown({ items: [], uncategorized: undefined, total: '0' }) })
+    renderApp('/s/s-1')
+    expect(await screen.findByText('No transactions yet')).toBeInTheDocument()
+    expect(screen.getByText('Add your first one to see where your money goes.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Add transaction' })).toBeInTheDocument()
+    expect(screen.queryByText(/first category/i)).not.toBeInTheDocument()
+  })
+})
+
 describe('calendar', () => {
   it('lists every day of the month, highlights today, and marks days with activity', async () => {
     install({
@@ -320,8 +389,8 @@ describe('calendar', () => {
     renderApp('/s/s-1')
     const list = await screen.findByRole('list', { name: /Activity in/ })
     const days = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-    expect(within(list).getAllByRole('link')).toHaveLength(days)
-    expect(within(list).getByRole('link', { current: 'date' })).toBeInTheDocument()
+    expect(within(list).getAllByRole('button')).toHaveLength(days)
+    expect(within(list).getByRole('button', { current: 'date' })).toBeInTheDocument()
     expect(within(list).getAllByTestId('count-dot').length).toBeGreaterThanOrEqual(1)
     expect(within(list).getByText('+IDR 60K')).toBeInTheDocument() // compact per-day net
   })
@@ -346,12 +415,23 @@ describe('calendar', () => {
     await waitFor(() => expect(router.state.location.search).not.toHaveProperty('month')) // back to the default
   })
 
-  it('a day links to history for just that day', async () => {
-    install()
+  it('a day opens a panel with income, expense, net and count apart, and links to history for that day', async () => {
+    install({
+      days: { [`${thisMonth}-05`]: { count: 3, income: '100000', expense: '40000', net: '60000' } },
+    })
     const user = userEvent.setup()
     const { router } = renderApp('/s/s-1')
     const list = await screen.findByRole('list', { name: /Activity in/ })
-    await user.click(within(list).getAllByRole('link')[4] as HTMLElement)
+    expect(screen.queryByTestId('day-panel')).not.toBeInTheDocument()
+    await user.click(within(list).getAllByRole('button')[4] as HTMLElement)
+    const panel = await screen.findByTestId('day-panel')
+    expect(panel).toHaveTextContent('Income')
+    expect(panel).toHaveTextContent('IDR 100,000')
+    expect(panel).toHaveTextContent('Expense')
+    expect(panel).toHaveTextContent('IDR 40,000')
+    expect(panel).toHaveTextContent('+IDR 60,000')
+    expect(panel).toHaveTextContent('3')
+    await user.click(within(panel).getByRole('link', { name: 'View transactions' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/s/s-1/history'))
     expect(router.state.location.search).toMatchObject({
       from: `${thisMonth}-05`,

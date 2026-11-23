@@ -167,3 +167,34 @@ describe('donutGeometry', () => {
     expect(arcs[0]?.fraction).toBeCloseTo(1, 5)
   })
 })
+
+describe('lineGeometry axis fitting (F33-T04)', () => {
+  const pts = (vals: string[]) => vals.map((v, i) => ({ date: `2026-11-${10 + i}`, value: v }))
+  it('fits to the data with 8% padding for all-positive values, and never goes negative', () => {
+    const g = lineGeometry(pts(['800', '874', '900']), box)
+    expect(g.yMin).toBeCloseTo(800 - 100 * 0.08)
+    expect(g.yMax).toBeCloseTo(900 + 100 * 0.08)
+    expect(g.yMin).toBeGreaterThanOrEqual(0)
+  })
+  it('clamps at 0 when the padding would cross it', () => {
+    const g = lineGeometry(pts(['1', '100']), box)
+    expect(g.yMin).toBe(0)
+  })
+  it('a flat series and a single point get a visible span', () => {
+    const flat = lineGeometry(pts(['500', '500']), box)
+    expect(flat.yMax).toBeGreaterThan(flat.yMin)
+    const one = lineGeometry(pts(['874']), box)
+    expect(one.yMax).toBeGreaterThan(one.yMin)
+    expect(one.yMin).toBeGreaterThanOrEqual(0)
+  })
+  it('keeps negative values and pads below them', () => {
+    const g = lineGeometry(pts(['-200', '-50']), box)
+    expect(g.yMin).toBeLessThan(-200)
+    expect(g.yMax).toBeGreaterThan(-50)
+  })
+  it('an 874 series is not drawn on a -1k to 1.9k axis', () => {
+    const g = lineGeometry(pts(['820', '850', '874']), box)
+    expect(g.yMin).toBeGreaterThan(0)
+    expect(g.yMax).toBeLessThan(1000)
+  })
+})

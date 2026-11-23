@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns'
+import { ArrowLeftRight } from 'lucide-react'
 import type { components } from '@/shared/api/schema'
 import { Amount } from './Amount'
 import { cn } from './cn'
@@ -21,6 +22,8 @@ export function transactionTitle(t: TransactionDTO): string {
 /** Signed amount for display: outflows are negative. */
 export function signedAmount(t: TransactionDTO): string {
   const amount = t.amount ?? '0'
+  // A transfer moves money between your own wallets: no sign, no direction.
+  if (t.type === 'TRANSFER') return amount.replace(/^-/, '')
   return t.direction === 'OUT' && !amount.startsWith('-') ? `-${amount}` : amount
 }
 
@@ -63,7 +66,11 @@ export function TransactionRow({
           !t.category?.color && 'bg-surface-3',
         )}
       >
-        {t.category?.icon ?? '💱'}
+        {t.type === 'TRANSFER' ? (
+          <ArrowLeftRight aria-hidden className="size-4" />
+        ) : (
+          (t.category?.icon ?? '💱')
+        )}
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{transactionTitle(t)}</p>
@@ -84,6 +91,7 @@ export function TransactionRow({
         value={signedAmount(t)}
         currency={t.currency ?? ''}
         tone={amountTone(t)}
+        {...(t.type === 'ADJUSTMENT' ? { signDisplay: 'always' as const } : {})}
         className="font-medium"
       />
     </div>

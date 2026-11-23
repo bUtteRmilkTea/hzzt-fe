@@ -101,6 +101,24 @@ export function OverviewCard({ period }: { period: Period }) {
   )
 }
 
+/** A signed percentage from the server. Number() style sign checks only pick the colour. */
+function PctFigure({ pct, testId, small }: { pct: string; testId: string; small?: boolean }) {
+  const neg = pct.startsWith('-')
+  return (
+    <span
+      data-testid={testId}
+      className={cn(
+        'tabular font-medium',
+        small ? 'text-sm' : 'text-base',
+        neg ? 'text-negative' : 'text-positive',
+      )}
+    >
+      {neg ? '' : '+'}
+      {pct}%
+    </span>
+  )
+}
+
 // ---- net worth ---------------------------------------------------------------
 
 export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Range) => void }) {
@@ -109,6 +127,8 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
   const summary = useNetWorthSummary(space.id)
   const history = useNetWorthHistory(space.id, range)
   const change = history.data?.changePct
+  const perf = history.data?.performancePct
+  const [help, setHelp] = useState(false)
   return (
     <Card title={space.trackingMode === 'CASH_ONLY' ? 'Cash' : 'Net worth'}>
       {summary.isPending ? (
@@ -121,18 +141,35 @@ export function NetWorthCard({ range, onRange }: { range: Range; onRange: (r: Ra
             className="text-3xl font-medium lg:text-4xl"
             animate
           />
-          {change !== null && change !== undefined ? (
-            <span
-              data-testid="nw-change"
-              className={cn(
-                'tabular text-sm font-medium',
-                change.startsWith('-') ? 'text-negative' : 'text-positive',
-              )}
-            >
-              {change.startsWith('-') ? '' : '+'}
-              {change}%
+          {perf !== null && perf !== undefined ? (
+            <span className="flex flex-col">
+              <PctFigure testId="nw-performance" pct={perf} />
+              <span className="text-xs text-label-secondary">Return, excl. deposits</span>
             </span>
           ) : null}
+          {change !== null && change !== undefined ? (
+            <span className="flex flex-col">
+              <PctFigure
+                testId="nw-change"
+                pct={change}
+                small={perf !== null && perf !== undefined}
+              />
+              <span className="text-xs text-label-secondary">Change in value</span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      {perf !== null && perf !== undefined ? (
+        <div className="text-xs text-label-secondary">
+          <button
+            type="button"
+            aria-expanded={help}
+            onClick={() => setHelp((h) => !h)}
+            className="min-h-12 underline decoration-dotted underline-offset-2"
+          >
+            What is this?
+          </button>
+          {help ? <p role="note">Deposits and withdrawals are not counted as return.</p> : null}
         </div>
       ) : null}
       <SegmentedControl
@@ -186,6 +223,23 @@ export function BreakdownCard({ period }: { period: Period }) {
         <Skeleton className="h-52" />
       ) : q.isError ? (
         <Retry what="the breakdown" onRetry={() => void q.refetch()} />
+      ) : q.data.items.length === 0 ? (
+        // Driven by the transactions in the period, never by the category list (F33-T01).
+        <EmptyState
+          title="No transactions yet"
+          description="Add your first one to see where your money goes."
+          action={
+            <Button asChild>
+              <Link
+                to="/s/$spaceId/transactions/new"
+                params={{ spaceId: space.id }}
+                search={{ type: type === 'INCOME' ? 'INCOME' : 'EXPENSE' }}
+              >
+                Add transaction
+              </Link>
+            </Button>
+          }
+        />
       ) : (
         <>
           <WarningsStrip warnings={q.data.warnings} />
@@ -285,6 +339,8 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export function CalendarCard({ month, onMonth }: { month: string; onMonth: (m: string) => void }) {
   const { space } = useSpace()
   const q = useCalendar(space.id, month)
+  const [selected, setSelected] = useState<string | null>(null)
+  const pickedDay = q.data?.days.find((d) => d.date === selected)
   const today = format(new Date(), 'yyyy-MM-dd')
   const first = parseISO(`${month}-01T12:00:00`)
   const blanks = getISODay(first) - 1 // Monday-first grid
@@ -341,15 +397,16 @@ export function CalendarCard({ month, onMonth }: { month: string; onMonth: (m: s
               const hasNet = d.net !== '0'
               return (
                 <li key={d.date}>
-                  <Link
-                    to="/s/$spaceId/history"
-                    params={{ spaceId: space.id }}
-                    search={{ from: d.date, to: d.date }}
+                  <button
+                    type="button"
+                    aria-pressed={selected === d.date}
+                    onClick={() => setSelected((cur) => (cur === d.date ? null : d.date))}
                     aria-label={`${format(parseISO(`${d.date}T12:00:00`), 'd MMMM')}, ${d.count} transactions`}
                     aria-current={isToday ? 'date' : undefined}
                     className={cn(
-                      'flex min-h-14 flex-col items-center justify-start gap-0.5 rounded-md py-1 text-xs hover:bg-surface-3',
+                      'flex min-h-14 w-full flex-col items-center justify-start gap-0.5 rounded-md py-1 text-xs hover:bg-surface-3',
                       isToday && 'bg-accent/15 ring-1 ring-accent',
+                      selected === d.date && 'bg-surface-3',
                     )}
                   >
                     <span className={cn('font-medium', isToday && 'text-accent')}>
@@ -372,11 +429,57 @@ export function CalendarCard({ month, onMonth }: { month: string; onMonth: (m: s
                         data-testid="count-dot"
                       />
                     ) : null}
-                  </Link>
+                  </button>
                 </li>
               )
             })}
           </ul>
+          {pickedDay ? (
+            <div
+              data-testid="day-panel"
+              className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3 text-sm"
+            >
+              <p className="font-medium">
+                {format(parseISO(`${pickedDay.date}T12:00:00`), 'EEEE, d MMMM')}
+              </p>
+              <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
+                <dt className="text-label-secondary">Income</dt>
+                <dd>
+                  <Amount
+                    value={pickedDay.income}
+                    currency={q.data.currency || space.baseCurrency}
+                  />
+                </dd>
+                <dt className="text-label-secondary">Expense</dt>
+                <dd>
+                  <Amount
+                    value={pickedDay.expense}
+                    currency={q.data.currency || space.baseCurrency}
+                  />
+                </dd>
+                <dt className="text-label-secondary">Net</dt>
+                <dd>
+                  <Amount
+                    value={pickedDay.net}
+                    currency={q.data.currency || space.baseCurrency}
+                    tone="auto"
+                    signDisplay="exceptZero"
+                  />
+                </dd>
+                <dt className="text-label-secondary">Transactions</dt>
+                <dd className="tabular">{pickedDay.count}</dd>
+              </dl>
+              <Button variant="secondary" size="sm" asChild>
+                <Link
+                  to="/s/$spaceId/history"
+                  params={{ spaceId: space.id }}
+                  search={{ from: pickedDay.date, to: pickedDay.date }}
+                >
+                  View transactions
+                </Link>
+              </Button>
+            </div>
+          ) : null}
         </>
       )}
     </Card>

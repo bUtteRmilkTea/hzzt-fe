@@ -4,6 +4,7 @@ import { useInView } from '@/shared/motion/useInView'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
 import { type LinePoint, lineGeometry } from './geometry'
+import { ChartTooltip, useInspect } from './inspect'
 import { useChartWidth } from './useChartWidth'
 
 interface LineChartProps {
@@ -77,6 +78,8 @@ export function LineChart({
 }: LineChartProps) {
   const { ref, width } = useChartWidth()
   const [viewRef, seen] = useInView(Boolean(draw))
+  const g = data.length > 0 ? lineGeometry(data, { width, height, margin: MARGIN }) : null
+  const inspect = useInspect(g?.points.map((p) => p.x) ?? [])
   if (loading)
     return (
       <div
@@ -94,7 +97,8 @@ export function LineChart({
   if (data.length === 0)
     return <p className="py-6 text-center text-sm text-label-secondary">No data for this period.</p>
   const t = TREND_CLASS[trend ?? trendOf(data)]
-  const g = lineGeometry(data, { width, height, margin: MARGIN })
+  if (!g) return null
+  const active = inspect.index !== null ? g.points[inspect.index] : undefined
   const first = g.points[0]
   const last = g.points[g.points.length - 1]
 
@@ -103,74 +107,112 @@ export function LineChart({
   return (
     <div ref={viewRef} data-inview={draw ? seen : undefined} className="w-full">
       <div ref={ref} className="w-full" data-testid="line-chart">
-        <svg
-          key={drawKey}
-          data-draw={draw || undefined}
-          data-trend={trend ?? trendOf(data)}
-          width={width}
-          height={height}
-          role="img"
-          aria-label={label}
-          className="block overflow-visible"
+        <figure
+          ref={inspect.boxRef as React.RefObject<HTMLElement>}
+          aria-label={`${label}. Use the left and right arrow keys to inspect values.`}
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: the chart is keyboard-inspectable
+          tabIndex={0}
+          style={{ touchAction: 'pan-y' }}
+          className="relative rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          {...inspect.handlers}
         >
-          <title>{label}</title>
-          {g.single ? (
-            <line
-              x1={MARGIN.left}
-              x2={width - MARGIN.right}
-              y1={first?.y}
-              y2={first?.y}
-              className="stroke-border-strong"
-              strokeDasharray="4 4"
-            />
-          ) : (
-            <>
-              <path d={g.areaPath} className={cn(t.fill, draw && 'chart-area-in')} />
-              <path
-                d={g.path}
-                // pathLength=1 lets the dash animation run 1 to 0 without measuring the path.
-                pathLength={1}
-                fill="none"
-                strokeWidth={2}
-                strokeLinecap="round"
-                className={cn(t.stroke, draw && 'chart-line-draw')}
-                style={t.glow ? { filter: `drop-shadow(${t.glow})` } : undefined}
+          {active ? (
+            <ChartTooltip x={active.x} width={width}>
+              <p className="text-label-secondary">{fmtDay(active.date)}</p>
+              <p className="font-medium">
+                <Amount value={active.value} currency={currency} />
+              </p>
+            </ChartTooltip>
+          ) : null}
+          <svg
+            key={drawKey}
+            data-draw={draw || undefined}
+            data-trend={trend ?? trendOf(data)}
+            width={width}
+            height={height}
+            role="img"
+            aria-label={label}
+            className="block overflow-visible"
+          >
+            <title>{label}</title>
+            {g.single ? (
+              <line
+                x1={MARGIN.left}
+                x2={width - MARGIN.right}
+                y1={first?.y}
+                y2={first?.y}
+                className="stroke-border-strong"
+                strokeDasharray="4 4"
               />
-            </>
-          )}
-          {g.points.map((p) =>
-            p.live || g.single ? (
-              <g
-                key={p.date}
-                data-live={p.live || undefined}
-                className={draw ? 'chart-dot-in' : undefined}
+            ) : (
+              <>
+                <path d={g.areaPath} className={cn(t.fill, draw && 'chart-area-in')} />
+                <path
+                  d={g.path}
+                  // pathLength=1 lets the dash animation run 1 to 0 without measuring the path.
+                  pathLength={1}
+                  fill="none"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  className={cn(t.stroke, draw && 'chart-line-draw')}
+                  style={t.glow ? { filter: `drop-shadow(${t.glow})` } : undefined}
+                />
+              </>
+            )}
+            {active && !g.single ? (
+              <>
+                <line
+                  data-testid="chart-guide"
+                  x1={active.x}
+                  x2={active.x}
+                  y1={MARGIN.top}
+                  y2={height - MARGIN.bottom}
+                  className="stroke-border-strong"
+                />
+                <circle cx={active.x} cy={active.y} r={4} className={t.dot} />
+              </>
+            ) : null}
+            {g.points.map((p) =>
+              p.live || g.single ? (
+                <g
+                  key={p.date}
+                  data-live={p.live || undefined}
+                  className={draw ? 'chart-dot-in' : undefined}
+                >
+                  <circle cx={p.x} cy={p.y} r={8} className={t.halo} />
+                  <circle cx={p.x} cy={p.y} r={4} className={t.dot} />
+                </g>
+              ) : null,
+            )}
+            {first ? (
+              <text
+                x={first.x}
+                y={height - 6}
+                textAnchor={g.single ? 'middle' : 'start'}
+                className="fill-label-secondary text-[11px]"
               >
-                <circle cx={p.x} cy={p.y} r={8} className={t.halo} />
-                <circle cx={p.x} cy={p.y} r={4} className={t.dot} />
-              </g>
-            ) : null,
-          )}
-          {first ? (
-            <text
-              x={first.x}
-              y={height - 6}
-              textAnchor={g.single ? 'middle' : 'start'}
-              className="fill-label-secondary text-[11px]"
-            >
-              {fmtDay(first.date)}
-            </text>
+                {fmtDay(first.date)}
+              </text>
+            ) : null}
+            {last && !g.single ? (
+              <text
+                x={last.x}
+                y={height - 6}
+                textAnchor="end"
+                className="fill-label-secondary text-[11px]"
+              >
+                {last.live ? 'Today' : fmtDay(last.date)}
+              </text>
+            ) : null}
+          </svg>
+        </figure>
+        <p aria-live="polite" className="sr-only" data-testid="chart-readout">
+          {active ? (
+            <>
+              {fmtDay(active.date)}: <Amount value={active.value} currency={currency} />
+            </>
           ) : null}
-          {last && !g.single ? (
-            <text
-              x={last.x}
-              y={height - 6}
-              textAnchor="end"
-              className="fill-label-secondary text-[11px]"
-            >
-              {last.live ? 'Today' : fmtDay(last.date)}
-            </text>
-          ) : null}
-        </svg>
+        </p>
         {/* The wrapper clips it: a bare sr-only table ignores width:1px and widens the page. */}
         <div className="sr-only">
           <table>
