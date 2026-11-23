@@ -90,6 +90,19 @@ export function averageColor(a: string, b: string): string {
   return `#${out.toString(16).padStart(6, '0')}`
 }
 
+/** Strength of the scrim under the text of a template card (F35-T04). */
+export const SCRIM_BOTTOM = 0.55
+export const SCRIM_TOP = 0.35
+
+/**
+ * A gradient laid over template artwork so the name and balance stay readable: black under light
+ * text, white under dark text, strongest where the balance and the name sit.
+ */
+export function templateScrim(tone: Tone): string {
+  const c = tone === 'light' ? '0 0 0' : '255 255 255'
+  return `linear-gradient(to top, rgb(${c} / ${SCRIM_BOTTOM}), transparent 60%), linear-gradient(to bottom, rgb(${c} / ${SCRIM_TOP}), transparent 40%)`
+}
+
 export interface ResolvedCard {
   background: string
   tone: Tone

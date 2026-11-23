@@ -6,7 +6,10 @@ import {
   isDirection,
   relativeLuminance,
   resolveCardStyle,
+  SCRIM_BOTTOM,
+  SCRIM_TOP,
   TEMPLATES,
+  templateScrim,
   toneForColor,
 } from './cardStyle'
 
@@ -109,4 +112,39 @@ describe('resolveCardStyle', () => {
       }).background,
     ).toContain('135deg')
   })
+})
+
+describe('template scrim (F35-T04)', () => {
+  const lum = (hex: string) => relativeLuminance(hex)
+  const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+  /** Composite a scrim of one colour at `alpha` over a `#RRGGBB` artwork colour. */
+  const over = (hex: string, scrim: 0 | 255, alpha: number) => {
+    const n = Number.parseInt(hex.slice(1), 16)
+    const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) =>
+      Math.round(v * (1 - alpha) + scrim * alpha),
+    )
+    return `#${ch.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+  }
+
+  it('is black under light text and white under dark text', () => {
+    expect(templateScrim('light')).toContain('rgb(0 0 0 /')
+    expect(templateScrim('dark')).toContain('rgb(255 255 255 /')
+  })
+
+  it.each(Object.entries(TEMPLATES))(
+    'keeps name and balance at 4.5:1 on the worst artwork colour of %s',
+    (_id, t) => {
+      const colours = (t.background.match(/#[0-9a-f]{6}/gi) ?? []) as string[]
+      expect(colours.length).toBeGreaterThan(0)
+      const light = t.tone === 'light'
+      // Worst case: the lightest colour under light text, the darkest under dark text.
+      const worst = [...colours].sort((a, b) =>
+        light ? lum(b) - lum(a) : lum(a) - lum(b),
+      )[0] as string
+      for (const alpha of [SCRIM_BOTTOM, SCRIM_TOP]) {
+        const bg = over(worst, light ? 0 : 255, alpha)
+        expect(ratio(lum(bg), light ? 1 : 0)).toBeGreaterThanOrEqual(4.5)
+      }
+    },
+  )
 })
