@@ -68,6 +68,7 @@ export function buildTypeSchema(meta: TypeMeta) {
       quantity: lots ? z.string() : positiveDecimal('Enter a quantity above 0'),
       avgBuyPrice: optionalDecimal,
       manualPrice: optionalDecimal,
+      manualCurrentValue: optionalDecimal.optional(),
       fees: optionalDecimal,
       manualFxRate: optionalDecimal,
       estimatedAnnualChangePct: optionalDecimal,
@@ -87,8 +88,8 @@ export function buildTypeSchema(meta: TypeMeta) {
           message: 'Automatic pricing is not available for this type.',
         })
       }
-      // Auto mode must be linked to a market instrument, or there is nothing to price.
-      if (v.priceMode === 'AUTO' && v.instrumentId === '') {
+      // Auto mode needs something to price: a picked instrument, or a symbol the server can resolve.
+      if (v.priceMode === 'AUTO' && v.instrumentId === '' && v.symbol.trim() === '') {
         ctx.addIssue({
           code: 'custom',
           path: ['instrumentId'],
@@ -159,7 +160,10 @@ export function toCreateBody(v: TypeFormValues, meta: TypeMeta): Record<string, 
   put('estimatedAnnualChangePct', v.estimatedAnnualChangePct)
   put('purchaseDate', v.purchaseDate)
   if (v.wrapper?.trim()) body.wrapper = v.wrapper.trim()
-  if (v.priceMode === 'MANUAL') put('manualPrice', v.manualPrice)
+  if (v.priceMode === 'MANUAL') {
+    put('manualPrice', v.manualPrice)
+    put('manualCurrentValue', v.manualCurrentValue ?? '')
+  }
   if (v.priceMode === 'AUTO' && v.instrumentId) body.instrumentId = v.instrumentId
   if (meta.quoteCurrencyEditable && v.quoteCurrency) body.quoteCurrency = v.quoteCurrency
 

@@ -155,6 +155,8 @@ export interface TransactionPatch {
   date?: string
   /** `null` clears the note. */
   note?: string | null
+  /** Reclassify an uncategorised income or expense as a balance adjustment (F33-T06). */
+  type?: 'ADJUSTMENT'
 }
 
 export function useUpdateTransaction(id: string) {
@@ -169,6 +171,7 @@ export function useUpdateTransaction(id: string) {
         ...(p.categoryId !== undefined ? { categoryId: p.categoryId as string } : {}),
         ...(p.date ? { occurredAt: occurredAtFor(p.date) } : {}),
         ...(p.note !== undefined ? { note: p.note as string } : {}),
+        ...(p.type ? { type: p.type } : {}),
       }
       return (
         await api.PATCH('/spaces/{spaceId}/transactions/{id}', {

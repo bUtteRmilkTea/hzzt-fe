@@ -17,6 +17,7 @@ import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { CategoryPanel } from './CategoryPanel'
 import { useInvestments, useInvestmentTypes } from './hooks'
 import { PortfolioLine } from './PortfolioLine'
+import { TypedPriceNote } from './priceSource'
 import { categorySlices, groupInvestments, topSlices } from './valuation'
 import { useWrapperTargets } from './wrappers'
 
@@ -108,6 +109,7 @@ export function InvestmentsScreen() {
                   />
                 </span>
               </p>
+              <TypedPriceNote items={list.data.items} />
             </div>
             <div
               data-testid="portfolio-halves"

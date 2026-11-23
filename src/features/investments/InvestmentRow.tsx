@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { useState } from 'react'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
+import { PriceSourceBadge } from './priceSource'
 import type { InvestmentView, Valuation } from './types'
 import { bpsToPct, isSharedIn, parseValuation } from './valuation'
 
@@ -85,9 +86,9 @@ export function InvestmentRow({
           </span>
         </div>
       ) : null}
-      {(v?.isStale || isSharedIn(i) || i.isShared) && (
+      {(v || isSharedIn(i) || i.isShared) && (
         <div className="flex flex-wrap gap-2 pt-1">
-          {v ? <StaleBadge valuation={v} /> : null}
+          {v ? <PriceSourceBadge valuation={v} assetType={i.assetType} /> : null}
           {isSharedIn(i) || i.isShared ? <ShareBadge bps={i.myShareBps} /> : null}
         </div>
       )}

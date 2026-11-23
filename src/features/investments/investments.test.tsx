@@ -23,6 +23,9 @@ beforeEach(() => {
   server.use(
     http.get(`${BASE}/investment-types`, () => HttpResponse.json(metas)),
     http.get(`${BASE}/spaces/s-1/wallets`, () => HttpResponse.json(walletList([w1, w2]))),
+    http.get(`${BASE}/fx/latest`, () =>
+      HttpResponse.json({ base: 'USD', asOf: '2026-11-23', rates: { IDR: '16250.5' } }),
+    ),
   )
 })
 
@@ -97,7 +100,7 @@ describe('portfolio list', () => {
     const crypto = await screen.findByRole('region', { name: 'Crypto' })
     expect(within(crypto).getAllByText('Bitcoin').length).toBeGreaterThan(0)
     expect(within(crypto).getAllByText('IDR 10,400,000').length).toBeGreaterThan(0) // the last known value is still shown
-    const badge = screen.getByRole('button', { name: 'Stale price' })
+    const badge = screen.getByRole('button', { name: 'Price is old' })
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(badge).toHaveAttribute('title', expect.stringContaining('Price as of'))
     await user.click(badge)
@@ -205,7 +208,6 @@ describe('create investment', () => {
     await open(user, 'Crypto')
     await user.click(screen.getByRole('radio', { name: 'Auto' }))
     await user.type(screen.getByLabelText('Name'), 'Bitcoin')
-    await user.type(screen.getByLabelText('Symbol'), 'BTC')
     await user.type(screen.getByLabelText('Quantity'), '0.01')
     await user.click(screen.getByRole('button', { name: 'Add investment' }))
     expect(
@@ -283,7 +285,12 @@ describe('create investment', () => {
     await user.click(screen.getByRole('button', { name: 'Add investment' }))
     expect(await screen.findByText('Exchange is required')).toBeInTheDocument()
     expect(called).not.toHaveBeenCalled()
-    // the USD/IDR rate field exists because USD is not the space currency
+    // USD is not the space currency: the provider rate is shown, and the typed rate hides behind a switch
+    expect(await screen.findByTestId('fx-help')).toHaveTextContent(
+      "Today's rate: 16,250.5 · FX service",
+    )
+    expect(screen.queryByLabelText(/Exchange rate \(1 USD = \? IDR/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('switch', { name: 'Use my own exchange rate' }))
     expect(screen.getByLabelText(/Exchange rate \(1 USD = \? IDR/)).toBeInTheDocument()
   })
 
@@ -398,7 +405,7 @@ describe('investment detail', () => {
     renderApp('/s/s-1/investments/i-2')
     await screen.findByTestId('valuation')
     expect(screen.queryByRole('button', { name: /Refresh/ })).not.toBeInTheDocument()
-    expect(screen.getByText('Manual price')).toBeInTheDocument()
+    expect(screen.getAllByText('Typed price').length).toBeGreaterThan(0)
   })
 
   it('a shared-in investment offers no edit affordance anywhere, and shows my share beside the total', async () => {

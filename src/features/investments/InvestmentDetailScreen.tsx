@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import { TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { errorMessage, toAppError } from '@/shared/api/errors'
@@ -12,8 +13,9 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
-import { useDeleteInvestment, useInvestment, useRefreshPrice } from './hooks'
-import { rowFigures, ShareBadge, StaleBadge } from './InvestmentRow'
+import { useDeleteInvestment, useInvestment, useRefreshPrice, useUseLivePrice } from './hooks'
+import { rowFigures, ShareBadge } from './InvestmentRow'
+import { overridesMarket, PriceSourceBadge } from './priceSource'
 import { TradeSheet } from './TradeSheet'
 import { bpsToPct, isSharedIn, parseValuation } from './valuation'
 
@@ -41,6 +43,7 @@ export function InvestmentDetailScreen() {
   const investment = useInvestment(space.id, id)
   const refresh = useRefreshPrice(id)
   const remove = useDeleteInvestment(id)
+  const useLive = useUseLivePrice(id)
   const [trade, setTrade] = useState<'BUY' | 'SELL' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [cooldown, setCooldown] = useState(0)
@@ -113,7 +116,7 @@ export function InvestmentDetailScreen() {
       <p className="-mt-3 flex flex-wrap items-center gap-2 text-sm text-label-secondary">
         <span aria-hidden>{i.icon}</span> {i.symbol}
         {sharedIn || i.isShared ? <ShareBadge bps={i.myShareBps} /> : null}
-        {v ? <StaleBadge valuation={v} /> : null}
+        {v ? <PriceSourceBadge valuation={v} assetType={i.assetType} /> : null}
       </p>
 
       {f && v ? (
@@ -137,7 +140,35 @@ export function InvestmentDetailScreen() {
           {v.base ? <Line label="Exchange rate">{v.base.fxRate}</Line> : null}
         </Card>
       ) : null}
-      <WarningsStrip warnings={v?.warnings} />
+      <WarningsStrip
+        warnings={v?.warnings.filter((w) => w.code !== 'MANUAL_VALUE_OVERRIDES_MARKET')}
+      />
+      {overridesMarket(v) ? (
+        <div
+          role="status"
+          data-testid="override-warning"
+          className="flex flex-col items-start gap-2 rounded-lg border border-warning px-4 py-3 text-sm"
+        >
+          <p className="flex items-center gap-2 text-warning">
+            <TriangleAlert aria-hidden className="size-4 shrink-0" />
+            Manual value is used instead of the live price
+          </p>
+          {sharedIn ? null : (
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={useLive.isPending}
+              onClick={() =>
+                useLive.mutate(undefined, {
+                  onError: (e) => toast.show(errorMessage(e), 'error'),
+                })
+              }
+            >
+              Use live price
+            </Button>
+          )}
+        </div>
+      ) : null}
 
       {sharedIn && total ? (
         <Card className="grid grid-cols-2 gap-3" data-testid="share-compare">
@@ -171,7 +202,7 @@ export function InvestmentDetailScreen() {
             {v.priceSource === 'MARKET'
               ? 'Market'
               : v.priceSource === 'MANUAL'
-                ? 'Manual price'
+                ? 'Typed price'
                 : 'Manual value'}
           </Line>
         ) : null}

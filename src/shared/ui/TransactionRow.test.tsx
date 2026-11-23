@@ -21,8 +21,18 @@ describe('TransactionRow amount tone', () => {
     )
     expect(screen.getByText('$12.50')).toHaveClass('text-positive')
     rerender(<TransactionRow transaction={{ ...base, type: 'TRANSFER', direction: 'OUT' }} />)
-    const el = screen.getByText('-$12.50')
+    // No sign and no colour on a transfer (F33-T03).
+    const el = screen.getByText('$12.50')
     expect(el).not.toHaveClass('text-negative')
     expect(el).not.toHaveClass('text-positive')
+    expect(screen.queryByText('-$12.50')).not.toBeInTheDocument()
+  })
+  it('shows an adjustment with a sign from its direction and no colour', () => {
+    const { rerender } = render(
+      <TransactionRow transaction={{ ...base, type: 'ADJUSTMENT', direction: 'IN' }} />,
+    )
+    expect(screen.getByText('+$12.50')).not.toHaveClass('text-positive')
+    rerender(<TransactionRow transaction={{ ...base, type: 'ADJUSTMENT', direction: 'OUT' }} />)
+    expect(screen.getByText('-$12.50')).not.toHaveClass('text-negative')
   })
 })

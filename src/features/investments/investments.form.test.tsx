@@ -25,6 +25,70 @@ const open = async () => {
 /** The two-column grid that holds a field, found through its label. */
 const gridOf = (label: string) => screen.getByLabelText(label).closest('.grid') as HTMLElement
 
+describe('add investment form rules (F34)', () => {
+  beforeEach(() =>
+    server.use(http.get(`${BASE}/fx/latest`, () => HttpResponse.json({ rates: {} }))),
+  )
+
+  it('a crypto form starts as Auto, an Indonesian stock starts as Manual', async () => {
+    await open()
+    const user = userEvent.setup()
+    expect(screen.getByRole('radio', { name: 'Auto' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Manual' })).not.toBeChecked()
+    await user.selectOptions(screen.getByLabelText('Type'), 'ID_STOCK')
+    expect(screen.getByRole('radio', { name: 'Manual' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Auto' })).toBeDisabled()
+  })
+
+  it('an Indonesian stock priced in IDR has Rp prefixes and no exchange rate field', async () => {
+    await open()
+    const user = userEvent.setup()
+    await user.selectOptions(screen.getByLabelText('Type'), 'ID_STOCK')
+    const avg = screen.getByLabelText('Average buy price')
+    expect(within(avg.parentElement as HTMLElement).getByTestId('input-prefix')).toHaveTextContent(
+      'Rp',
+    )
+    expect(screen.queryByText(/Use my own exchange rate/)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Exchange rate/)).not.toBeInTheDocument()
+  })
+
+  it('a US stock shows $ prefixes and keeps the typed rate behind a switch', async () => {
+    await open()
+    const user = userEvent.setup()
+    await user.selectOptions(screen.getByLabelText('Type'), 'US_STOCK')
+    await user.click(screen.getByRole('radio', { name: 'Manual' }))
+    const price = screen.getByLabelText('Current price')
+    expect(
+      within(price.parentElement as HTMLElement).getByTestId('input-prefix'),
+    ).toHaveTextContent('$')
+    expect(screen.queryByLabelText(/Exchange rate/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('switch', { name: 'Use my own exchange rate' }))
+    expect(screen.getByLabelText(/Exchange rate \(1 USD/)).toBeInTheDocument()
+  })
+
+  it('a manual value disables the price, with the reason, and the rule line is shown', async () => {
+    await open()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('radio', { name: 'Manual' }))
+    expect(screen.getByTestId('value-rule')).toHaveTextContent(
+      'Manual value overrides price × quantity.',
+    )
+    const price = screen.getByLabelText('Current price')
+    expect(price).toBeEnabled()
+    await user.type(screen.getByLabelText('Manual current value (optional)'), '5000')
+    expect(price).toBeDisabled()
+    expect(screen.getByText('Not used while a manual value is set')).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('Manual current value (optional)'))
+    expect(price).toBeEnabled()
+  })
+
+  it('the yearly change is empty by default and never 5.5', async () => {
+    await open()
+    expect(screen.getByLabelText('Expected yearly change (optional)')).toHaveValue('')
+    expect(screen.getByText('Only used for projections. Leave empty for none.')).toBeInTheDocument()
+  })
+})
+
 describe('add investment layout (F13-T05, T06)', () => {
   it('pairs quantity with average price, and current price with fees, in a two-column grid from lg', async () => {
     await open()

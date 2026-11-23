@@ -124,11 +124,14 @@ describe('lots', () => {
 
 describe('auto pricing', () => {
   it('cannot be submitted without a resolved instrument id', () => {
-    const v = values('CRYPTO', { priceMode: 'AUTO', instrumentId: '' })
+    const v = values('CRYPTO', { priceMode: 'AUTO', instrumentId: '', symbol: '' })
     expect(errors('CRYPTO', v)).toContain(
       'instrumentId: Search and choose an instrument for automatic pricing.',
     )
     expect(ok('CRYPTO', values('CRYPTO', { priceMode: 'AUTO', instrumentId: 'inst-1' }))).toBe(true)
+  })
+  it('a symbol is enough: the server resolves it to an instrument', () => {
+    expect(ok('CRYPTO', values('CRYPTO', { priceMode: 'AUTO', instrumentId: '' }))).toBe(true)
   })
   it('is refused for types that do not support it (Indonesian stocks, mutual funds)', () => {
     expect(

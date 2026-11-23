@@ -47,6 +47,7 @@ export function EditTransactionSheet() {
   const updateTransfer = useUpdateTransfer(id)
   const removeTransfer = useDeleteTransfer(id)
   const [confirm, setConfirm] = useState(false)
+  const [confirmReclass, setConfirmReclass] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const close = () => navigate({ to: '/s/$spaceId/history', params: { spaceId: space.id } })
 
@@ -122,6 +123,22 @@ export function EditTransactionSheet() {
             </p>
           ) : null}
 
+          {kind === 'income-expense' && !t.category ? (
+            <div className="flex flex-col items-start gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                data-testid="not-income"
+                onClick={() => setConfirmReclass(true)}
+              >
+                {t.type === 'INCOME' ? 'This is not income' : 'This is not an expense'}
+              </Button>
+              <p className="text-sm text-label-secondary">
+                For money that only moved in or out, like an opening balance.
+              </p>
+            </div>
+          ) : null}
+
           {kind === 'income-expense' || kind === 'note-only' ? (
             <TransactionForm
               type={t.type === 'INCOME' ? 'INCOME' : 'EXPENSE'}
@@ -192,6 +209,30 @@ export function EditTransactionSheet() {
         </div>
       )}
 
+      <ConfirmDialog
+        open={confirmReclass}
+        onOpenChange={setConfirmReclass}
+        title={t?.type === 'INCOME' ? 'Not income?' : 'Not an expense?'}
+        description="It will be recorded as a balance adjustment. Your wallet balance does not change."
+        confirmLabel="Record as adjustment"
+        pending={update.isPending}
+        onConfirm={() =>
+          update.mutate(
+            { type: 'ADJUSTMENT' },
+            {
+              onSuccess: () => {
+                setConfirmReclass(false)
+                toast.show('Recorded as an adjustment', 'success')
+                void close()
+              },
+              onError: (err) => {
+                setConfirmReclass(false)
+                toast.show(errorMessage(err), 'error')
+              },
+            },
+          )
+        }
+      />
       <ConfirmDialog
         open={confirm}
         onOpenChange={setConfirm}

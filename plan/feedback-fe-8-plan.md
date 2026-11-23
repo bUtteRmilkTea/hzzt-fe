@@ -78,21 +78,21 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 ## Progress
 
 **F33** (data correctness; BE Phase F for T1, T3 return and calendar `net`)
-- [ ] F33-T01 Empty state depends on transactions (T5)
-- [ ] F33-T02 Calendar cell shows net, day panel shows income and expense apart (T2)
-- [ ] F33-T03 History header never mixes kinds (T2)
-- [ ] F33-T04 `LineChart`: fitted Y axis and touch tooltip (T3, T18)
-- [ ] F33-T05 Net worth percentage per D-F44 (T3, blocked on BE F)
-- [ ] F33-T06 "Not income" action on an uncategorised income (T1, blocked on BE F)
-- [ ] F33-T07 Tests and Playwright
+- [x] F33-T01 Empty state depends on transactions (T5) (Nov 23: NOT REPRODUCIBLE, no "No category" text exists in this build and Home with categories shows the donut. Added a transactions-driven empty state to the Categories card, never mentioning categories)
+- [x] F33-T02 Calendar cell shows net, day panel shows income and expense apart (T2) (Nov 23: the cell already used the server `net`; days are now buttons that open a panel with income, expense, net, count and a link to History)
+- [x] F33-T03 History header never mixes kinds (T2) (Nov 23: header already showed server In/Out apart; transfer rows are now unsigned, neutral, with a transfer icon; adjustments signed from direction)
+- [x] F33-T04 `LineChart`: fitted Y axis and touch tooltip (T3, T18) (Nov 23: 8% padding, tooltip with pointer, touch and arrow keys, `touch-action: pan-y`; the analytics bar chart got the tooltip and a toggling legend. No Y axis labels are drawn in this build)
+- [x] F33-T05 Net worth percentage per D-F44 (T3, blocked on BE F) (Nov 23: API synced from ../hzzt/docs/swagger.yaml, `performancePct` now exists on net-worth history)
+- [x] F33-T06 "Not income" action on an uncategorised income (T1, blocked on BE F) (Nov 23: unblocked by the same sync, PATCH type ADJUSTMENT)
+- [x] F33-T07 Tests and Playwright
 
 **F34** (investments; BE Phases G and H)
-- [ ] F34-T01 Price source badge, stale and override notes (L1, D-F49)
-- [ ] F34-T02 Portfolio card note for holdings not at live prices (L1)
-- [ ] F34-T03 Crypto form: Auto is the default when the type supports it (L1)
-- [ ] F34-T04 Currency fields per asset: prefix, no manual rate by default (T4)
-- [ ] F34-T05 One value rule in the form, no silent 5.5% (T8)
-- [ ] F34-T06 Tests and Playwright
+- [x] F34-T01 Price source badge, stale and override notes (L1, D-F49) (Nov 23: row, detail and Assets rows; the override warning and Use live price (PATCH manualCurrentValue null) are built since the API now has them)
+- [x] F34-T02 Portfolio card note for holdings not at live prices (L1) (Nov 23: shown on the Investments hero and the Assets investments section, counted from the list. The link to a filtered list is NOT built, there is no list filter; not on Home, Home has no portfolio card)
+- [x] F34-T03 Crypto form: Auto is the default when the type supports it (L1) (Nov 23: Auto by default. Deviation: "Change" on the picked instrument keeps Auto and shows the search again, only choosing Manual clears the instrument; Auto with a symbol and no picked instrument is allowed, the server resolves it)
+- [x] F34-T04 Currency fields per asset: prefix, no manual rate by default (T4) (Nov 23: prefixes on price, average, fees and manual value; typed rate behind a switch; provider rate text from GET /fx/latest. This build had no USD/IDR fields on the Indonesian stock form)
+- [x] F34-T05 One value rule in the form, no silent 5.5% (T8) (Nov 23: added the optional Manual current value field the rule needs, as the form had none; the 5.5 client fallback is removed)
+- [x] F34-T06 Tests and Playwright (Nov 23: fake CMC added to the e2e fake API; three stale investment e2e specs fixed, `investments.spec.ts:19` still fails as before, a Sell step of the fake)
 
 **F35** (Assets and wallets; Ready now)
 - [x] F35-T01 Every wrapper group is collapsible (L2, D-F48)
