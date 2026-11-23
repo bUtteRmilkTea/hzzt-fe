@@ -92,6 +92,49 @@ describe('goals list', () => {
   })
 })
 
+describe('goals page layout (F36-T02)', () => {
+  it('uses a compact grid, a 48px ring and a collapsed Achieved section', async () => {
+    server.use(
+      http.get(`${BASE}/spaces/s-1/goals`, () =>
+        HttpResponse.json({
+          items: [
+            {
+              id: 'g-1',
+              name: 'Trip',
+              icon: '🎯',
+              currency: 'IDR',
+              targetAmount: '1000',
+              progress: '100',
+              progressPct: '10',
+            },
+            {
+              id: 'g-2',
+              name: 'Bike',
+              icon: '🚲',
+              currency: 'IDR',
+              targetAmount: '1000',
+              progress: '1000',
+              progressPct: '100',
+              achievedAt: '2026-11-01T00:00:00Z',
+            },
+          ],
+        }),
+      ),
+      ...makeAuthedHandlers(),
+    )
+    renderApp('/s/s-1/goals')
+    const grids = await screen.findAllByTestId('goals-grid')
+    expect(grids[0]?.className).toContain('grid-cols-1')
+    expect(grids[0]?.className).toContain('sm:grid-cols-2')
+    expect(grids[0]?.className).toContain('xl:grid-cols-3')
+    expect(grids[0]?.className).toContain('items-start')
+    const toggle = screen.getByRole('button', { name: /Achieved \(1\)/ })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    const ring = screen.getAllByRole('progressbar', { name: 'Progress' })[0] as HTMLElement
+    expect(ring.style.width).toBe('48px')
+  })
+})
+
 describe('goal form', () => {
   beforeEach(() => server.use(http.get(W, () => HttpResponse.json(walletList([dollars])))))
 

@@ -97,6 +97,7 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 **F35** (Assets and wallets; Ready now)
 - [x] F35-T01 Every wrapper group is collapsible (L2, D-F48)
 - [ ] F35-T02 One wallet edit component (T7) (Nov 23: BLOCKED, question for the user: there is one edit page (`EditWalletScreen`) and an options sheet that only links to it plus Delete. No duplicate edit form found, so there is nothing to merge. Which two screens did the review mean?)
+- [x] F35-T03 Delete confirmation with the affected count (T7, uses BE Phase I when present) (Nov 23: counted from loaded rows, "at least" when paged; delete-impact endpoint absent from the API)
 - [x] F35-T03 Delete confirmation with the affected count (T7, uses BE Phase I when present) (Nov 23: uses GET delete-impact now that the API has it, falling back to the loaded rows with "at least"; a wallet with transactions or a balance is deleted with force=true after this dialog, and WALLET_HAS_TRANSACTIONS gets the second confirmation)
 - [x] F35-T04 Template card scrim (T11) (Nov 23: no Jago template exists in this build, templates are CSS artwork; contrast checked on all 6 templates, unit and rendered pixels)
 - [x] F35-T05 Tests and Playwright (Nov 23: T02 assertions N/A, see T02)
@@ -105,6 +106,7 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [ ] F36-T01 "All goals" button on the Home Goals card (L3, D-F47)
 - [ ] F36-T02 Compact Home goals and Goals page grid (L4, D-F46)
 - [x] ~~F36-T03 Fixed quick action row (T16, D-F50)~~ DROPPED Nov 23 (Q13: no carousel in this build, see section 7)
+- [x] F36-T04 Tests and Playwright (Nov 23: quick action assertions dropped with T03; Q10 both screens implemented)
 - [ ] F36-T04 Tests and Playwright
 
 **F37** (polish; Ready now)
