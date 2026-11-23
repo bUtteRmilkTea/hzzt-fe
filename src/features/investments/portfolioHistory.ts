@@ -11,6 +11,8 @@ export const PORTFOLIO_RANGES: ReadonlyArray<{ value: HistoryRange; label: strin
 ]
 
 const MONTHS: Record<HistoryRange, number | null> = {
+  '1W': null,
+  YTD: null,
   '1M': 1,
   '3M': 3,
   '6M': 6,

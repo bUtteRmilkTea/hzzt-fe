@@ -17,6 +17,8 @@ interface LineChartProps {
   trend?: Trend
   /** Draw the line left to right, then fade the area in. Redraws when the series changes. */
   draw?: boolean
+  /** Column name in the hidden data table. */
+  valueLabel?: string
   /** Show a chart-shaped skeleton instead of the plot (no data yet). */
   loading?: boolean
 }
@@ -75,6 +77,7 @@ export function LineChart({
   trend,
   draw,
   loading,
+  valueLabel = 'Net worth',
 }: LineChartProps) {
   const { ref, width } = useChartWidth()
   const [viewRef, seen] = useInView(Boolean(draw))
@@ -220,7 +223,7 @@ export function LineChart({
             <thead>
               <tr>
                 <th scope="col">Date</th>
-                <th scope="col">Net worth</th>
+                <th scope="col">{valueLabel}</th>
               </tr>
             </thead>
             <tbody>

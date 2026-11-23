@@ -79,6 +79,8 @@ export interface FakeApi {
   assets: FakeAsset[]
   goals: FakeGoal[]
   investments: FakeInvestment[]
+  /** Make the fake net-worth history fall instead of rise. */
+  growth: { falling: boolean }
   /** Wrapper targets, keyed `${assetType}/${wrapperKey}`. */
   wrapperTargets: Record<string, string>
   categories: FakeCategory[]
@@ -145,6 +147,7 @@ export async function installFakeApi(
     assets: [],
     goals: [],
     investments: [],
+    growth: { falling: false },
     wrapperTargets: {},
     categories: [],
     wallets: [],
@@ -400,12 +403,48 @@ export async function installFakeApi(
       })
     }
     if (req.method() === 'GET' && /^\/spaces\/[^/]+\/net-worth\/history$/.test(path)) {
-      // 12 rising points, so the line chart has something to draw.
-      const points = Array.from({ length: 12 }, (_, i) => ({
-        date: `2026-11-${String(i + 1).padStart(2, '0')}`,
-        netWorth: String(1000000 + i * 90000 + (i % 3) * 40000),
-      }))
-      return json(200, { currency: 'IDR', range: '1M', changePct: '8.40', points })
+      // The fake plays the server: 12 points, every series, and the verdict of each line.
+      const sign = state.growth.falling ? -1 : 1
+      const points = Array.from({ length: 12 }, (_, i) => {
+        const nw =
+          1000000 + sign * (i * 90000 + (i % 3) * 40000) + (state.growth.falling ? 1500000 : 0)
+        return {
+          date: `2026-11-${String(i + 1).padStart(2, '0')}`,
+          netWorth: String(nw),
+          investments: String(Math.round(nw * 0.4)),
+          fixedAssets: String(Math.round(nw * 0.3)),
+          assets: String(Math.round(nw * 1.2)),
+        }
+      })
+      const first = points[0]
+      const last = points[points.length - 1]
+      const verdict = (k: 'netWorth' | 'investments' | 'fixedAssets' | 'assets') => {
+        const f = Number(first?.[k])
+        const l = Number(last?.[k])
+        return {
+          first: String(f),
+          last: String(l),
+          change: String(l - f),
+          changePct: (((l - f) / f) * 100).toFixed(2),
+          performancePct: (((l - f) / f) * 100 - 1).toFixed(2),
+          netContributions: k === 'assets' ? '30000' : '0',
+          direction: l > f ? 'RISING' : l < f ? 'FALLING' : 'FLAT',
+        }
+      }
+      return json(200, {
+        currency: 'IDR',
+        range: new URL(req.url()).searchParams.get('range') ?? '1M',
+        changePct: verdict('netWorth').changePct,
+        performancePct: verdict('netWorth').performancePct,
+        points,
+        series: {
+          netWorth: verdict('netWorth'),
+          investments: verdict('investments'),
+          fixedAssets: verdict('fixedAssets'),
+          assets: verdict('assets'),
+        },
+        coverage: { firstPointDate: '2026-11-01', requestedFrom: '2026-10-23', short: false },
+      })
     }
     const dash =
       /^\/spaces\/[^/]+\/dashboard\/(overview|category-breakdown|analytics|calendar)$/.exec(path)
