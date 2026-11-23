@@ -40,7 +40,7 @@ export function UpdatePrompt() {
       <span className="text-sm">A new version is available.</span>
       <button
         type="button"
-        className="min-h-11 rounded-full bg-accent px-4 text-sm font-semibold text-accent-label"
+        className="min-h-12 rounded-full bg-accent px-4 text-sm font-semibold text-accent-label"
         onClick={() => (update ? void update(true) : window.location.reload())}
       >
         Update

@@ -102,7 +102,7 @@ function GroupBlock({
             aria-expanded={open}
             aria-controls={bodyId}
             onClick={() => setOpen((o) => !o)}
-            className={cn(titleClass, 'min-h-10 items-center text-left')}
+            className={cn(titleClass, 'min-h-12 items-center text-left')}
           >
             <span className="flex items-center gap-1">
               <ChevronDown

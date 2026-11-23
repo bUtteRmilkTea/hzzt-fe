@@ -28,7 +28,7 @@ export function ColorPicker({ value, onChange, label = 'Colour' }: ColorPickerPr
             }}
             style={{ backgroundColor: hex }}
             className={cn(
-              'size-11 rounded-full border-2 border-transparent',
+              'size-12 rounded-full border-2 border-transparent',
               value.toLowerCase() === hex.toLowerCase() &&
                 'ring-2 ring-label ring-offset-2 ring-offset-surface-2',
             )}

@@ -15,6 +15,8 @@
   --label: #ffffff;
   --label-secondary: #a3a3a3;
   --label-tertiary: #8a8a8a;
+  /* Placeholder: at least 4.5:1 on inputs, clearly dimmer than a typed value (F37-T02) */
+  --placeholder: #7d7d7d;
 
   /* Accents */
   --accent: #ffffff;
@@ -103,6 +105,7 @@
   --label: #000000;
   --label-secondary: #525252;
   --label-tertiary: #6b6b6b;
+  --placeholder: #6e6e6e;
   --accent: #000000;
   --accent-label: #ffffff;
   --up: #15803d;
@@ -136,6 +139,7 @@
   --color-label: var(--label);
   --color-label-secondary: var(--label-secondary);
   --color-label-tertiary: var(--label-tertiary);
+  --color-placeholder: var(--placeholder);
   --color-accent: var(--accent);
   --color-accent-label: var(--accent-label);
   --color-up: var(--up);
