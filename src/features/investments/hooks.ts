@@ -109,6 +109,24 @@ export function useCreateInvestment() {
   })
 }
 
+/** Clears the manual current value so the market price is used again (F34-T01). */
+export function useUseLivePrice(id: string) {
+  const { space } = useSpace()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () =>
+      (
+        await api.PATCH('/spaces/{spaceId}/investments/{id}', {
+          params: { path: { spaceId: space.id, id } },
+          // The API accepts null to clear it; the generated type only allows a string.
+          body: asBody({ manualCurrentValue: null }),
+        })
+      ).data,
+    meta: { silent: true },
+    onSettled: () => invalidateMoney(queryClient, space.id),
+  })
+}
+
 export function useDeleteInvestment(id: string) {
   const { space } = useSpace()
   const queryClient = useQueryClient()
@@ -239,5 +257,16 @@ export function useAnswerInvitation() {
           }),
     meta: { silent: true },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.sharedInvitations() }),
+  })
+}
+
+/** The latest provider rates re-based to `base`: `rates[Q]` is how many Q one unit of base buys. */
+export function useFxLatest(base: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['fx-latest', base],
+    enabled: enabled && base !== '',
+    staleTime: 10 * 60_000,
+    queryFn: async () =>
+      (await api.GET('/fx/latest', { params: { query: { base } } })).data ?? null,
   })
 }

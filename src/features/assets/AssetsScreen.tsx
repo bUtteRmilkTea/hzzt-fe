@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { GrowthChart } from '@/features/growth/GrowthChart'
 import { useInvestments, useInvestmentTypes } from '@/features/investments/hooks'
+import { TypedPriceNote } from '@/features/investments/priceSource'
 import { useWallets } from '@/shared/api/wallets'
 import { PieChart } from '@/shared/charts'
 import { toMoneyString } from '@/shared/money'
@@ -242,6 +243,7 @@ export function AssetsScreen() {
           </span>
         </p>
       ) : null}
+      <TypedPriceNote items={investments.data?.items ?? []} />
       <AssetBreakdownList
         collapsible
         groups={capEach(allInvestmentGroups, INLINE_INVESTMENTS)}

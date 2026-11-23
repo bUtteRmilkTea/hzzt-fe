@@ -81,6 +81,8 @@ export interface FakeApi {
   investments: FakeInvestment[]
   /** Make the fake net-worth history fall instead of rise. */
   growth: { falling: boolean }
+  /** A fake CoinMarketCap: live price by symbol. AUTO investments are priced from it (the real service and its key are backend-only). */
+  cmc: Record<string, string>
   /** Wrapper targets, keyed `${assetType}/${wrapperKey}`. */
   wrapperTargets: Record<string, string>
   categories: FakeCategory[]
@@ -148,6 +150,7 @@ export async function installFakeApi(
     goals: [],
     investments: [],
     growth: { falling: false },
+    cmc: {},
     wrapperTargets: {},
     categories: [],
     wallets: [],
@@ -595,8 +598,11 @@ export async function installFakeApi(
     const invRoute = /^\/spaces\/[^/]+\/investments(?:\/([^/]+))?(?:\/(participants))?$/.exec(path)
     if (invRoute) {
       const [, iid, sub] = invRoute
+      // AUTO holdings follow the fake CMC; typed prices keep their own.
+      const livePrice = (i: FakeInvestment) =>
+        i.priceMode === 'AUTO' && state.cmc[i.symbol] ? (state.cmc[i.symbol] as string) : i.price
       const view = (i: FakeInvestment) => {
-        const value = Number(i.quantity) * Number(i.price)
+        const value = Number(i.quantity) * Number(livePrice(i))
         const cost = Number(i.quantity) * Number(i.avgBuyPrice)
         return {
           id: i.id,
@@ -614,8 +620,8 @@ export async function installFakeApi(
           wrapper: i.wrapper,
           details: i.details ?? {},
           valuation: {
-            price: i.price,
-            priceSource: 'MARKET',
+            price: livePrice(i),
+            priceSource: i.priceMode === 'AUTO' ? 'MARKET' : 'MANUAL',
             priceAsOf: new Date().toISOString(),
             isStale: false,
             marketValue: String(value),
@@ -635,7 +641,7 @@ export async function installFakeApi(
       }
       if (!iid && req.method() === 'GET') {
         const total = state.investments.reduce(
-          (n, i) => n + Number(i.quantity) * Number(i.price),
+          (n, i) => n + Number(i.quantity) * Number(livePrice(i)),
           0,
         )
         return json(200, {

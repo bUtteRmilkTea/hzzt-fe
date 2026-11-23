@@ -77,3 +77,17 @@ export function signOf(amount: string | Decimal): -1 | 0 | 1 {
   const d = toDecimal(amount)
   return d.isZero() ? 0 : d.isNegative() ? -1 : 1
 }
+
+const PREFIXES: Record<string, string> = {
+  IDR: 'Rp',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  SGD: 'S$',
+}
+
+/** The short prefix shown inside a price input: `Rp`, `$`, or the currency code. */
+export function currencyPrefix(code: string): string {
+  return PREFIXES[code] ?? code
+}

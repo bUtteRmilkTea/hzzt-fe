@@ -6,6 +6,7 @@ import { useSpace } from '@/app/providers/SpaceProvider'
 import { useCurrencies } from '@/features/spaces/hooks'
 import { errorMessage, fieldErrors } from '@/shared/api/errors'
 import { useWallets } from '@/shared/api/wallets'
+import { currencyPrefix } from '@/shared/money'
 import { Button, DisabledReason } from '@/shared/ui/Button'
 import { EmojiPopover } from '@/shared/ui/EmojiPopover'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -17,10 +18,12 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Select } from '@/shared/ui/Select'
 import { Skeleton } from '@/shared/ui/Skeleton'
+import { Switch } from '@/shared/ui/Switch'
 import { useToast } from '@/shared/ui/Toast'
 import {
   type InstrumentKind,
   useCreateInvestment,
+  useFxLatest,
   useInvestments,
   useInvestmentTypes,
 } from './hooks'
@@ -193,6 +196,14 @@ function WrapperField({
   )
 }
 
+/** "16250.5" -> "16,250.5" (the server's figure, only grouped for reading). */
+function groupThousands(v: string | undefined): string | null {
+  if (!v || !/^\d+(\.\d+)?$/.test(v)) return null
+  const [int = '', frac] = v.split('.')
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return frac ? `${grouped}.${frac.slice(0, 4).replace(/0+$/, '')}`.replace(/\.$/, '') : grouped
+}
+
 function emptyValues(meta: TypeMeta): TypeFormValues {
   const details: Record<string, string> = {}
   for (const f of meta.detailFields ?? []) if (f.name) details[f.name] = ''
@@ -201,14 +212,17 @@ function emptyValues(meta: TypeMeta): TypeFormValues {
     name: '',
     symbol: '',
     icon: meta.defaultIcon ?? '💼',
-    priceMode: 'MANUAL',
+    // Auto when the type can be priced by the market, else Manual (F34-T03).
+    priceMode: meta.supportsAutoPrice ? 'AUTO' : 'MANUAL',
     instrumentId: '',
     quantity: '',
     avgBuyPrice: '',
     manualPrice: '',
+    manualCurrentValue: '',
     fees: '',
     manualFxRate: '',
-    estimatedAnnualChangePct: meta.defaults?.estimatedAnnualChangePct ?? '5.5',
+    // Empty by default: there is no assumed return (F34-T05).
+    estimatedAnnualChangePct: '',
     quoteCurrency: meta.quoteCurrency ?? '',
     purchaseDate: '',
     wrapper: '',
@@ -247,6 +261,13 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
   const lotsValue = useWatch({ control, name: 'details' } as never) as unknown as
     | Record<string, string>
     | undefined
+  const manualValue = useWatch({ control, name: 'manualCurrentValue' } as never) as unknown as
+    | string
+    | undefined
+  const hasManualValue = (manualValue ?? '').trim() !== ''
+  const [ownRate, setOwnRate] = useState(false)
+  const fx = useFxLatest(quote, quote !== space.baseCurrency)
+  const providerRate = groupThousands(fx.data?.rates?.[space.baseCurrency])
   const shares = lots ? derivedShares(lotsValue?.lots ?? '', meta.lotSize) : null
   const err = errors as unknown as Record<
     string,
@@ -422,20 +443,47 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
             />
           )}
           <Field label="Average buy price" error={err.avgBuyPrice?.message}>
-            <Input inputMode="decimal" {...register('avgBuyPrice')} />
+            <Input
+              prefix={currencyPrefix(quote)}
+              inputMode="decimal"
+              {...register('avgBuyPrice')}
+            />
           </Field>
 
           {priceMode === 'MANUAL' ? (
             <Field
               label={meta.assetType === 'MUTUAL_FUND' ? 'Current NAV' : 'Current price'}
               error={err.manualPrice?.message}
+              {...(hasManualValue ? { hint: 'Not used while a manual value is set' } : {})}
             >
-              <Input inputMode="decimal" {...register('manualPrice')} />
+              <Input
+                prefix={currencyPrefix(quote)}
+                inputMode="decimal"
+                disabled={hasManualValue}
+                {...register('manualPrice')}
+              />
             </Field>
           ) : null}
           <Field label="Fees (optional)" error={err.fees?.message}>
-            <Input inputMode="decimal" {...register('fees')} />
+            <Input prefix={currencyPrefix(quote)} inputMode="decimal" {...register('fees')} />
           </Field>
+          {priceMode === 'MANUAL' ? (
+            <div className="flex flex-col gap-2 lg:col-span-2">
+              <Field
+                label="Manual current value (optional)"
+                error={err.manualCurrentValue?.message}
+              >
+                <Input
+                  prefix={currencyPrefix(quote)}
+                  inputMode="decimal"
+                  {...register('manualCurrentValue')}
+                />
+              </Field>
+              <p className="text-sm text-label-secondary" data-testid="value-rule">
+                Manual value overrides price × quantity.
+              </p>
+            </div>
+          ) : null}
 
           {meta.quoteCurrencyEditable ? (
             <Field label="Currency">
@@ -458,15 +506,35 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
           </Field>
 
           {quote !== space.baseCurrency ? (
-            <Field
-              label={`Exchange rate (1 ${quote} = ? ${space.baseCurrency}, optional)`}
-              error={err.manualFxRate?.message}
-            >
-              <Input inputMode="decimal" {...register('manualFxRate')} />
-            </Field>
+            <div className="flex flex-col gap-2" data-testid="fx-block">
+              <div className="flex min-h-12 items-center justify-between gap-3 text-sm font-medium text-label-secondary">
+                <span aria-hidden>Use my own exchange rate</span>
+                <Switch
+                  aria-label="Use my own exchange rate"
+                  checked={ownRate}
+                  onCheckedChange={(on) => {
+                    setOwnRate(on)
+                    if (!on) setValue('manualFxRate', '')
+                  }}
+                />
+              </div>
+              {ownRate ? (
+                <Field
+                  label={`Exchange rate (1 ${quote} = ? ${space.baseCurrency})`}
+                  error={err.manualFxRate?.message}
+                >
+                  <Input inputMode="decimal" {...register('manualFxRate')} />
+                </Field>
+              ) : providerRate ? (
+                <p className="text-sm text-label-secondary" data-testid="fx-help">
+                  Today's rate: {providerRate} · FX service
+                </p>
+              ) : null}
+            </div>
           ) : null}
           <Field
-            label="Estimated annual change % (optional)"
+            label="Expected yearly change (optional)"
+            hint="Only used for projections. Leave empty for none."
             error={err.estimatedAnnualChangePct?.message}
           >
             <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
