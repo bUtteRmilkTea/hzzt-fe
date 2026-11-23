@@ -44,8 +44,9 @@ export function lineGeometry(data: readonly LinePoint[], box: Box): LineGeometry
   const lo = Math.min(...values)
   const hi = Math.max(...values)
   // Pad a flat series so it draws a visible mid-height line instead of collapsing onto an edge.
-  const pad = hi === lo ? Math.max(1, Math.abs(hi) * 0.1) : (hi - lo) * 0.1
-  const yMin = lo - pad
+  const pad = hi === lo ? Math.max(1, Math.abs(hi) * 0.1) : (hi - lo) * 0.08
+  // Fitted to the data with 8% padding. Non-negative data never gets a negative axis.
+  const yMin = lo >= 0 ? Math.max(0, lo - pad) : lo - pad
   const yMax = hi + pad
   const y = scaleLinear().domain([yMin, yMax]).range([innerH, 0])
   const single = data.length === 1

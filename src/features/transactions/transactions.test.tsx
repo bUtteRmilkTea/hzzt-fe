@@ -625,6 +625,59 @@ describe('edit and delete', () => {
     expect(body.amount).toBe('50000')
   })
 
+  it('offers "This is not income" on an uncategorised income, after a confirmation, and sends type ADJUSTMENT (F33-T06)', async () => {
+    let body: Record<string, unknown> | null = null
+    server.use(
+      http.get(`${T}/t-3`, () =>
+        HttpResponse.json(
+          txn({
+            id: 't-3',
+            type: 'INCOME',
+            direction: 'IN',
+            title: 'Balance top up',
+            occurredAt: when,
+            category: undefined,
+            wallet: { id: 'w-1', name: 'Cash' },
+          }),
+        ),
+      ),
+      http.patch(`${T}/t-3`, async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json(txn({ type: 'ADJUSTMENT' }))
+      }),
+    )
+    const user = userEvent.setup()
+    open('t-3')
+    const sheet = await screen.findByRole('dialog', { name: 'Balance top up' })
+    await user.click(await within(sheet).findByRole('button', { name: 'This is not income' }))
+    const confirm = await screen.findByRole('dialog', { name: 'Not income?' })
+    expect(confirm).toHaveTextContent('Your wallet balance does not change.')
+    expect(body).toBeNull() // nothing sent before the confirmation
+    await user.click(within(confirm).getByRole('button', { name: 'Record as adjustment' }))
+    await waitFor(() => expect(body).toEqual({ type: 'ADJUSTMENT' }))
+  })
+
+  it('hides "This is not income" when a category is set', async () => {
+    server.use(
+      http.get(`${T}/t-4`, () =>
+        HttpResponse.json(
+          txn({
+            id: 't-4',
+            type: 'INCOME',
+            direction: 'IN',
+            occurredAt: when,
+            category: { id: 'i-0', name: 'Salary' },
+            wallet: { id: 'w-1', name: 'Cash' },
+          }),
+        ),
+      ),
+    )
+    open('t-4')
+    const sheet = await screen.findByRole('dialog', { name: 'Lunch' })
+    await within(sheet).findByLabelText('Note (optional)')
+    expect(within(sheet).queryByTestId('not-income')).not.toBeInTheDocument()
+  })
+
   it('adjustment and opening-balance rows expose only the note', async () => {
     let body: Record<string, unknown> = {}
     server.use(
