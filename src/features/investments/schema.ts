@@ -10,6 +10,21 @@ const optionalDecimal = z
 const positiveDecimal = (msg: string) =>
   z.string().refine((v) => decimalString.test(v) && new Decimal(v).greaterThan(0), msg)
 
+/** Decimal places of a plain decimal string ("1.25" is 2). */
+export function decimalPlaces(v: string): number {
+  const i = v.indexOf('.')
+  return i < 0 ? 0 : v.length - i - 1
+}
+
+/** Most decimal places a quantity may have, per asset type (the server's `quantityScale`, with the same defaults as a fallback). */
+const QUANTITY_SCALE_FALLBACK: Record<string, number> = { CRYPTO: 8, US_STOCK: 1, ID_STOCK: 0 }
+export function quantityScale(assetType: string, meta?: { quantityScale?: number }): number {
+  return meta?.quantityScale ?? QUANTITY_SCALE_FALLBACK[assetType] ?? 18
+}
+
+/** Detail fields that are counts of units, with the most decimal places they may have. */
+const DETAIL_SCALE: Record<string, number> = { lots: 1, stakedQuantity: 8 }
+
 /** The Zod rule for one `details` field, taken from the field's metadata. A missing key counts as empty. */
 export function detailFieldSchema(f: FieldMeta): z.ZodType<string> {
   return z.preprocess(
@@ -32,6 +47,21 @@ function rawDetailSchema(f: FieldMeta): z.ZodType<string> {
         .string()
         .refine(required, `${label} is required`)
         .refine((v) => v === '' || decimalString.test(v), `${label} must be a number`)
+        .refine(
+          (v) =>
+            f.name !== 'lots' ||
+            v === '' ||
+            !decimalString.test(v) ||
+            new Decimal(v).greaterThan(0),
+          `${label} must be above 0`,
+        )
+        .refine(
+          (v) =>
+            v === '' ||
+            !decimalString.test(v) ||
+            decimalPlaces(v) <= (DETAIL_SCALE[f.name ?? ''] ?? 18),
+          `${label}: use at most ${DETAIL_SCALE[f.name ?? ''] ?? 18} decimal place${(DETAIL_SCALE[f.name ?? ''] ?? 18) === 1 ? '' : 's'}`,
+        )
     case 'DATE':
       return z
         .string()
@@ -65,7 +95,12 @@ export function buildTypeSchema(meta: TypeMeta) {
       priceMode: z.enum(['AUTO', 'MANUAL']),
       instrumentId: z.string(),
       // Lots types derive their quantity from `details.lots`, so no quantity is asked for.
-      quantity: lots ? z.string() : positiveDecimal('Enter a quantity above 0'),
+      quantity: lots
+        ? z.string()
+        : positiveDecimal('Enter a quantity above 0').refine(
+            (v) => !decimalString.test(v) || decimalPlaces(v) <= quantityScale(assetType, meta),
+            `Use at most ${quantityScale(assetType, meta)} decimal place${quantityScale(assetType, meta) === 1 ? '' : 's'}`,
+          ),
       avgBuyPrice: optionalDecimal,
       manualPrice: optionalDecimal,
       manualCurrentValue: optionalDecimal.optional(),
@@ -135,9 +170,9 @@ export type TypeFormValues = z.infer<ReturnType<typeof buildTypeSchema>>
 
 export const LOT_SIZE_FALLBACK = 100
 
-/** Shares shown read-only for a lots-based type: lots x lot size. Null until lots is a valid whole number. */
+/** Shares shown read-only for a lots-based type: lots x lot size. Null until lots is a valid number above 0 with at most one decimal. */
 export function derivedShares(lots: string, lotSize: number | undefined): string | null {
-  if (!/^[1-9]\d*$/.test(lots)) return null
+  if (!/^(0|[1-9]\d*)(\.\d)?$/.test(lots) || !new Decimal(lots).greaterThan(0)) return null
   return new Decimal(lots).times(lotSize ?? LOT_SIZE_FALLBACK).toFixed()
 }
 
@@ -171,7 +206,7 @@ export function toCreateBody(v: TypeFormValues, meta: TypeMeta): Record<string, 
   for (const f of meta.detailFields ?? []) {
     const raw = ((v.details as Record<string, string>)[f.name ?? ''] ?? '').trim()
     if (!f.name || raw === '') continue
-    details[f.name] = f.kind === 'INTEGER' ? Number(raw) : raw // a lot count is a count, not money
+    details[f.name] = f.kind === 'INTEGER' || f.name === 'lots' ? Number(raw) : raw // a lot count is a count, not money
   }
   if (Object.keys(details).length) body.details = details
   if (v.fundingWalletId)

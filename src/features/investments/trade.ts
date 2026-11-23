@@ -1,4 +1,5 @@
 import { Decimal } from '@/shared/money'
+import { decimalPlaces, quantityScale } from './schema'
 
 export interface Position {
   quantity: string
@@ -74,4 +75,21 @@ export function exceedsSellable(
 ): boolean {
   if (!positive(quantity)) return false
   return new Decimal(quantity).greaterThan(new Decimal(held).minus(staked || '0'))
+}
+
+/**
+ * Why a trade quantity is not allowed for this asset type, or null. Crypto allows 8 decimals, US stock 1;
+ * an Indonesian stock trades in shares, in multiples of 10 (a lot may have one decimal). Others keep 18.
+ */
+export function quantityProblem(assetType: string, quantity: string): string | null {
+  if (!positive(quantity)) return null
+  const scale = quantityScale(assetType)
+  if (assetType === 'ID_STOCK') {
+    return new Decimal(quantity).div(10).isInteger()
+      ? null
+      : 'Use whole shares in multiples of 10 (a lot may have one decimal).'
+  }
+  return decimalPlaces(quantity) > scale
+    ? `Use at most ${scale} decimal place${scale === 1 ? '' : 's'}.`
+    : null
 }
