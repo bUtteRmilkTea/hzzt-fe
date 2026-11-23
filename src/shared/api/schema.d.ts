@@ -2008,7 +2008,10 @@ export interface paths {
          */
         post: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description true skips the CATEGORY_EXISTS_SIMILAR check */
+                    force?: boolean;
+                };
                 header?: never;
                 path: {
                     /** @description Space ID */
@@ -2127,7 +2130,10 @@ export interface paths {
          */
         patch: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description true skips the CATEGORY_EXISTS_SIMILAR check */
+                    force?: boolean;
+                };
                 header?: never;
                 path: {
                     /** @description Space ID */
@@ -3067,7 +3073,7 @@ export interface paths {
         put?: never;
         /**
          * Create an investment
-         * @description The body is validated by `assetType` (see GET /investment-types). ID_STOCK takes `details.lots` and derives quantity = lots × 100. CRYPTO checks `details.stakedQuantity` <= quantity. `priceMode: AUTO` is accepted for CRYPTO, US_STOCK and GLOBAL_ETF and answers 422 AUTO_PRICE_NOT_SUPPORTED otherwise. An AUTO investment is linked to a market instrument: send the `instrumentId` picked from GET /market/crypto/search (CRYPTO) or GET /market/stocks/search (US_STOCK, GLOBAL_ETF), or the symbol is resolved to the highest-ranked coin / the exact ticker (422 INSTRUMENT_NOT_FOUND if none matches). Without a market price the manual price is used. Optional `funding: {walletId, amount?}` pays for the initial position from a wallet: it creates a BUY titled "Initial position {symbol}" (wallet debited quantity × avgBuyPrice + fees, converted to the wallet's currency unless `amount` is given) in the same database transaction.
+         * @description The body is validated by `assetType` (see GET /investment-types). ID_STOCK takes `details.lots` and derives quantity = lots × 100. CRYPTO checks `details.stakedQuantity` <= quantity. `priceMode: AUTO` is accepted for CRYPTO, US_STOCK and GLOBAL_ETF and answers 422 AUTO_PRICE_NOT_SUPPORTED otherwise. A CRYPTO created without `priceMode` is AUTO by default and linked to its CoinMarketCap coin by symbol; if the symbol is unknown or ambiguous the holding is created as MANUAL and `valuation.warnings` carries `PRICE_NOT_LINKED` (an explicit `priceMode` never falls back). Valuation warnings also include `PRICE_STALE` (a stale market price still counts and is flagged) and `MANUAL_VALUE_OVERRIDES_MARKET` (an AUTO holding with a manual current value, which wins). An AUTO investment is linked to a market instrument: send the `instrumentId` picked from GET /market/crypto/search (CRYPTO) or GET /market/stocks/search (US_STOCK, GLOBAL_ETF), or the symbol is resolved to the highest-ranked coin / the exact ticker (422 INSTRUMENT_NOT_FOUND if none matches). Without a market price the manual price is used. Optional `funding: {walletId, amount?}` pays for the initial position from a wallet: it creates a BUY titled "Initial position {symbol}" (wallet debited quantity × avgBuyPrice + fees, converted to the wallet's currency unless `amount` is given) in the same database transaction.
          */
         post: {
             parameters: {
@@ -4810,7 +4816,7 @@ export interface paths {
         head?: never;
         /**
          * Edit a transaction
-         * @description INCOME/EXPENSE: any field (the old balance effect is reversed and the new one applied atomically). ADJUSTMENT/OPENING_BALANCE: only `note`. Transfers and investment/asset transactions use their own endpoints (USE_SPECIFIC_ENDPOINT). `categoryId`, `title` and `note` accept null to clear.
+         * @description INCOME/EXPENSE: any field (the old balance effect is reversed and the new one applied atomically). ADJUSTMENT/OPENING_BALANCE: only `note`. `type: ADJUSTMENT` on an uncategorised INCOME/EXPENSE reclassifies it explicitly as a balance adjustment (IN for income, OUT for expense; the wallet balance does not change); a categorised one, or any other type change, returns TYPE_CHANGE_NOT_ALLOWED. Transfers and investment/asset transactions use their own endpoints (USE_SPECIFIC_ENDPOINT). `categoryId`, `title` and `note` accept null to clear.
          */
         patch: {
             parameters: {
@@ -4858,7 +4864,7 @@ export interface paths {
                         "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
-                /** @description CATEGORY_TYPE_MISMATCH / USE_SPECIFIC_ENDPOINT */
+                /** @description CATEGORY_TYPE_MISMATCH / USE_SPECIFIC_ENDPOINT / TYPE_CHANGE_NOT_ALLOWED */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -5315,7 +5321,7 @@ export interface paths {
         delete: {
             parameters: {
                 query?: {
-                    /** @description Required when the balance is not zero */
+                    /** @description Required when the balance is not zero or the wallet has transactions */
                     force?: boolean;
                 };
                 header?: never;
@@ -5338,6 +5344,15 @@ export interface paths {
                 };
                 /** @description Not Found */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description WALLET_HAS_TRANSACTIONS (details: transactions, transfers, goalReserves) */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -5488,6 +5503,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/spaces/{spaceId}/wallets/{id}/delete-impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What deleting a wallet affects
+         * @description Counts the wallet's transactions (as source or destination), the transfers among them and the goal reservations that go with it, plus its balance. DELETE needs force=true when the balance is not zero or the wallet has transactions.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Wallet ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["wallets.DeleteImpactDTO"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/spaces/{spaceId}/wallets/{id}/display-prefs": {
         parameters: {
             query?: never;
@@ -5564,7 +5632,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Top up a wallet (an INCOME titled "Balance top up", no category) */
+        /** Top up a wallet (an ADJUSTMENT IN titled "Balance top up", no category, never income) */
         post: {
             parameters: {
                 query?: never;
@@ -5818,6 +5886,11 @@ export interface components {
             sortOrder?: number;
             /** @description only with includeStats=true */
             stats?: components["schemas"]["categories.StatsDTO"];
+            /**
+             * @description SystemKey is the stable key of a default category (SALARY, SUBSCRIPTIONS, ...) so the client can
+             *     localize its name; null for categories the user created. A rename never changes it.
+             */
+            systemKey?: string;
             /** @enum {string} */
             type?: "EXPENSE" | "INCOME";
         };
@@ -6076,11 +6149,17 @@ export interface components {
             costBasis?: string;
             /** @example IDR */
             currency?: string;
+            fxAsOf?: string;
             /**
              * @description FxRate is the rate used: base-currency units per 1 quote-currency unit.
              * @example 16000
              */
             fxRate?: string;
+            /**
+             * @description FxSource is PROVIDER (the stored provider rate) or MANUAL (a typed rate); FxAsOf is the date of the provider rate.
+             * @enum {string}
+             */
+            fxSource?: "PROVIDER" | "MANUAL";
             marketValue?: string;
             unrealizedPl?: string;
         };
@@ -6185,13 +6264,25 @@ export interface components {
             avgBuyPrice?: string;
             createdAt?: string;
             details?: Record<string, never>;
+            /** @description EstimatedAnnualChangePct is the user's own assumed yearly change in percent; null when never set (there is no default). */
             estimatedAnnualChangePct?: string;
             fees?: string;
+            fxAsOf?: string;
+            /**
+             * @description FxRate, FxSource and FxAsOf describe the quote-to-base rate behind valuation.base: the rate used (base units per 1 quote
+             *     unit), whether it came from the rate provider (PROVIDER) or was typed (MANUAL), and the date of the provider rate.
+             *     All null when the quote currency is the space base currency or no rate is available.
+             * @example 16000
+             */
+            fxRate?: string;
+            /** @enum {string} */
+            fxSource?: "PROVIDER" | "MANUAL";
             icon?: string;
             id?: string;
             instrumentId?: string;
             isShared?: boolean;
             manualCurrentValue?: string;
+            /** @description ManualFxRate is an optional per-investment override, used only when the space's automatic FX is off. */
             manualFxRate?: string;
             manualPrice?: string;
             /** @example 3000 */
@@ -6367,6 +6458,7 @@ export interface components {
             value?: string;
         };
         "investments.TypeDefaults": {
+            /** @description EstimatedAnnualChangePct is always null: there is no assumed return (the field is kept so clients can rely on it). */
             estimatedAnnualChangePct?: string;
             fees?: string;
             priceMode?: string;
@@ -6396,7 +6488,11 @@ export interface components {
             marketValue?: string;
             price?: string;
             priceAsOf?: string;
-            /** @enum {string} */
+            /**
+             * @description PriceSource says which value wins, so a form can state it: MARKET (the market price, when priceMode is AUTO and one
+             *     exists), MANUAL (manualPrice x quantity) or MANUAL_VALUE (manualCurrentValue, which beats quantity x price).
+             * @enum {string}
+             */
             priceSource?: "MARKET" | "MANUAL" | "MANUAL_VALUE";
             unrealizedPl?: string;
             /** @description UnrealizedPLPct is a percentage (12.5 means +12.5%); null when the cost basis is 0. */
@@ -6614,9 +6710,20 @@ export interface components {
             currency?: string;
             /** @description InvestmentsChangePct is the same change for the portfolio value. */
             investmentsChangePct?: string;
+            /** @description MarketChange is (last - first) - netContributions. */
+            marketChange?: string;
+            /**
+             * @description NetContributions is the money put in or taken out from outside (top ups, adjustments, opening
+             *     balances) between the first and the last point, in the base currency, converted with each
+             *     day's rate. A deposit is not growth: use marketChange / performancePct for the real return.
+             */
+            netContributions?: string;
+            /** @description PerformancePct is marketChange / (first + netContributions), a percentage; null when that base is not positive. */
+            performancePct?: string;
             points?: components["schemas"]["networth.PointDTO"][];
             /** @enum {string} */
             range?: "1M" | "3M" | "6M" | "1Y" | "ALL";
+            warnings?: components["schemas"]["currency.Warning"][];
         };
         "networth.InvestmentsDTO": {
             cost?: string;
@@ -6738,6 +6845,11 @@ export interface components {
         "transactions.ListResponse": {
             items?: components["schemas"]["transactions.TransactionDTO"][];
             nextCursor?: string;
+            /**
+             * @description Total is how many transactions match the filters in all pages (not just this one).
+             * @example 42
+             */
+            total?: number;
         };
         "transactions.ManualAssetRef": {
             icon?: string;
@@ -6773,6 +6885,12 @@ export interface components {
             occurredAt?: string;
             quantity?: string;
             realizedPl?: string;
+            /**
+             * @description SystemKey is set on transactions the backend wrote itself, so the client can localize the
+             *     title: OPENING_BALANCE, BALANCE_TOP_UP, BALANCE_ADJUSTMENT. Null for user transactions.
+             * @enum {string}
+             */
+            systemKey?: "OPENING_BALANCE" | "BALANCE_TOP_UP" | "BALANCE_ADJUSTMENT";
             title?: string;
             toAmount?: string;
             toCurrency?: string;
@@ -6806,7 +6924,7 @@ export interface components {
             occurredAt?: string;
             title?: string;
             /** @enum {string} */
-            type?: "INCOME" | "EXPENSE";
+            type?: "INCOME" | "EXPENSE" | "ADJUSTMENT" | "TRANSFER" | "OPENING_BALANCE";
             walletId?: string;
         };
         "transfers.createRequest": {
@@ -6877,6 +6995,25 @@ export interface components {
             mode?: "SOLID" | "GRADIENT" | "TEMPLATE";
             presetId?: string;
             templateId?: string;
+        };
+        "wallets.DeleteImpactDTO": {
+            /** @example 134.26 */
+            balance?: string;
+            /** @example USD */
+            currency?: string;
+            /**
+             * @description GoalReserves is the number of goal reservations that are removed with the wallet.
+             * @example 1
+             */
+            goalReserves?: number;
+            /**
+             * @description Transactions counts every transaction that points at the wallet (the history that stays behind); Transfers is how many
+             *     of them are transfers to or from another of the space's wallets.
+             * @example 12
+             */
+            transactions?: number;
+            /** @example 3 */
+            transfers?: number;
         };
         "wallets.DisplayPrefs": {
             hideLogo?: boolean;
