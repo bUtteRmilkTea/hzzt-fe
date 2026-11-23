@@ -79,8 +79,8 @@ function GroupBlock({
   defaultOpen: boolean
 }) {
   const [open, setOpen] = useState(defaultOpen)
-  // A group with one row has nothing to hide.
-  const toggles = collapsible && g.title !== undefined && g.rows.length > 1
+  // Every titled group toggles, even with one row (D-F48). An untitled group never does.
+  const toggles = collapsible && g.title !== undefined
   const bodyId = `group-${g.key}`.replace(/\W+/g, '-')
   const titleClass =
     'flex items-baseline justify-between px-2 text-sm font-semibold tracking-wide text-label-secondary uppercase'
@@ -102,7 +102,7 @@ function GroupBlock({
             aria-expanded={open}
             aria-controls={bodyId}
             onClick={() => setOpen((o) => !o)}
-            className={cn(titleClass, 'min-h-10 items-center text-left')}
+            className={cn(titleClass, 'min-h-12 items-center text-left')}
           >
             <span className="flex items-center gap-1">
               <ChevronDown
@@ -140,7 +140,7 @@ function GroupBlock({
 /**
  * The rows inside one section of the Assets page: optional sub-groups (a wallet type, a broker)
  * each with a title and total, then name, balance and PnL per row. With `collapsible`, a group
- * with several rows is a dropdown: the first group starts open, the rest closed.
+ * with a title is a dropdown, even with one row: the first group starts open, the rest closed.
  */
 export function AssetBreakdownList({
   groups,

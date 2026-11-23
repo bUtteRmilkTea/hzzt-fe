@@ -276,7 +276,7 @@ function Editor({
                     aria-pressed={draft.direction === d}
                     onClick={() => set({ direction: d })}
                     className={cn(
-                      'flex min-h-11 items-center justify-center rounded-md bg-surface-3 text-lg',
+                      'flex min-h-12 items-center justify-center rounded-md bg-surface-3 text-lg',
                       draft.direction === d && 'ring-2 ring-accent',
                     )}
                   >
@@ -305,7 +305,7 @@ function Editor({
                       })
                     }
                     className={cn(
-                      'min-h-11 rounded-full border border-border bg-surface-3 px-4 text-sm',
+                      'min-h-12 rounded-full border border-border bg-surface-3 px-4 text-sm',
                       draft.presetId === p.id && 'ring-2 ring-accent',
                     )}
                   >

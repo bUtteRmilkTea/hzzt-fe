@@ -34,7 +34,7 @@ export function CategoryChip({
     </>
   )
   const base =
-    'inline-flex min-h-11 items-center gap-2 rounded-full border px-3 text-sm font-medium'
+    'inline-flex min-h-12 items-center gap-2 rounded-full border px-3 text-sm font-medium'
   if (!onClick)
     return <span className={cn(base, 'border-border bg-surface-3', className)}>{body}</span>
   return (

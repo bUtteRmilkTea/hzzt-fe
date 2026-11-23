@@ -48,7 +48,7 @@ export function EmojiPicker({ value, onChange, label = 'Emoji' }: EmojiPickerPro
             aria-pressed={value === e}
             onClick={() => onChange(e)}
             className={cn(
-              'flex size-11 items-center justify-center rounded-md bg-surface-3 text-xl',
+              'flex size-12 items-center justify-center rounded-md bg-surface-3 text-xl',
               value === e && 'ring-2 ring-accent',
             )}
           >

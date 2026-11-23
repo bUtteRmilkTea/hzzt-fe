@@ -1649,11 +1649,29 @@ definitions:
       value:
         type: string
     type: object
+  networth.CoverageDTO:
+    properties:
+      firstPointDate:
+        description: FirstPointDate is the date of the first point returned.
+        example: "2026-11-02"
+        type: string
+      requestedFrom:
+        description: RequestedFrom is the first date of the range asked for; null
+          for ALL.
+        example: "2026-08-18"
+        type: string
+      short:
+        description: Short is true when the history starts later than the requested
+          range (it only exists from the first daily snapshot).
+        type: boolean
+    type: object
   networth.HistoryDTO:
     properties:
       changePct:
         description: first → last point, a percentage; null when it cannot be computed
         type: string
+      coverage:
+        $ref: "#/definitions/networth.CoverageDTO"
       currency:
         example: USD
         type: string
@@ -1679,12 +1697,21 @@ definitions:
         type: array
       range:
         enum:
+          - 1W
           - 1M
           - 3M
           - 6M
           - 1Y
+          - YTD
           - ALL
         type: string
+      series:
+        allOf:
+          - $ref: "#/definitions/networth.SeriesSetDTO"
+        description: |-
+          Series gives the verdict of each line over the range: first, last, change, changePct, the return excluding deposits
+          and the direction. Known limit: history only exists from the day the daily snapshot first ran for the space (00:15 UTC,
+          one row per day) because no historical market prices are stored; earlier days are never invented. See coverage.
       warnings:
         items:
           $ref: "#/definitions/currency.Warning"
@@ -1719,18 +1746,75 @@ definitions:
     type: object
   networth.PointDTO:
     properties:
+      assets:
+        description: "Assets is everything owned: cash + investments + fixedAssets
+          + receivables (debt not subtracted)."
+        type: string
+      cash:
+        description: The other components of the net worth of the day (from the snapshot;
+          computed now for the live point).
+        type: string
       date:
         example: "2026-11-18"
+        type: string
+      fixedAssets:
         type: string
       investments:
         description: Investments is the portfolio value of the day (the investments
           line of the net worth).
+        type: string
+      liabilities:
         type: string
       live:
         description: the point computed now for today
         type: boolean
       netWorth:
         type: string
+      receivables:
+        type: string
+    type: object
+  networth.SeriesDTO:
+    properties:
+      change:
+        description: Change is last - first, in money.
+        type: string
+      changePct:
+        description: ChangePct is first to last of the value, a percentage; null when
+          the first value is 0 or there is one point only.
+        type: string
+      direction:
+        description: "Direction is decided by the server from change: FLAT when the
+          absolute changePct is below 0.05."
+        enum:
+          - RISING
+          - FALLING
+          - FLAT
+        type: string
+      first:
+        type: string
+      last:
+        type: string
+      marketChange:
+        type: string
+      netContributions:
+        description: NetContributions is the money put in (or taken out) from outside
+          in the range; MarketChange = change - netContributions.
+        type: string
+      performancePct:
+        description: "PerformancePct is the return excluding money put in: marketChange
+          / (first + netContributions); null when that base is not positive."
+        type: string
+    type: object
+  networth.SeriesSetDTO:
+    properties:
+      assets:
+        $ref: "#/definitions/networth.SeriesDTO"
+      fixedAssets:
+        $ref: "#/definitions/networth.SeriesDTO"
+      investments:
+        $ref: "#/definitions/networth.SeriesDTO"
+      netWorth:
+        $ref: "#/definitions/networth.SeriesDTO"
     type: object
   networth.SummaryDTO:
     properties:
@@ -5128,18 +5212,30 @@ paths:
         - spaces
   /spaces/{spaceId}/net-worth/history:
     get:
-      description: Daily snapshots (stored at 00:15 UTC, one per UTC date) in the
+      description: "Daily snapshots (stored at 00:15 UTC, one per UTC date) in the
         space's current base currency, plus a live point for today, at most about
         120 points (evenly downsampled, first and last kept). A space created today
         returns just the live point. `changePct` is the change from the first to the
-        last point.
+        last point. Each point carries every component (`cash`, `investments`, `fixedAssets`,
+        `receivables`, `liabilities`) and `assets` (everything owned, debt not subtracted).
+        `series` gives, for `netWorth`, `investments`, `fixedAssets` and `assets`,
+        the first and last value, the change in money and in percent, the money put
+        in from outside (`netContributions`: wallet top ups, adjustments and opening
+        balances; BUY minus SELL with fees as a cost; fixed assets bought minus sold;
+        holdings added with no funding wallet), the `marketChange` and `performancePct`
+        (the return excluding what was put in) and a `direction` (RISING, FALLING
+        or FLAT when the absolute changePct is below 0.05) so the client never decides
+        it. Contributions are converted with the FX rate of their own date; one without
+        a rate is left out and reported in `warnings` (FX_RATE_UNAVAILABLE). `coverage`
+        says when the history really starts: it only exists from the first daily snapshot,
+        no past prices are rebuilt or invented."
       parameters:
         - description: Space ID
           in: path
           name: spaceId
           required: true
           type: string
-        - description: 1M, 3M, 6M, 1Y or ALL (default 1M)
+        - description: 1W, 1M, 3M, 6M, 1Y, YTD or ALL (default 1M)
           in: query
           name: range
           type: string

@@ -11,7 +11,7 @@ function RemovableChip({ label, onRemove }: { label: string; onRemove: () => voi
       type="button"
       onClick={onRemove}
       aria-label={`Remove filter: ${label}`}
-      className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-surface-3 pr-2.5 pl-3.5 text-sm font-medium hover:border-border-strong"
+      className="inline-flex min-h-12 items-center gap-1.5 rounded-full border border-border bg-surface-3 pr-2.5 pl-3.5 text-sm font-medium hover:border-border-strong"
     >
       {label}
       <X aria-hidden className="size-4 text-label-secondary" />
