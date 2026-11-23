@@ -24,7 +24,7 @@ test('create a crypto holding with auto price, then buy and sell', async ({ page
   await page.getByRole('radio', { name: 'Auto' }).click()
   await page.getByLabel('Search coins').fill('btc')
   await page.getByRole('button', { name: /BTC.*Bitcoin/ }).click()
-  await page.getByLabel('Quantity').fill('2')
+  await page.getByLabel('Quantity', { exact: true }).fill('2')
   await page.getByLabel('Average buy price').fill('100')
   await page.getByRole('button', { name: 'Add investment' }).click()
 
@@ -33,7 +33,7 @@ test('create a crypto holding with auto price, then buy and sell', async ({ page
 
   await page.getByRole('button', { name: /^Buy$/ }).click()
   let sheet = page.getByRole('dialog', { name: /Buy/ })
-  await sheet.getByLabel('Quantity').fill('2')
+  await sheet.getByLabel('Quantity', { exact: true }).fill('2')
   await sheet.getByLabel(/Unit price/).fill('200')
   await expect(sheet.getByTestId('trade-preview')).toContainText('$150.00') // new average
   await sheet.getByRole('button', { name: 'Buy' }).click()
@@ -41,7 +41,7 @@ test('create a crypto holding with auto price, then buy and sell', async ({ page
 
   await page.getByRole('button', { name: /^Sell$/ }).click()
   sheet = page.getByRole('dialog', { name: /Sell/ })
-  await sheet.getByLabel('Quantity').fill('10')
+  await sheet.getByLabel('Quantity', { exact: true }).fill('10')
   await sheet.getByLabel(/Unit price/).fill('200')
   await sheet.getByRole('button', { name: 'Sell' }).click()
   await expect(sheet.getByRole('alert')).toContainText(
@@ -57,8 +57,7 @@ test('Auto mode needs an instrument; Indonesian stocks have no Auto tab; lots sh
   await page.getByLabel('Type').selectOption('CRYPTO')
   await page.getByRole('radio', { name: 'Auto' }).click()
   await page.getByLabel('Name').fill('Bitcoin')
-  await page.getByLabel('Symbol').fill('BTC')
-  await page.getByLabel('Quantity').fill('1')
+  await page.getByLabel('Quantity', { exact: true }).fill('1')
   await page.getByRole('button', { name: 'Add investment' }).click()
   await expect(
     page.getByText('Search and choose an instrument for automatic pricing.'),

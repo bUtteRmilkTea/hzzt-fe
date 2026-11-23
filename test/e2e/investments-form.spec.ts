@@ -27,7 +27,7 @@ for (const size of sizes) {
 
     await page.getByLabel('Name').fill('Bitcoin')
     await page.getByLabel('Symbol').fill('BTC')
-    await page.getByLabel('Quantity').fill('2')
+    await page.getByLabel('Quantity', { exact: true }).fill('2')
     await page.getByLabel('Average buy price').fill('100')
     await page.getByLabel('Current price').fill('150')
 
@@ -36,7 +36,7 @@ for (const size of sizes) {
       await expect(rail).toBeVisible()
       await expect(rail).toContainText('Bitcoin')
       // Quantity and average price share a row.
-      const q = await page.getByLabel('Quantity').boundingBox()
+      const q = await page.getByLabel('Quantity', { exact: true }).boundingBox()
       const a = await page.getByLabel('Average buy price').boundingBox()
       expect(Math.abs((q?.y ?? 0) - (a?.y ?? 99))).toBeLessThan(8)
     } else {

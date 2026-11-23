@@ -1,4 +1,5 @@
 import { rowFigures } from '@/features/investments/InvestmentRow'
+import { priceSourceShort } from '@/features/investments/priceSource'
 import type { InvestmentView } from '@/features/investments/types'
 import {
   groupInvestments,
@@ -55,7 +56,7 @@ export function investmentGroups(
         key: i.id as string,
         icon: i.icon,
         name: i.name ?? '',
-        sub: i.symbol,
+        sub: [i.symbol, v ? priceSourceShort(v) : null].filter(Boolean).join(' · '),
         value: f?.value ?? '0',
         currency: f?.currency ?? i.quoteCurrency ?? '',
         ...(f && v ? { pl: { amount: f.pl, pct: v.unrealizedPlPct } } : {}),
@@ -72,7 +73,8 @@ const rowOf = (i: InvestmentView, spaceId: string, sub?: string) => {
     key: i.id as string,
     icon: i.icon,
     name: i.name ?? '',
-    sub: sub ?? i.symbol,
+    sub:
+      sub ?? ([i.symbol, v ? priceSourceShort(v) : null].filter(Boolean).join(' · ') || undefined),
     value: f?.value ?? '0',
     currency: f?.currency ?? i.quoteCurrency ?? '',
     ...(f && v ? { pl: { amount: f.pl, pct: v.unrealizedPlPct } } : {}),
