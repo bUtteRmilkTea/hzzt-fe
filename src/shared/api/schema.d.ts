@@ -4493,12 +4493,12 @@ export interface paths {
         };
         /**
          * Net-worth history for a range
-         * @description Daily snapshots (stored at 00:15 UTC, one per UTC date) in the space's current base currency, plus a live point for today, at most about 120 points (evenly downsampled, first and last kept). A space created today returns just the live point. `changePct` is the change from the first to the last point.
+         * @description Daily snapshots (stored at 00:15 UTC, one per UTC date) in the space's current base currency, plus a live point for today, at most about 120 points (evenly downsampled, first and last kept). A space created today returns just the live point. `changePct` is the change from the first to the last point. Each point carries every component (`cash`, `investments`, `fixedAssets`, `receivables`, `liabilities`) and `assets` (everything owned, debt not subtracted). `series` gives, for `netWorth`, `investments`, `fixedAssets` and `assets`, the first and last value, the change in money and in percent, the money put in from outside (`netContributions`: wallet top ups, adjustments and opening balances; BUY minus SELL with fees as a cost; fixed assets bought minus sold; holdings added with no funding wallet), the `marketChange` and `performancePct` (the return excluding what was put in) and a `direction` (RISING, FALLING or FLAT when the absolute changePct is below 0.05) so the client never decides it. Contributions are converted with the FX rate of their own date; one without a rate is left out and reported in `warnings` (FX_RATE_UNAVAILABLE). `coverage` says when the history really starts: it only exists from the first daily snapshot, no past prices are rebuilt or invented.
          */
         get: {
             parameters: {
                 query?: {
-                    /** @description 1M, 3M, 6M, 1Y or ALL (default 1M) */
+                    /** @description 1W, 1M, 3M, 6M, 1Y, YTD or ALL (default 1M) */
                     range?: string;
                 };
                 header?: never;
@@ -6703,9 +6703,24 @@ export interface components {
             unrealizedPlPct?: string;
             value?: string;
         };
+        "networth.CoverageDTO": {
+            /**
+             * @description FirstPointDate is the date of the first point returned.
+             * @example 2026-11-02
+             */
+            firstPointDate?: string;
+            /**
+             * @description RequestedFrom is the first date of the range asked for; null for ALL.
+             * @example 2026-08-18
+             */
+            requestedFrom?: string;
+            /** @description Short is true when the history starts later than the requested range (it only exists from the first daily snapshot). */
+            short?: boolean;
+        };
         "networth.HistoryDTO": {
             /** @description first → last point, a percentage; null when it cannot be computed */
             changePct?: string;
+            coverage?: components["schemas"]["networth.CoverageDTO"];
             /** @example USD */
             currency?: string;
             /** @description InvestmentsChangePct is the same change for the portfolio value. */
@@ -6722,7 +6737,13 @@ export interface components {
             performancePct?: string;
             points?: components["schemas"]["networth.PointDTO"][];
             /** @enum {string} */
-            range?: "1M" | "3M" | "6M" | "1Y" | "ALL";
+            range?: "1W" | "1M" | "3M" | "6M" | "1Y" | "YTD" | "ALL";
+            /**
+             * @description Series gives the verdict of each line over the range: first, last, change, changePct, the return excluding deposits
+             *     and the direction. Known limit: history only exists from the day the daily snapshot first ran for the space (00:15 UTC,
+             *     one row per day) because no historical market prices are stored; earlier days are never invented. See coverage.
+             */
+            series?: components["schemas"]["networth.SeriesSetDTO"];
             warnings?: components["schemas"]["currency.Warning"][];
         };
         "networth.InvestmentsDTO": {
@@ -6740,13 +6761,44 @@ export interface components {
             unrealizedPlPct?: string;
         };
         "networth.PointDTO": {
+            /** @description Assets is everything owned: cash + investments + fixedAssets + receivables (debt not subtracted). */
+            assets?: string;
+            /** @description The other components of the net worth of the day (from the snapshot; computed now for the live point). */
+            cash?: string;
             /** @example 2026-11-18 */
             date?: string;
+            fixedAssets?: string;
             /** @description Investments is the portfolio value of the day (the investments line of the net worth). */
             investments?: string;
+            liabilities?: string;
             /** @description the point computed now for today */
             live?: boolean;
             netWorth?: string;
+            receivables?: string;
+        };
+        "networth.SeriesDTO": {
+            /** @description Change is last - first, in money. */
+            change?: string;
+            /** @description ChangePct is first to last of the value, a percentage; null when the first value is 0 or there is one point only. */
+            changePct?: string;
+            /**
+             * @description Direction is decided by the server from change: FLAT when the absolute changePct is below 0.05.
+             * @enum {string}
+             */
+            direction?: "RISING" | "FALLING" | "FLAT";
+            first?: string;
+            last?: string;
+            marketChange?: string;
+            /** @description NetContributions is the money put in (or taken out) from outside in the range; MarketChange = change - netContributions. */
+            netContributions?: string;
+            /** @description PerformancePct is the return excluding money put in: marketChange / (first + netContributions); null when that base is not positive. */
+            performancePct?: string;
+        };
+        "networth.SeriesSetDTO": {
+            assets?: components["schemas"]["networth.SeriesDTO"];
+            fixedAssets?: components["schemas"]["networth.SeriesDTO"];
+            investments?: components["schemas"]["networth.SeriesDTO"];
+            netWorth?: components["schemas"]["networth.SeriesDTO"];
         };
         "networth.SummaryDTO": {
             asOf?: string;
