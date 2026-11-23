@@ -2,7 +2,9 @@ import { metas } from '../../../test/msw/investments'
 import {
   buildInvestmentUnion,
   buildTypeSchema,
+  decimalPlaces,
   derivedShares,
+  quantityScale,
   type TypeFormValues,
   toCreateBody,
 } from './schema'
@@ -14,7 +16,7 @@ import {
   shareTotal,
   toParticipantsBody,
 } from './shares'
-import { canPreview, exceedsSellable, previewBuy, previewSell } from './trade'
+import { canPreview, exceedsSellable, previewBuy, previewSell, quantityProblem } from './trade'
 import type { TypeMeta } from './types'
 import { bpsToPct, groupInvestments, isSharedIn, parseValuation } from './valuation'
 
@@ -83,11 +85,12 @@ describe('per-type required fields (driven by the metadata)', () => {
       ok('GLOBAL_ETF', values('GLOBAL_ETF', {}, { exchange: 'NYSE', expenseRatioPct: '0.03' })),
     ).toBe(true)
   })
-  it('Indonesian stock needs lots, as a whole number above 0, and no quantity', () => {
+  it('Indonesian stock needs lots, a number above 0 with at most one decimal, and no quantity', () => {
     expect(errors('ID_STOCK', values('ID_STOCK', { quantity: '' }))).toContain(
       'details.lots: Lots is required',
     )
-    expect(ok('ID_STOCK', values('ID_STOCK', { quantity: '' }, { lots: '2.5' }))).toBe(false)
+    expect(ok('ID_STOCK', values('ID_STOCK', { quantity: '' }, { lots: '2.5' }))).toBe(true)
+    expect(ok('ID_STOCK', values('ID_STOCK', { quantity: '' }, { lots: '2.55' }))).toBe(false)
     expect(ok('ID_STOCK', values('ID_STOCK', { quantity: '' }, { lots: '0' }))).toBe(false)
     expect(ok('ID_STOCK', values('ID_STOCK', { quantity: '' }, { lots: '2' }))).toBe(true)
   })
@@ -108,8 +111,12 @@ describe('lots', () => {
     expect(derivedShares('2', 100)).toBe('200')
     expect(derivedShares('15', 100)).toBe('1500')
   })
-  it('shows nothing until lots is a valid whole number', () => {
-    for (const bad of ['', '0', '1.5', 'x', '-1']) expect(derivedShares(bad, 100)).toBeNull()
+  it('a lot may have one decimal: 0.5 lot is 50 shares, 2.5 lots is 250', () => {
+    expect(derivedShares('0.5', 100)).toBe('50')
+    expect(derivedShares('2.5', 100)).toBe('250')
+  })
+  it('shows nothing until lots is a valid number with at most one decimal', () => {
+    for (const bad of ['', '0', '1.55', 'x', '-1']) expect(derivedShares(bad, 100)).toBeNull()
   })
   it('does not send a quantity for a lots type, only details.lots as a number', () => {
     const body = toCreateBody(
@@ -375,5 +382,50 @@ describe('shares and grouping helpers', () => {
       ['ID_STOCK', 1],
       ['MUTUAL_FUND', 1],
     ])
+  })
+})
+
+describe('quantity decimal limits', () => {
+  it('crypto allows 8 decimals, not 9', () => {
+    expect(ok('CRYPTO', values('CRYPTO', { quantity: '0.12345678' }))).toBe(true)
+    expect(errors('CRYPTO', values('CRYPTO', { quantity: '0.123456789' }))).toContain(
+      'quantity: Use at most 8 decimal places',
+    )
+  })
+  it('US stock allows 1 decimal, not 2', () => {
+    const d = { exchange: 'NASDAQ' }
+    expect(ok('US_STOCK', values('US_STOCK', { quantity: '1.5' }, d))).toBe(true)
+    expect(errors('US_STOCK', values('US_STOCK', { quantity: '1.25' }, d))).toContain(
+      'quantity: Use at most 1 decimal place',
+    )
+  })
+  it('Indonesian stock lots allow 1 decimal, staked crypto 8', () => {
+    const lots = (n: string) => values('ID_STOCK', { quantity: '' }, { lots: n })
+    expect(ok('ID_STOCK', lots('2.5'))).toBe(true)
+    expect(ok('ID_STOCK', lots('0.5'))).toBe(true)
+    expect(errors('ID_STOCK', lots('1.55')).join()).toContain('use at most 1 decimal place')
+    expect(
+      errors(
+        'CRYPTO',
+        values('CRYPTO', { quantity: '2' }, { stakedQuantity: '0.123456789' }),
+      ).join(),
+    ).toContain('use at most 8 decimal places')
+  })
+  it('helpers', () => {
+    expect(decimalPlaces('1.25')).toBe(2)
+    expect(decimalPlaces('3')).toBe(0)
+    expect(quantityScale('CRYPTO')).toBe(8)
+    expect(quantityScale('GLOBAL_ETF')).toBe(18)
+    expect(quantityScale('CRYPTO', { quantityScale: 4 })).toBe(4)
+  })
+  it('a trade quantity follows the same limit, ID stock in multiples of 10 shares', () => {
+    expect(quantityProblem('CRYPTO', '0.00000001')).toBeNull()
+    expect(quantityProblem('CRYPTO', '0.000000001')).not.toBeNull()
+    expect(quantityProblem('US_STOCK', '2.5')).toBeNull()
+    expect(quantityProblem('US_STOCK', '2.55')).not.toBeNull()
+    expect(quantityProblem('ID_STOCK', '50')).toBeNull()
+    expect(quantityProblem('ID_STOCK', '55')).not.toBeNull()
+    expect(quantityProblem('GLOBAL_ETF', '0.123456789')).toBeNull()
+    expect(quantityProblem('CRYPTO', '')).toBeNull()
   })
 })

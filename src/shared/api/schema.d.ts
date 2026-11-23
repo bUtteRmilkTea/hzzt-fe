@@ -6473,6 +6473,11 @@ export interface components {
             lotSize?: number;
             /** @enum {string} */
             quantityMode?: "QUANTITY" | "LOTS";
+            /**
+             * @description QuantityScale is the most decimal places a quantity may have (crypto 8, US stock 1, Indonesian stock whole shares with lots to 1 decimal, others 18).
+             * @example 8
+             */
+            quantityScale?: number;
             /** @description null: chosen by the client (default: the space base currency) */
             quoteCurrency?: string;
             quoteCurrencyEditable?: boolean;

@@ -12,7 +12,7 @@ import { Select } from '@/shared/ui/Select'
 import { SheetShell } from '@/shared/ui/SheetShell'
 import { useToast } from '@/shared/ui/Toast'
 import { useTrade } from './hooks'
-import { canPreview, exceedsSellable, previewBuy, previewSell } from './trade'
+import { canPreview, exceedsSellable, previewBuy, previewSell, quantityProblem } from './trade'
 import type { InvestmentView } from './types'
 
 interface TradeSheetProps {
@@ -42,7 +42,8 @@ export function TradeSheet({ side, investment, onRefresh, onClose }: TradeSheetP
   const list = wallets.data?.items ?? []
   const chosen = walletId || list[0]?.id || ''
   const pos = { quantity: held, avgBuyPrice: investment.avgBuyPrice ?? '0' }
-  const previewable = canPreview(quantity, unitPrice, fee)
+  const qtyProblem = quantityProblem(investment.assetType as string, quantity)
+  const previewable = canPreview(quantity, unitPrice, fee) && !qtyProblem
   const tooMuch = side === 'SELL' && exceedsSellable(held, staked, quantity)
   const preview =
     previewable && !tooMuch
@@ -124,7 +125,7 @@ export function TradeSheet({ side, investment, onRefresh, onClose }: TradeSheetP
               ? `You can sell up to ${sellable.toFixed()}${staked ? ' (staked units excluded)' : ''}`
               : undefined
           }
-          error={tooMuch ? "You don't hold that much to sell." : undefined}
+          error={tooMuch ? "You don't hold that much to sell." : (qtyProblem ?? undefined)}
         >
           <Input
             inputMode="decimal"
