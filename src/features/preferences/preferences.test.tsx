@@ -36,6 +36,57 @@ describe('settings index', () => {
     expect(screen.getByText(/HZZT v/)).toBeInTheDocument()
   })
 
+  it('groups every row under a section heading, and nothing is lost (F38-T04)', async () => {
+    renderApp('/settings')
+    await screen.findByRole('heading', { name: 'Settings' })
+    const sections = ['Account', 'Money setup', 'On this device']
+    for (const h of sections)
+      expect(screen.getByRole('heading', { level: 2, name: h })).toBeInTheDocument()
+    const rows: Array<[string, string]> = [
+      ['Account', 'Profile'],
+      ['Account', 'Space'],
+      ['Account', 'App lock'],
+      ['Money setup', 'Categories'],
+      ['Money setup', 'Goals'],
+      ['Money setup', 'Currency'],
+    ]
+    for (const [section, row] of rows) {
+      const region = screen.getByRole('region', { name: section })
+      expect(within(region).getByRole('link', { name: new RegExp(row) })).toBeInTheDocument()
+    }
+    const device = screen.getByRole('region', { name: 'On this device' })
+    expect(within(device).getByRole('switch', { name: 'Hide amounts' })).toBeInTheDocument()
+    expect(within(device).getByRole('radiogroup', { name: 'Language' })).toBeInTheDocument()
+    expect(within(device).getByRole('radiogroup', { name: 'Animations' })).toBeInTheDocument()
+    expect(within(device).getByRole('radiogroup', { name: 'Keyboard type' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  })
+
+  it('search filters rows by label, hides empty sections, and says when nothing matches', async () => {
+    const user = userEvent.setup()
+    renderApp('/settings')
+    const box = await screen.findByRole('searchbox', { name: 'Search settings' })
+    await user.type(box, 'CURR')
+    expect(screen.getByRole('link', { name: /Currency/ })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Profile/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Money setup' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Account' })).not.toBeInTheDocument()
+    await user.clear(box)
+    await user.type(box, 'zzzz')
+    expect(screen.getByText('No settings match "zzzz".')).toBeInTheDocument()
+    await user.clear(box)
+    expect(screen.getByRole('heading', { level: 2, name: 'Account' })).toBeInTheDocument()
+  })
+
+  it('the Language row stores the choice on this device', async () => {
+    const user = userEvent.setup()
+    renderApp('/settings')
+    await user.click(await screen.findByRole('radio', { name: 'Bahasa Indonesia' }))
+    expect(localStorage.getItem('hzzt.language')).toBe('id')
+    await user.click(screen.getByRole('radio', { name: 'English' }))
+    expect(localStorage.getItem('hzzt.language')).toBe('en')
+  })
+
   it('shows the current app lock state', async () => {
     server.use(
       ...makeAuthedHandlers({ preferences: { ...defaultPreferences, appLockEnabled: false } }),

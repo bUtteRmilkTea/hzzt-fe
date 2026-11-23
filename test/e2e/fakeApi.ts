@@ -37,6 +37,8 @@ interface FakeCategory {
   color: string
   sortOrder: number
   budgetAmount?: string
+  /** The stable key of a default category, so the client can localize it. */
+  systemKey?: string
   /** Spend so far, set by the test to play the part of recorded transactions. */
   spent: number
 }
@@ -707,6 +709,7 @@ export async function installFakeApi(
         icon: c.icon,
         color: c.color,
         sortOrder: c.sortOrder,
+        ...(c.systemKey ? { systemKey: c.systemKey } : {}),
         ...(c.budgetAmount ? { budgetAmount: c.budgetAmount, budgetCurrency: 'IDR' } : {}),
         ...(stats
           ? {

@@ -1,4 +1,5 @@
 import { type CategoryType, useCategories } from '@/shared/api/categories'
+import { categoryLabel } from '@/shared/i18n'
 import { Button } from './Button'
 import { CategoryChip } from './CategoryChip'
 import { Skeleton } from './Skeleton'
@@ -46,7 +47,7 @@ export function CategoryPicker({
             <CategoryChip
               key={c.id}
               icon={c.icon ?? '🏷️'}
-              name={c.name ?? ''}
+              name={categoryLabel(c)}
               color={c.color}
               selected={value === c.id}
               onClick={() => onChange(value === c.id ? null : (c.id ?? null))}

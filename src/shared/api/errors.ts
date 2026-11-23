@@ -63,6 +63,7 @@ export const ERROR_COPY: Record<string, string> = {
   INVALID_PIN: 'That PIN is incorrect.',
   FX_RATE_UNAVAILABLE: 'An exchange rate is missing for this currency.',
   CATEGORY_NAME_TAKEN: 'You already have a category with this name.',
+  CATEGORY_EXISTS_SIMILAR: 'A category with the same meaning already exists.',
   BUDGET_NOT_ALLOWED: 'Only expense categories can have a budget.',
   CATEGORY_TYPE_LOCKED: "A category's type cannot change once it has transactions.",
   CATEGORY_TYPE_MISMATCH: "That category doesn't match the transaction type.",

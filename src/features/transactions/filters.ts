@@ -73,12 +73,13 @@ export function filtersToSearch(f: TransactionFilters): HistorySearch {
   return out
 }
 
-/** Number shown on the filter button: how many filter groups are in use (search text is not counted). */
+/**
+ * Number shown on the filter button ("Filters 3"): the date range when one is set, plus every
+ * selected category and wallet. Search text is not counted.
+ */
 export function activeFilterCount(f: TransactionFilters): number {
   return (
-    (periodsEqual(f.period, DEFAULT_PERIOD) ? 0 : 1) +
-    (f.categoryIds.length > 0 ? 1 : 0) +
-    (f.walletIds.length > 0 ? 1 : 0)
+    (periodsEqual(f.period, DEFAULT_PERIOD) ? 0 : 1) + f.categoryIds.length + f.walletIds.length
   )
 }
 

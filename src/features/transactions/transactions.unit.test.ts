@@ -67,10 +67,11 @@ describe('history search params', () => {
     expect(validateHistorySearch({ categoryIds: many }).categoryIds).toHaveLength(50)
   })
 
-  it('counts active filter groups, not search text', () => {
+  it('counts the date range and each selected category and wallet, not search text', () => {
     expect(activeFilterCount(EMPTY_FILTERS)).toBe(0)
     expect(activeFilterCount({ ...EMPTY_FILTERS, q: 'x' })).toBe(0)
-    expect(activeFilterCount({ ...EMPTY_FILTERS, categoryIds: ['a', 'b'] })).toBe(1)
+    expect(activeFilterCount({ ...EMPTY_FILTERS, categoryIds: ['a', 'b'] })).toBe(2)
+    expect(activeFilterCount({ ...EMPTY_FILTERS, categoryIds: ['a', 'b', 'c'] })).toBe(3)
     expect(
       activeFilterCount({
         period: { kind: 'preset', preset: 'TODAY' },

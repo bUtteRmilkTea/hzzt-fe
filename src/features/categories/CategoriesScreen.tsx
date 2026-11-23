@@ -1,12 +1,13 @@
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, TrendingDown, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import type { CategoryDTO, CategoryType } from '@/shared/api/categories'
 import { api } from '@/shared/api/client'
 import { errorMessage } from '@/shared/api/errors'
 import { DonutChart } from '@/shared/charts'
+import { categoryLabel } from '@/shared/i18n'
 import { toMoneyString } from '@/shared/money'
 import { DEFAULT_PERIOD } from '@/shared/period'
 import { Amount } from '@/shared/ui/Amount'
@@ -133,8 +134,12 @@ export function CategoriesScreen() {
           })
         }
         options={[
-          { value: 'EXPENSE', label: 'Expense' },
-          { value: 'INCOME', label: 'Income' },
+          {
+            value: 'EXPENSE',
+            label: 'Expense',
+            icon: <TrendingDown aria-hidden className="size-4" />,
+          },
+          { value: 'INCOME', label: 'Income', icon: <TrendingUp aria-hidden className="size-4" /> },
         ]}
       />
 
@@ -253,7 +258,7 @@ function CategoryRow({
           {c.icon}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{c.name}</p>
+          <p className="truncate font-medium">{categoryLabel(c)}</p>
           {!hasBudget && stats ? (
             <p className="text-sm text-label-secondary">
               {type === 'EXPENSE' ? 'Spent' : 'Received'}{' '}
