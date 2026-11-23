@@ -222,7 +222,7 @@ describe('URL restores the view', () => {
     expect(p.get('q')).toBe('tea')
     expect(p.getAll('categoryIds')).toEqual(['e-0'])
     expect(p.getAll('walletIds')).toEqual(['w-1', 'w-2'])
-    expect(screen.getByRole('link', { name: 'Filters, 3 active' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Filters, 4 active' })).toBeInTheDocument()
   })
 })
 
@@ -255,6 +255,25 @@ describe('filter sheet', () => {
       walletIds: ['w-2'],
     })
     expect(await screen.findByRole('link', { name: 'Filters, 3 active' })).toBeInTheDocument()
+  })
+
+  it('groups categories under Expense and Income, with Select all per group (F38-T03)', async () => {
+    const user = userEvent.setup()
+    renderApp('/s/s-1/history')
+    await user.click(await screen.findByRole('link', { name: 'Filters' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Filters' })
+    const expense = await within(sheet).findByTestId('filter-expense')
+    const income = within(sheet).getByTestId('filter-income')
+    expect(within(expense).getByRole('button', { name: /Food/ })).toBeInTheDocument()
+    expect(within(expense).queryByRole('button', { name: /Salary/ })).not.toBeInTheDocument()
+    expect(within(income).getByRole('button', { name: /Salary/ })).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'Select all expense categories' }))
+    for (const b of within(expense).getAllByRole('button', { pressed: true }))
+      expect(b).toHaveAttribute('aria-pressed', 'true')
+    expect(within(income).queryAllByRole('button', { pressed: true })).toHaveLength(0)
+    expect(
+      within(sheet).getByRole('button', { name: 'Clear expense categories' }),
+    ).toBeInTheDocument()
   })
 
   it('Clear resets the draft, and closing without Apply keeps the current filters', async () => {

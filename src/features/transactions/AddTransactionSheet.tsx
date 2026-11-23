@@ -1,4 +1,5 @@
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
+import { ArrowLeftRight, TrendingDown, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { errorMessage } from '@/shared/api/errors'
@@ -61,9 +62,21 @@ export function AddTransactionSheet() {
             setFormError(null)
           }}
           options={[
-            { value: 'EXPENSE', label: 'Expense' },
-            { value: 'INCOME', label: 'Income' },
-            { value: 'TRANSFER', label: 'Transfer' },
+            {
+              value: 'EXPENSE',
+              label: 'Expense',
+              icon: <TrendingDown aria-hidden className="size-4" />,
+            },
+            {
+              value: 'INCOME',
+              label: 'Income',
+              icon: <TrendingUp aria-hidden className="size-4" />,
+            },
+            {
+              value: 'TRANSFER',
+              label: 'Transfer',
+              icon: <ArrowLeftRight aria-hidden className="size-4" />,
+            },
           ]}
         />
         {formError ? (

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { applyServerError } from '@/features/auth/useServerErrors'
@@ -12,6 +12,7 @@ import { Decimal, parseInput } from '@/shared/money'
 import { Button } from '@/shared/ui/Button'
 import { Chip } from '@/shared/ui/Chip'
 import { ColorPicker } from '@/shared/ui/ColorPicker'
+import { defaultCategoryIcon } from '@/shared/ui/categoryIcons'
 import { EmojiPicker } from '@/shared/ui/EmojiPicker'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
@@ -51,6 +52,10 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
   // Only expense categories have a budget, so BUDGET_NOT_ALLOWED can't be triggered from here.
   const hasBudget = type === 'EXPENSE'
   const [formError, setFormError] = useState<string | null>(null)
+  // The default icon follows the name until the user picks one themselves.
+  const [iconTouched, setIconTouched] = useState(false)
+  // A category with the same meaning exists (Gaji and Salary): ask before creating a twin.
+  const [similar, setSimilar] = useState<{ name: string; values: Values } | null>(null)
 
   const {
     register,
@@ -69,13 +74,19 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
     },
   })
 
+  const nameValue = useWatch({ control, name: 'name' })
+  useEffect(() => {
+    if (!editing && !iconTouched) setValue('icon', defaultCategoryIcon(nameValue ?? ''))
+  }, [nameValue, editing, iconTouched, setValue])
+
   const save = useMutation({
-    mutationFn: async (v: Values) => {
+    mutationFn: async ({ v, force }: { v: Values; force?: boolean }) => {
+      const query = force ? { force: true } : {}
       const budget = hasBudget && v.budget ? parseInput(v.budget, space.baseCurrency) : null
       if (!category) {
         return (
           await api.POST('/spaces/{spaceId}/categories', {
-            params: { path: { spaceId: space.id } },
+            params: { path: { spaceId: space.id }, query },
             body: {
               type,
               name: v.name,
@@ -97,7 +108,7 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
         : {}
       return (
         await api.PATCH('/spaces/{spaceId}/categories/{id}', {
-          params: { path: { spaceId: space.id, id: category.id as string } },
+          params: { path: { spaceId: space.id, id: category.id as string }, query },
           body: { name: v.name, icon: v.icon, color: v.color, ...budgetField },
         })
       ).data
@@ -108,8 +119,13 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
       toast.show(editing ? 'Category saved' : 'Category added', 'success')
       onClose()
     },
-    onError: (err) => {
+    onError: (err, vars) => {
       const e = toAppError(err)
+      if (e.code === 'CATEGORY_EXISTS_SIMILAR') {
+        const existing = e.details.existingName
+        setSimilar({ name: typeof existing === 'string' ? existing : 'one', values: vars.v })
+        return
+      }
       if (e.code === 'CATEGORY_NAME_TAKEN') {
         // A duplicate name belongs on the name field, not in a banner.
         setError('name', {
@@ -137,7 +153,8 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
           disabled={save.isPending}
           onClick={handleSubmit((v) => {
             setFormError(null)
-            save.mutate(v)
+            setSimilar(null)
+            save.mutate({ v })
           })}
         >
           {save.isPending ? 'Saving…' : 'Save'}
@@ -149,6 +166,40 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
           <p role="alert" className="text-sm text-negative">
             {formError}
           </p>
+        ) : null}
+
+        {similar ? (
+          <div
+            role="alert"
+            data-testid="similar-category"
+            className="flex flex-col gap-3 rounded-lg border border-warning px-4 py-3 text-sm"
+          >
+            <p>
+              A category with the same meaning already exists: <strong>{similar.name}</strong>.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  toast.show(`Using ${similar.name}`, 'success')
+                  onClose()
+                }}
+              >
+                Use existing
+              </Button>
+              <Button
+                size="sm"
+                disabled={save.isPending}
+                onClick={() => {
+                  setSimilar(null)
+                  save.mutate({ v: similar.values, force: true })
+                }}
+              >
+                Create anyway
+              </Button>
+            </div>
+          </div>
         ) : null}
 
         {!editing && names.length > 0 ? (
@@ -172,7 +223,14 @@ export function CategoryFormSheet({ type, category, onClose }: CategoryFormSheet
           control={control}
           name="icon"
           render={({ field }) => (
-            <EmojiPicker label="Icon" value={field.value} onChange={field.onChange} />
+            <EmojiPicker
+              label="Icon"
+              value={field.value}
+              onChange={(v) => {
+                setIconTouched(true)
+                field.onChange(v)
+              }}
+            />
           )}
         />
         <Controller

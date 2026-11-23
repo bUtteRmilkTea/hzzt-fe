@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { useCategories } from '@/shared/api/categories'
 import { useWallets } from '@/shared/api/wallets'
+import { categoryLabel } from '@/shared/i18n'
 import { isValidDay, PERIOD_PRESETS, type Period } from '@/shared/period'
 import { Button } from '@/shared/ui/Button'
 import { CategoryChip } from '@/shared/ui/CategoryChip'
@@ -103,23 +104,61 @@ export function FilterSheet() {
           </Button>
         </fieldset>
 
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm font-medium text-label-secondary">Categories</legend>
-          <div className="flex flex-wrap gap-2">
-            {[...(expense.data ?? []), ...(income.data ?? [])].map((c) => (
-              <CategoryChip
-                key={c.id}
-                icon={c.icon ?? '🏷️'}
-                name={c.name ?? ''}
-                color={c.color}
-                selected={draft.categoryIds.includes(c.id as string)}
-                onClick={() =>
-                  setDraft((d) => ({ ...d, categoryIds: toggle(d.categoryIds, c.id as string) }))
-                }
-              />
-            ))}
-          </div>
-        </fieldset>
+        {(
+          [
+            ['Expense', expense.data ?? []],
+            ['Income', income.data ?? []],
+          ] as const
+        ).map(([heading, list]) => {
+          const groupIds = list.map((c) => c.id as string)
+          const allSelected =
+            groupIds.length > 0 && groupIds.every((id) => draft.categoryIds.includes(id))
+          return list.length === 0 ? null : (
+            <fieldset
+              key={heading}
+              className="flex flex-col gap-3"
+              data-testid={`filter-${heading.toLowerCase()}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <legend className="text-sm font-medium text-label-secondary">
+                  {heading} categories
+                </legend>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`${allSelected ? 'Clear' : 'Select all'} ${heading.toLowerCase()} categories`}
+                  onClick={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      categoryIds: allSelected
+                        ? d.categoryIds.filter((id) => !groupIds.includes(id))
+                        : [...new Set([...d.categoryIds, ...groupIds])],
+                    }))
+                  }
+                >
+                  {allSelected ? 'Clear' : 'Select all'}
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {list.map((c) => (
+                  <CategoryChip
+                    key={c.id}
+                    icon={c.icon ?? '🏷️'}
+                    name={categoryLabel(c)}
+                    color={c.color}
+                    selected={draft.categoryIds.includes(c.id as string)}
+                    onClick={() =>
+                      setDraft((d) => ({
+                        ...d,
+                        categoryIds: toggle(d.categoryIds, c.id as string),
+                      }))
+                    }
+                  />
+                ))}
+              </div>
+            </fieldset>
+          )
+        })}
 
         <fieldset className="flex flex-col gap-3">
           <legend className="text-sm font-medium text-label-secondary">Wallets</legend>

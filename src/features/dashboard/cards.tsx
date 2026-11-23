@@ -1,11 +1,12 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { format, getISODay, parseISO } from 'date-fns'
-import { ChevronLeft, ChevronRight, Target } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Target, TrendingDown, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { useGoals } from '@/features/goals/hooks'
 import { useNetWorthHistory, useNetWorthSummary } from '@/shared/api/networth'
 import { BarChart, DonutChart, LineChart } from '@/shared/charts'
+import { categoryNameLabel, useLanguage } from '@/shared/i18n'
 import { useGrow } from '@/shared/motion/useGrow'
 import { type Period, periodToSearch } from '@/shared/period'
 import { Amount } from '@/shared/ui/Amount'
@@ -170,6 +171,7 @@ export function BreakdownCard({ period }: { period: Period }) {
   const { space } = useSpace()
   const navigate = useNavigate()
   const [type, setType] = useState<BreakdownType>('EXPENSE')
+  useLanguage() // re-render when the language changes
   const q = useBreakdown(space.id, period, type)
   return (
     <Card title="Categories">
@@ -178,8 +180,12 @@ export function BreakdownCard({ period }: { period: Period }) {
         value={type}
         onValueChange={setType}
         options={[
-          { value: 'EXPENSE', label: 'Expense' },
-          { value: 'INCOME', label: 'Income' },
+          {
+            value: 'EXPENSE',
+            label: 'Expense',
+            icon: <TrendingDown aria-hidden className="size-4" />,
+          },
+          { value: 'INCOME', label: 'Income', icon: <TrendingUp aria-hidden className="size-4" /> },
         ]}
       />
       {q.isPending ? (
@@ -200,7 +206,7 @@ export function BreakdownCard({ period }: { period: Period }) {
             slices={q.data.items.map((i) => ({
               key: i.key,
               amount: i.amount,
-              name: i.name,
+              name: categoryNameLabel(i.name),
               icon: i.icon,
               color: i.color ?? 'var(--label-tertiary)',
               pct: i.pct,

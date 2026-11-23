@@ -121,11 +121,11 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [ ] F39-T04 Contributions note, coverage note, tests and Playwright
 
 **F38** (localization, icons, filter, settings; BE Phase F for `systemKey`, Phase I for the filter)
-- [ ] F38-T01 Language setting and `systemKey` strings (T12, D-F51)
-- [ ] F38-T02 Vector icons for system UI and a default icon per category (T13)
-- [ ] F38-T03 Filter sheet grouped by type, multi-select with a count badge (T14)
-- [ ] F38-T04 Settings in sections with search (T15)
-- [ ] F38-T05 Tests and Playwright
+- [x] F38-T01 Language setting and `systemKey` strings (T12, D-F51) (Nov 23: no i18n library; typed dictionary en/id for the 11 default categories and 3 system entries; applied to transaction titles, category pickers, filters, categories list and the Home breakdown; a renamed default category is never replaced. Gaji/Salary: the 409 with Use existing and Create anyway (force=true). Q11 treated as wanted, as the plan assumed)
+- [x] F38-T02 Vector icons for system UI and a default icon per category (T13) (Nov 23: the Expense/Income/Transfer tabs got lucide icons, they were text only in this build; the default icon follows the name through a static map, neutral tag as fallback, Subscriptions and Snacks differ. No emoji glyph problem was reproduced)
+- [x] F38-T03 Filter sheet grouped by type, multi-select with a count badge (T14) (Nov 23: unblocked, `categoryIds` is already supported; Expense and Income groups with Select all, the badge counts the date range plus each selected category and wallet)
+- [x] F38-T04 Settings in sections with search (T15) (Nov 23: this build has 10 rows, not 25. Sections: Account, Money setup, On this device. Automation, Data and Support have no rows here so they do not exist. Row map: Account = Profile, Space, App lock; Money setup = Categories, Goals, Currency; On this device = Hide amounts, Language, Animations, Keyboard; Sign out stays at the bottom)
+- [x] F38-T05 Tests and Playwright
 
 ### F33: Numbers that can be trusted
 

@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { useCategories } from '@/shared/api/categories'
 import { useWallets } from '@/shared/api/wallets'
+import { categoryLabel } from '@/shared/i18n'
 import { DEFAULT_PERIOD, periodsEqual } from '@/shared/period'
 import { periodLabel } from '@/shared/period/format'
 import { type TransactionFilters, toggle } from './filters'
@@ -56,7 +57,7 @@ export function ActiveFilterChips({
         return (
           <li key={`c-${id}`}>
             <RemovableChip
-              label={`${c?.icon ?? '🏷️'} ${c?.name ?? 'Category'}`}
+              label={`${c?.icon ?? '🏷️'} ${c ? categoryLabel(c) : 'Category'}`}
               onRemove={() =>
                 onChange({ ...filters, categoryIds: toggle(filters.categoryIds, id) })
               }
