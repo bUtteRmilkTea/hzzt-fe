@@ -26,7 +26,20 @@ describe('asset page', () => {
     server.use(
       http.get(`${NW}/summary`, () => HttpResponse.json(summary())),
       http.get(`${NW}/history`, () =>
-        HttpResponse.json({ currency: 'IDR', changePct: '3.25', range: '1M', points: [] }),
+        HttpResponse.json({
+          currency: 'IDR',
+          changePct: '3.25',
+          range: '1M',
+          series: {
+            netWorth: {
+              last: '95000000',
+              change: '3000000',
+              changePct: '3.25',
+              direction: 'RISING',
+            },
+          },
+          points: [],
+        }),
       ),
       kindHandler({
         FIXED_ASSET: assetList('FIXED_ASSET', [house], '50000000'),
@@ -37,9 +50,8 @@ describe('asset page', () => {
     renderApp('/s/s-1/assets')
     // The animated hero renders a sizer, the counting frame and a screen-reader copy.
     expect((await screen.findAllByText('IDR 95,000,000')).length).toBeGreaterThan(0)
-    expect(await screen.findByTestId('networth-change')).toHaveTextContent(
-      '+3.25% in the last month',
-    )
+    expect(await screen.findByTestId('growth-change')).toHaveTextContent('+3.25%')
+    expect(screen.getByTestId('growth-sentence')).toHaveTextContent('Rising over the last month')
     for (const [name, total] of [
       ['Cash', 'IDR 30,000,000'],
       ['Investments', 'IDR 40,000,000'],
@@ -59,13 +71,26 @@ describe('asset page', () => {
     server.use(
       http.get(`${NW}/summary`, () => HttpResponse.json(summary())),
       http.get(`${NW}/history`, () =>
-        HttpResponse.json({ currency: 'IDR', changePct: '-4.1', range: '1M', points: [] }),
+        HttpResponse.json({
+          currency: 'IDR',
+          changePct: '-4.1',
+          range: '1M',
+          series: {
+            netWorth: {
+              last: '90000000',
+              change: '-4000000',
+              changePct: '-4.1',
+              direction: 'FALLING',
+            },
+          },
+          points: [],
+        }),
       ),
     )
     renderApp('/s/s-1/assets')
-    const badge = await screen.findByTestId('networth-change')
+    const badge = await screen.findByTestId('growth-change')
     expect(badge).toHaveTextContent('-4.1%')
-    expect(badge).toHaveClass('text-negative')
+    expect(badge.parentElement).toHaveClass('text-negative')
   })
 
   it('sections collapse and expand', async () => {

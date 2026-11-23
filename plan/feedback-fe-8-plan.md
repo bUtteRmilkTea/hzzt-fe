@@ -115,10 +115,10 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [x] F37-T05 Tests, axe and Playwright
 
 **F39** (growth chart; BE Phase K)
-- [ ] F39-T01 Growth chart component with series switch and range picker
-- [ ] F39-T02 Rising or falling summary from server fields
-- [ ] F39-T03 Where it appears (Assets and Investments)
-- [ ] F39-T04 Contributions note, coverage note, tests and Playwright
+- [x] F39-T01 Growth chart component with series switch and range picker (Nov 23: `features/growth/GrowthChart`; unblocked, the API now sends `series`, `direction` and `coverage`; series Net worth, Investments, Fixed assets and All assets (Q14 yes); a series switch uses the one response, a range change refetches)
+- [x] F39-T02 Rising or falling summary from server fields
+- [x] F39-T03 Where it appears (Assets and Investments) (Nov 23: replaces the Investments portfolio line and the Assets net worth chart; the Assets change badge was replaced by the chart summary. A cash-only space offers net worth only)
+- [x] F39-T04 Contributions note, coverage note, tests and Playwright (Nov 23: built on the F33 branch because it needs the LineChart tooltip, see the PR)
 
 **F38** (localization, icons, filter, settings; BE Phase F for `systemKey`, Phase I for the filter)
 - [x] F38-T01 Language setting and `systemKey` strings (T12, D-F51) (Nov 23: no i18n library; typed dictionary en/id for the 11 default categories and 3 system entries; applied to transaction titles, category pickers, filters, categories list and the Home breakdown; a renamed default category is never replaced. Gaji/Salary: the 409 with Use existing and Create anyway (force=true). Q11 treated as wanted, as the plan assumed)

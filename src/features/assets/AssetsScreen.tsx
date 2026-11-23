@@ -2,10 +2,11 @@ import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, ChevronDown, Plus, Wallet } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
+import { GrowthChart } from '@/features/growth/GrowthChart'
 import { useInvestments, useInvestmentTypes } from '@/features/investments/hooks'
 import { TypedPriceNote } from '@/features/investments/priceSource'
 import { useWallets } from '@/shared/api/wallets'
-import { LineChart, PieChart } from '@/shared/charts'
+import { PieChart } from '@/shared/charts'
 import { toMoneyString } from '@/shared/money'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
@@ -19,7 +20,7 @@ import { TwoColumn } from '@/shared/ui/TwoColumn'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { AssetBreakdownList } from './AssetBreakdownList'
 import { accountGroups, assetMixSlices, capEach, cashGroups } from './breakdown'
-import { useManualAssets, useNetWorthHistory, useNetWorthSummary } from './hooks'
+import { useManualAssets, useNetWorthSummary } from './hooks'
 import { KINDS, type KindMeta } from './kinds'
 
 /** "3 items": just the count. Shown while a section is collapsed. */
@@ -168,7 +169,6 @@ const kind = (k: KindMeta['kind']) => KINDS.find((m) => m.kind === k) as KindMet
 export function AssetsScreen() {
   const { space } = useSpace()
   const summary = useNetWorthSummary(space.id)
-  const history = useNetWorthHistory(space.id, '1M')
   const cashOnly = space.trackingMode === 'CASH_ONLY'
   const wallets = useWallets(space.id)
   const investments = useInvestments(space.id, !cashOnly)
@@ -176,7 +176,6 @@ export function AssetsScreen() {
   const typeLabel = (assetType: string) =>
     types.data?.find((t) => t.assetType === assetType)?.label ?? assetType
   const s = summary.data
-  const change = history.data?.changePct
   const currency = s?.currency || space.baseCurrency
   // Cash-only spaces have one group, so no pie.
   const mix = s && !cashOnly ? assetMixSlices(s) : []
@@ -292,30 +291,11 @@ export function AssetsScreen() {
                     <Amount value={s.netWorth} currency={currency} animate />
                   </p>
                 </div>
-                {change !== null && change !== undefined ? (
-                  <span
-                    data-testid="networth-change"
-                    className={cn(
-                      'tabular text-sm font-medium',
-                      change.startsWith('-') ? 'text-negative' : 'text-positive',
-                    )}
-                  >
-                    {change.startsWith('-') ? '' : '+'}
-                    {change}% in the last month
-                  </span>
-                ) : null}
               </div>
-              <LineChart
-                draw
-                loading={history.isPending}
-                height={180}
-                data={(history.data?.points ?? []).map((p) => ({
-                  date: p.date,
-                  value: p.netWorth,
-                  live: p.live,
-                }))}
-                currency={history.data?.currency || currency}
-                label="Net worth over the last month"
+              <GrowthChart
+                currency={currency}
+                testId="networth-growth"
+                label="Net worth over time"
               />
             </div>
             {mix.length > 1 ? (

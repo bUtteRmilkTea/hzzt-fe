@@ -1,5 +1,5 @@
 // biome-ignore-all lint/plugin: fixtures only
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { BASE, makeAuthedHandlers } from '../../../test/msw/api'
@@ -64,6 +64,9 @@ describe('portfolio line (F31)', () => {
           range: 'x',
           changePct: '1',
           investmentsChangePct: '10.00',
+          series: {
+            investments: { last: '990', change: '90', changePct: '10.00', direction: 'RISING' },
+          },
           points: threeMonths(),
         })
       }),
@@ -73,27 +76,35 @@ describe('portfolio line (F31)', () => {
     const hero = await screen.findByTestId('portfolio-summary')
     expect(within(hero).getByTestId('portfolio-line')).toBeInTheDocument()
     expect(within(hero).getByTestId('portfolio-pie')).toBeInTheDocument()
-    const picker = within(hero).getByRole('radiogroup', { name: 'Portfolio range' })
+    const picker = within(hero).getByRole('radiogroup', { name: 'Growth range' })
     expect(
       within(picker)
         .getAllByRole('radio')
         .map((r) => r.textContent),
-    ).toEqual(['1M', '3M', '6M', '12M', 'All time'])
-    expect(await within(hero).findByTestId('portfolio-change')).toHaveTextContent('+10.00%')
-    await user.click(within(picker).getByRole('radio', { name: '12M' }))
-    await user.click(within(picker).getByRole('radio', { name: 'All time' }))
+    ).toEqual(['1W', '1M', '3M', '6M', 'YTD', '1Y', 'All'])
+    // The Investments series is the default, and its numbers are the server's.
+    expect(await within(hero).findByTestId('growth-change')).toHaveTextContent('+10.00%')
+    await user.click(within(picker).getByRole('radio', { name: '1Y' }))
+    await user.click(within(picker).getByRole('radio', { name: 'All' }))
+    await user.click(within(picker).getByRole('radio', { name: 'YTD' }))
     expect(seen).toContain('1Y')
     expect(seen).toContain('ALL')
+    expect(seen).toContain('YTD')
   })
 
   it('keeps the chosen 6M and notes that the data only covers 3 months', async () => {
     server.use(
-      http.get(NW, () =>
+      http.get(NW, ({ request }) =>
         HttpResponse.json({
           currency: 'IDR',
           range: '6M',
           changePct: '1',
           investmentsChangePct: '10.00',
+          coverage: {
+            firstPointDate: '2026-08-23',
+            requestedFrom: '2026-05-23',
+            short: new URL(request.url).searchParams.get('range') !== 'ALL',
+          },
           points: threeMonths(),
         }),
       ),
@@ -101,14 +112,16 @@ describe('portfolio line (F31)', () => {
     const user = userEvent.setup()
     renderApp('/s/s-1/investments')
     const hero = await screen.findByTestId('portfolio-summary')
-    const picker = within(hero).getByRole('radiogroup', { name: 'Portfolio range' })
+    const picker = within(hero).getByRole('radiogroup', { name: 'Growth range' })
     await user.click(within(picker).getByRole('radio', { name: '6M' }))
-    expect(await within(hero).findByTestId('portfolio-coverage')).toHaveTextContent(
+    expect(await within(hero).findByTestId('growth-coverage')).toHaveTextContent(
       'Your data only covers 3 months.',
     )
     expect(within(picker).getByRole('radio', { name: '6M' })).toBeChecked()
-    await user.click(within(picker).getByRole('radio', { name: 'All time' }))
-    expect(within(hero).queryByTestId('portfolio-coverage')).not.toBeInTheDocument()
+    await user.click(within(picker).getByRole('radio', { name: 'All' }))
+    await waitFor(() =>
+      expect(within(hero).queryByTestId('growth-coverage')).not.toBeInTheDocument(),
+    )
   })
 
   it('a single point shows the empty state with the note', async () => {
@@ -128,7 +141,6 @@ describe('portfolio line (F31)', () => {
     renderApp('/s/s-1/investments')
     const hero = await screen.findByTestId('portfolio-summary')
     expect(await within(hero).findByText('History starts today.')).toBeInTheDocument()
-    expect(within(hero).getByTestId('portfolio-coverage')).toHaveTextContent('1 day')
   })
 })
 
