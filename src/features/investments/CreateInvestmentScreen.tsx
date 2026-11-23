@@ -7,7 +7,7 @@ import { useCurrencies } from '@/features/spaces/hooks'
 import { errorMessage, fieldErrors } from '@/shared/api/errors'
 import { useWallets } from '@/shared/api/wallets'
 import { currencyPrefix } from '@/shared/money'
-import { Button } from '@/shared/ui/Button'
+import { Button, DisabledReason } from '@/shared/ui/Button'
 import { EmojiPopover } from '@/shared/ui/EmojiPopover'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Field } from '@/shared/ui/Field'
@@ -343,6 +343,8 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
     wrapper?: string
   }
 
+  const nameFilled = Boolean(watched.name?.trim())
+
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-8">
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
@@ -578,9 +580,19 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
           data-testid="submit-bar"
           className="sticky bottom-24 z-20 -mx-4 border-t border-border bg-bg/90 px-4 py-3 backdrop-blur-[20px] md:bottom-0 md:-mx-8 md:px-8 lg:mx-0 lg:rounded-lg lg:border lg:px-4"
         >
-          <Button type="submit" block disabled={create.isPending}>
+          <Button
+            type="submit"
+            block
+            disabled={create.isPending || !nameFilled}
+            aria-describedby={nameFilled ? undefined : 'add-investment-reason'}
+          >
             {create.isPending ? 'Adding…' : 'Add investment'}
           </Button>
+          {nameFilled ? null : (
+            <DisabledReason id="add-investment-reason">
+              Enter a name to add this investment
+            </DisabledReason>
+          )}
         </div>
       </form>
 

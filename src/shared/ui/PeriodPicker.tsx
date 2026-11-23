@@ -32,7 +32,7 @@ export function PeriodPicker({ value, onChange, className }: PeriodPickerProps) 
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          'inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface-1 px-4 text-sm font-medium',
+          'inline-flex min-h-12 items-center gap-2 rounded-full border border-border bg-surface-1 px-4 text-sm font-medium',
           className,
         )}
       >

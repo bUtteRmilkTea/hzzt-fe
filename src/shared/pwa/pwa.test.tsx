@@ -82,12 +82,12 @@ describe('offline writes are blocked, not queued', () => {
     server.use(...authedHandlers)
     server.use(http.get(`${BASE}/spaces/s-1/wallets`, () => HttpResponse.json(walletList([cash]))))
     renderApp('/s/s-1/wallets')
-    expect(await screen.findByRole('link', { name: 'Cash, open wallet' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: /Cash.*open wallet/ })).toBeInTheDocument()
     act(() => setOnline(false))
     expect(
       await screen.findByText(/You're offline\. You can read what's already loaded/),
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Cash, open wallet' })).toBeInTheDocument() // served from the query cache
+    expect(screen.getByRole('link', { name: /Cash.*open wallet/ })).toBeInTheDocument() // served from the query cache
   })
 })
 

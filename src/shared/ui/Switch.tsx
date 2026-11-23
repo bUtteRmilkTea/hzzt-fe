@@ -7,7 +7,7 @@ export function Switch({ className, ...props }: ComponentProps<typeof RadixSwitc
     // 44px hit area around the 31px visual track
     <RadixSwitch.Root
       className={cn(
-        'relative inline-flex h-11 w-[58px] shrink-0 items-center justify-center rounded-full',
+        'relative inline-flex h-12 w-[58px] shrink-0 items-center justify-center rounded-full',
         className,
       )}
       {...props}

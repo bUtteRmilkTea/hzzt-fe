@@ -397,7 +397,7 @@ function GoalBar({ pct, achieved }: { pct: string | undefined; achieved: boolean
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={n}
-      className="h-2 overflow-hidden rounded-full bg-surface-3"
+      className="h-1.5 overflow-hidden rounded-full bg-surface-3"
     >
       <div
         style={{ width: `${grown}%` }}
@@ -410,10 +410,10 @@ function GoalBar({ pct, achieved }: { pct: string | undefined; achieved: boolean
   )
 }
 
-/** Goals shown on Home before "View more" appears. */
+/** Goals shown on Home; the header link goes to all of them. */
 const HOME_GOALS = 3
 
-/** Up to three active goals with progress, a "View more" button when there are more, or an empty state. */
+/** Up to three active goals as compact rows (no ring), an "All goals" header link, or an empty state. */
 export function GoalsCard() {
   const { space } = useSpace()
   const q = useGoals(space.id)
@@ -422,7 +422,17 @@ export function GoalsCard() {
   const allActive = q.data.filter((g) => !g.achievedAt)
   const active = allActive.slice(0, HOME_GOALS)
   return (
-    <Card title="Goals">
+    <Card
+      title="Goals"
+      action={
+        <Button variant="ghost" size="sm" asChild className="-mr-2">
+          <Link to="/s/$spaceId/goals" params={{ spaceId: space.id }}>
+            All goals
+            <ChevronRight aria-hidden className="size-4" />
+          </Link>
+        </Button>
+      }
+    >
       {active.length === 0 ? (
         <div className="flex flex-col items-start gap-3" data-testid="goals-empty">
           <p className="text-sm text-label-secondary">Set a target and watch your progress here.</p>
@@ -433,13 +443,13 @@ export function GoalsCard() {
           </Button>
         </div>
       ) : (
-        <ul className="flex flex-col gap-4" data-testid="goals-list">
+        <ul className="flex flex-col gap-3" data-testid="goals-list">
           {active.map((g) => (
             <li key={g.id}>
               <Link
                 to="/s/$spaceId/goals/$id"
                 params={{ spaceId: space.id, id: g.id as string }}
-                className="flex flex-col gap-1.5"
+                className="flex flex-col gap-1"
               >
                 <span className="flex items-center justify-between gap-3">
                   <span className="flex min-w-0 items-center gap-2 font-medium">
@@ -462,13 +472,6 @@ export function GoalsCard() {
           ))}
         </ul>
       )}
-      {allActive.length > HOME_GOALS ? (
-        <Button variant="secondary" block asChild>
-          <Link to="/s/$spaceId/goals" params={{ spaceId: space.id }}>
-            View more
-          </Link>
-        </Button>
-      ) : null}
     </Card>
   )
 }

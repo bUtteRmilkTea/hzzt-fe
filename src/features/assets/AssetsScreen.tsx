@@ -55,7 +55,7 @@ function Section({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
-          className="flex min-h-11 flex-1 items-center gap-2 text-left"
+          className="flex min-h-12 flex-1 items-center gap-2 text-left"
         >
           <ChevronDown
             aria-hidden

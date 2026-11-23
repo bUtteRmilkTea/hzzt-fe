@@ -17,7 +17,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 const card =
   'mx-auto mt-10 flex max-w-md flex-col items-center gap-3 rounded-lg border border-border bg-surface-1 px-6 py-10 text-center'
 const button =
-  'mt-2 inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-5 font-semibold text-accent-label'
+  'mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-5 font-semibold text-accent-label'
 
 /** Root boundary: catches render crashes and offers a reload. */
 function RootError({ error }: ErrorComponentProps) {
