@@ -20,7 +20,12 @@ import { useToast } from '@/shared/ui/Toast'
 import { DayGroupHeader, TransactionRow } from '@/shared/ui/TransactionRow'
 import { WalletCard } from '@/shared/ui/WalletCard'
 import { prefsOf } from './display'
-import { useInvalidateMoney, useWallet, useWalletTransactions } from './hooks'
+import {
+  useInvalidateMoney,
+  useWallet,
+  useWalletDeleteImpact,
+  useWalletTransactions,
+} from './hooks'
 import { TopUpSheet } from './TopUpSheet'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -74,19 +79,21 @@ export function WalletDetailScreen() {
     },
     onError: (err) => {
       setConfirmDelete(false)
-      if (toAppError(err).code === 'WALLET_HAS_BALANCE') setConfirmForce(true)
+      const code = toAppError(err).code
+      if (code === 'WALLET_HAS_BALANCE' || code === 'WALLET_HAS_TRANSACTIONS') setConfirmForce(true)
       else toast.show(errorMessage(err), 'error')
     },
   })
 
-  // Delete impact (F35-T03). No delete-impact endpoint yet, so count the wallet's loaded
+  // Delete impact (F35-T03): the server's counts. If that call fails, count the wallet's loaded
   // transactions, all time, and say "at least" when there are more pages.
+  const serverImpact = useWalletDeleteImpact(space.id, id, confirmDelete)
   const impact = useWalletTransactions(
     space.id,
     id,
     { kind: 'preset', preset: 'ALL_TIME' },
     100,
-    confirmDelete,
+    confirmDelete && serverImpact.isError,
   )
 
   const groups = useMemo(() => {
@@ -346,11 +353,13 @@ export function WalletDetailScreen() {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         title="Delete this wallet?"
-        description={deleteImpactText(impact)}
+        description={
+          serverImpact.data ? serverImpactText(serverImpact.data) : deleteImpactText(impact)
+        }
         confirmLabel="Delete wallet"
         destructive
         pending={remove.isPending}
-        onConfirm={() => remove.mutate(false)}
+        onConfirm={() => remove.mutate(needsForce(serverImpact.data))}
       />
       <ConfirmDialog
         open={confirmForce}
@@ -367,6 +376,21 @@ export function WalletDetailScreen() {
       />
     </Page>
   )
+}
+
+type Impact = { transactions?: number; transfers?: number; goalReserves?: number }
+
+/** What deleting touches, from the server's counts. */
+function serverImpactText(i: Impact): string {
+  const base = 'The wallet and its transaction history will be removed.'
+  const noun = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+  const parts: string[] = []
+  if (i.transactions) {
+    const t = noun(i.transactions, 'transaction', 'transactions')
+    parts.push(i.transfers ? `${t} (${noun(i.transfers, 'transfer', 'transfers')} among them)` : t)
+  }
+  if (i.goalReserves) parts.push(noun(i.goalReserves, 'goal reservation', 'goal reservations'))
+  return parts.length ? `${base} This also removes ${parts.join(' and ')}.` : base
 }
 
 /** What deleting removes, counted from the loaded rows ("at least" while more pages exist). */
@@ -386,4 +410,9 @@ function deleteImpactText(q: {
   const parts = [noun(items.length - transfers, 'transaction', 'transactions')]
   if (transfers > 0) parts.push(noun(transfers, 'transfer', 'transfers'))
   return `${base} This also removes ${atLeast}${parts.join(' and ')}.`
+}
+
+/** The server refuses a plain delete when the wallet has a balance or transactions; the dialog already said so. */
+function needsForce(i: { transactions?: number; balance?: string } | null | undefined): boolean {
+  return Boolean(i && ((i.transactions ?? 0) > 0 || (i.balance && /[1-9]/.test(i.balance))))
 }

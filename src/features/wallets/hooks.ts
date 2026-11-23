@@ -23,6 +23,21 @@ export function useWallet(spaceId: string, id: string) {
   })
 }
 
+/** What deleting a wallet touches (BE delete-impact). Only fetched while the confirmation is open. */
+export function useWalletDeleteImpact(spaceId: string, id: string, enabled: boolean) {
+  return useQuery({
+    enabled,
+    queryKey: [...queryKeys.space(spaceId).wallet(id), 'delete-impact'],
+    retry: false,
+    queryFn: async () =>
+      (
+        await api.GET('/spaces/{spaceId}/wallets/{id}/delete-impact', {
+          params: { path: { spaceId, id } },
+        })
+      ).data ?? null,
+  })
+}
+
 const PAGE_SIZE = 30
 
 /** The wallet's transactions for a period, with the backend's cursor pagination. */
