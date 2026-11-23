@@ -51,7 +51,7 @@ export function EmojiPopover({ value, onChange, label = 'Icon', className }: Emo
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((o) => !o)}
-        className="flex size-11 items-center justify-center rounded-md border border-border bg-surface-3 text-2xl hover:border-border-strong"
+        className="flex size-12 items-center justify-center rounded-md border border-border bg-surface-3 text-2xl hover:border-border-strong"
       >
         <span aria-hidden>{value}</span>
       </button>

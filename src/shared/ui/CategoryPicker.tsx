@@ -27,9 +27,9 @@ export function CategoryPicker({
       <legend className="text-sm font-medium text-label-secondary">{label}</legend>
       {categories.isPending ? (
         <div className="flex gap-2" aria-busy="true">
-          <Skeleton className="h-11 w-24 rounded-full" />
-          <Skeleton className="h-11 w-24 rounded-full" />
-          <Skeleton className="h-11 w-24 rounded-full" />
+          <Skeleton className="h-12 w-24 rounded-full" />
+          <Skeleton className="h-12 w-24 rounded-full" />
+          <Skeleton className="h-12 w-24 rounded-full" />
         </div>
       ) : categories.isError ? (
         <div className="flex items-center gap-3 text-sm text-label-secondary">

@@ -12,7 +12,7 @@ export function Input({ className, invalid, ref, ...props }: InputProps) {
       ref={ref}
       aria-invalid={invalid || undefined}
       className={cn(
-        'min-h-11 w-full rounded-md border border-border bg-surface-2 px-4 text-base text-label placeholder:text-label-tertiary focus-visible:border-accent disabled:opacity-50',
+        'min-h-12 w-full rounded-md border border-border bg-surface-2 px-4 text-base text-label placeholder:text-placeholder focus-visible:border-accent disabled:opacity-50',
         invalid && 'border-negative',
         className,
       )}

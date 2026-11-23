@@ -84,7 +84,7 @@ function Shell() {
               <Link
                 to="/settings"
                 aria-label="Settings"
-                className="inline-flex size-11 items-center justify-center rounded-full text-label-secondary hover:bg-surface-3"
+                className="inline-flex size-12 items-center justify-center rounded-full text-label-secondary hover:bg-surface-3"
               >
                 <Settings aria-hidden className="size-5" />
               </Link>

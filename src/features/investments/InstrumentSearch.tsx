@@ -34,7 +34,7 @@ export function InstrumentSearch({ kind, selected, onSelect, error }: Instrument
         </span>
         <button
           type="button"
-          className="min-h-11 px-2 text-sm font-medium text-accent"
+          className="min-h-12 px-2 text-sm font-medium text-accent"
           onClick={() => onSelect(null)}
         >
           Change

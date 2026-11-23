@@ -36,10 +36,10 @@ describe('wallet list', () => {
     renderApp('/s/s-1/wallets')
     const cards = await screen.findAllByRole('link', { name: /open wallet/ })
     // Savings is a favourite, then BCA (sortOrder 0), then Cash (1)
-    expect(cards.map((c) => c.getAttribute('aria-label'))).toEqual([
-      'Savings, open wallet',
-      'BCA, open wallet',
-      'Cash, open wallet',
+    expect(cards.map((c) => c.textContent?.match(/Savings|BCA|Cash/)?.[0])).toEqual([
+      'Savings',
+      'BCA',
+      'Cash',
     ])
     expect(screen.getByTestId('wallets-total')).toHaveTextContent('1,750,000')
     expect(screen.getByText(/No USD to IDR rate/)).toBeInTheDocument()
@@ -80,7 +80,7 @@ describe('wallet list', () => {
     expect(await screen.findByText("Couldn't load your wallets")).toBeInTheDocument()
     fail = false
     await user.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('link', { name: 'Cash, open wallet' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: /Cash.*open wallet/ })).toBeInTheDocument()
   })
 
   it('shows skeletons while loading', async () => {
@@ -94,7 +94,7 @@ describe('wallet list', () => {
     renderApp('/s/s-1/wallets')
     await screen.findByRole('heading', { name: 'Wallets' })
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
-    await screen.findByRole('link', { name: 'Cash, open wallet' })
+    await screen.findByRole('link', { name: /Cash.*open wallet/ })
   })
 })
 
@@ -111,7 +111,7 @@ describe('reordering', () => {
     )
     const user = userEvent.setup()
     renderApp('/s/s-1/wallets')
-    await screen.findByRole('link', { name: 'BCA, open wallet' })
+    await screen.findByRole('link', { name: /BCA.*open wallet/ })
     await user.click(screen.getByRole('button', { name: 'Reorder' }))
     expect(screen.getByRole('button', { name: 'Move BCA up' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Move Cash up' }))
@@ -128,12 +128,14 @@ describe('reordering', () => {
     )
     const user = userEvent.setup()
     renderApp('/s/s-1/wallets')
-    await screen.findByRole('link', { name: 'BCA, open wallet' })
+    await screen.findByRole('link', { name: /BCA.*open wallet/ })
     await user.click(screen.getByRole('button', { name: 'Reorder' }))
     await user.click(screen.getByRole('button', { name: 'Move Cash up' }))
     const order = () =>
-      screen.getAllByRole('link', { name: /open wallet/ }).map((a) => a.getAttribute('aria-label'))
-    await waitFor(() => expect(order()).toEqual(['BCA, open wallet', 'Cash, open wallet']))
+      screen
+        .getAllByRole('link', { name: /open wallet/ })
+        .map((a) => a.textContent?.match(/BCA|Cash/)?.[0])
+    await waitFor(() => expect(order()).toEqual(['BCA', 'Cash']))
     expect(await screen.findByText(/Something went wrong on our side/)).toBeInTheDocument()
   })
 })

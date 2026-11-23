@@ -98,7 +98,6 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [x] F35-T01 Every wrapper group is collapsible (L2, D-F48)
 - [ ] F35-T02 One wallet edit component (T7) (Nov 23: BLOCKED, question for the user: there is one edit page (`EditWalletScreen`) and an options sheet that only links to it plus Delete. No duplicate edit form found, so there is nothing to merge. Which two screens did the review mean?)
 - [x] F35-T03 Delete confirmation with the affected count (T7, uses BE Phase I when present) (Nov 23: counted from loaded rows, "at least" when paged; delete-impact endpoint absent from the API)
-- [x] F35-T03 Delete confirmation with the affected count (T7, uses BE Phase I when present) (Nov 23: uses GET delete-impact now that the API has it, falling back to the loaded rows with "at least"; a wallet with transactions or a balance is deleted with force=true after this dialog, and WALLET_HAS_TRANSACTIONS gets the second confirmation)
 - [x] F35-T04 Template card scrim (T11) (Nov 23: no Jago template exists in this build, templates are CSS artwork; contrast checked on all 6 templates, unit and rendered pixels)
 - [x] F35-T05 Tests and Playwright (Nov 23: T02 assertions N/A, see T02)
 
@@ -107,14 +106,13 @@ F35, F36 and F37 are independent and Ready now. F33, F34 and F38 start with thei
 - [ ] F36-T02 Compact Home goals and Goals page grid (L4, D-F46)
 - [x] ~~F36-T03 Fixed quick action row (T16, D-F50)~~ DROPPED Nov 23 (Q13: no carousel in this build, see section 7)
 - [x] F36-T04 Tests and Playwright (Nov 23: quick action assertions dropped with T03; Q10 both screens implemented)
-- [ ] F36-T04 Tests and Playwright
 
 **F37** (polish; Ready now)
-- [ ] F37-T01 Safe-area insets on every sheet (T6)
-- [ ] F37-T02 Placeholder style and generic placeholders (T9)
-- [ ] F37-T03 Disabled button style and inline reason (T10)
-- [ ] F37-T04 Contrast to AA and 48 px targets (T17)
-- [ ] F37-T05 Tests, axe and Playwright
+- [x] F37-T01 Safe-area insets on every sheet (T6) (Nov 23: `--safe-top` var, sheet max-height and drawer header inset; checked with an emulated 44 px inset at 1440 and 390 on the wallet options sheet)
+- [x] F37-T02 Placeholder style and generic placeholders (T9) (Nov 23: `--placeholder` token at 4.5:1. The four example placeholders of the review were not found in this build, the existing ones are already generic)
+- [x] F37-T03 Disabled button style and inline reason (T10) (Nov 23: reasons on Transfer with under 2 wallets and on Add investment with no name)
+- [x] F37-T04 Contrast to AA and 48 px targets (T17) (Nov 23: tokens were already at 4.5:1; axe clean on six screens x two themes after fixing a label-in-name error on the wallet links; controls raised to 48 px; the 7-column calendar day cells stay 43 px wide, 56 tall, a dense grid exception)
+- [x] F37-T05 Tests, axe and Playwright
 
 **F39** (growth chart; BE Phase K)
 - [ ] F39-T01 Growth chart component with series switch and range picker
