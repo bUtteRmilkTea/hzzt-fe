@@ -134,12 +134,12 @@ export function PieChart({
                     type="button"
                     aria-pressed={selectedKey === s.key}
                     onClick={() => onSelect(s.key)}
-                    className="flex min-h-10 w-full items-center gap-2 rounded-md px-2 hover:bg-surface-3 aria-pressed:bg-surface-3"
+                    className="flex min-h-12 w-full items-center gap-2 rounded-md px-2 hover:bg-surface-3 aria-pressed:bg-surface-3"
                   >
                     {body}
                   </button>
                 ) : (
-                  <div className="flex min-h-10 w-full items-center gap-2 px-2">{body}</div>
+                  <div className="flex min-h-12 w-full items-center gap-2 px-2">{body}</div>
                 )}
               </li>
             )

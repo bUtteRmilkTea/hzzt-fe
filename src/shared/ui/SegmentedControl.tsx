@@ -39,7 +39,7 @@ export function SegmentedControl<T extends string>({
           key={o.value}
           value={o.value}
           disabled={o.disabled}
-          className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-semibold text-label-secondary transition-colors duration-150 data-[state=on]:bg-surface-1 data-[state=on]:text-label data-[state=on]:shadow-card disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex min-h-12 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-semibold text-label-secondary transition-colors duration-150 data-[state=on]:bg-surface-1 data-[state=on]:text-label data-[state=on]:shadow-card disabled:cursor-not-allowed disabled:opacity-40"
         >
           {o.icon}
           {o.label}

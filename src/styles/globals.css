@@ -43,17 +43,34 @@
   }
 }
 
+/* Placeholders look like hints, never like a typed value (F37-T02). */
+::placeholder {
+  color: var(--placeholder);
+  font-style: normal;
+  opacity: 1;
+}
+
 /* Money always uses tabular numerals so columns line up. */
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* Safe-area helpers for the notch and home indicator. */
+/* Safe-area helpers for the notch and home indicator. --safe-top is a variable so tests can emulate a notch. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+/* Sheets stay below the status bar and start their header clear of it (F37-T01). */
+.sheet-top {
+  padding-top: max(var(--safe-top), 1.25rem);
+}
+.sheet-max-h {
+  max-height: min(92dvh, calc(100dvh - var(--safe-top) - 0.5rem));
+}
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
 .pt-safe {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -51,7 +51,7 @@ function NavLink({
         'group relative z-10 flex items-center text-label-secondary transition-colors duration-150 [&.active]:text-label',
         layout === 'tab'
           ? 'min-h-12 min-w-12 flex-1 flex-col justify-center gap-0.5 rounded-full text-xs font-medium'
-          : 'min-h-11 justify-center gap-3 rounded-md px-3 text-base font-medium hover:bg-surface-3/60 xl:justify-start',
+          : 'min-h-12 justify-center gap-3 rounded-md px-3 text-base font-medium hover:bg-surface-3/60 xl:justify-start',
       )}
     >
       <Icon aria-hidden className="size-6 group-[.active]:text-accent" />
@@ -73,7 +73,7 @@ function AddButton({ onAdd, layout }: { onAdd: () => void; layout: 'tab' | 'side
         'flex items-center justify-center bg-accent text-accent-label shadow-card',
         layout === 'tab'
           ? 'mx-1 size-14 shrink-0 rounded-full'
-          : 'min-h-11 w-full gap-2 rounded-full px-0 font-semibold',
+          : 'min-h-12 w-full gap-2 rounded-full px-0 font-semibold',
       )}
     >
       <Plus aria-hidden className="size-6" />

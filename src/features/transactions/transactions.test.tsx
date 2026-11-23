@@ -472,6 +472,18 @@ describe('add a transaction', () => {
     expect(screen.getByText('Old lunch')).toBeInTheDocument()
   })
 
+  it('Transfer is disabled with one wallet and says why (F37-T03)', async () => {
+    server.use(http.get(`${BASE}/spaces/s-1/wallets`, () => HttpResponse.json(walletList([cash]))))
+    const user = userEvent.setup()
+    const { sheet } = await openAdd(user)
+    await user.click(within(sheet).getByRole('radio', { name: 'Transfer' }))
+    const btn = await within(sheet).findByRole('button', { name: 'Transfer' })
+    await waitFor(() => expect(btn).toBeDisabled())
+    expect(btn).toHaveAttribute('aria-disabled', 'true')
+    const reason = within(sheet).getByText('Add a second wallet to transfer')
+    expect(btn).toHaveAttribute('aria-describedby', reason.id)
+  })
+
   it('creates a same-currency transfer without asking for a received amount', async () => {
     let body: Record<string, unknown> = {}
     server.use(

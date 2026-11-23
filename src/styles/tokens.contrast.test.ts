@@ -38,6 +38,18 @@ describe.each(Object.entries(themes))('%s theme contrast (WCAG AA, 4.5:1 for tex
       ).toBeGreaterThanOrEqual(4.5)
     }
   })
+  it('placeholder is 4.5:1 on inputs yet dimmer than a typed value', () => {
+    expect(ratio(t.placeholder as string, t['surface-2'] as string)).toBeGreaterThanOrEqual(4.5)
+    expect(ratio(t.placeholder as string, t.bg as string)).toBeGreaterThanOrEqual(4.5)
+    expect(ratio(t.label as string, t['surface-2'] as string)).toBeGreaterThan(
+      ratio(t.placeholder as string, t['surface-2'] as string) + 2,
+    )
+  })
+  it('disabled button text (label-tertiary) is readable on its muted fill', () => {
+    expect(ratio(t['label-tertiary'] as string, t['surface-3'] as string)).toBeGreaterThanOrEqual(
+      4.5,
+    )
+  })
   it('chips and segmented tracks (surface-3) stay readable', () => {
     for (const text of ['label', 'label-secondary']) {
       expect(

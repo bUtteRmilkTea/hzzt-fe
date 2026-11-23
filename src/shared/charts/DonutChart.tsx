@@ -118,12 +118,12 @@ export function DonutChart({
                 <button
                   type="button"
                   onClick={() => onSelect(s.key)}
-                  className="flex min-h-11 w-full items-center gap-2 rounded-md px-2 hover:bg-surface-3"
+                  className="flex min-h-12 w-full items-center gap-2 rounded-md px-2 hover:bg-surface-3"
                 >
                   {content}
                 </button>
               ) : (
-                <div className="flex min-h-11 w-full items-center gap-2 px-2">{content}</div>
+                <div className="flex min-h-12 w-full items-center gap-2 px-2">{content}</div>
               )}
             </li>
           )

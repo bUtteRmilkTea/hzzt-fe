@@ -42,7 +42,7 @@ export function SpaceSwitcher() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Switch space. Current space: ${space.name}`}
-        className="flex min-h-11 items-center gap-2 rounded-full pr-3 hover:bg-surface-3"
+        className="flex min-h-12 items-center gap-2 rounded-full pr-3 hover:bg-surface-3"
       >
         <SpaceAvatar emoji={space.avatarEmoji} color={space.avatarColor} />
         <span className="max-w-40 truncate font-semibold">{space.name}</span>

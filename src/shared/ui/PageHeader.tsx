@@ -17,7 +17,7 @@ export function PageHeader({ title, backToSettings, action }: PageHeaderProps) {
           <Link
             to="/settings"
             aria-label="Back to settings"
-            className="-ml-3 inline-flex size-11 items-center justify-center rounded-full text-label-secondary hover:bg-surface-3"
+            className="-ml-3 inline-flex size-12 items-center justify-center rounded-full text-label-secondary hover:bg-surface-3"
           >
             <ChevronLeft aria-hidden className="size-6" />
           </Link>

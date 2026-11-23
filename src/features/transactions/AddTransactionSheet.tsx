@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { errorMessage } from '@/shared/api/errors'
 import { useWallets } from '@/shared/api/wallets'
-import { Button } from '@/shared/ui/Button'
+import { Button, DisabledReason } from '@/shared/ui/Button'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { SheetShell } from '@/shared/ui/SheetShell'
 import { useToast } from '@/shared/ui/Toast'
@@ -36,6 +36,9 @@ export function AddTransactionSheet() {
     returnTo
       ? router.navigate({ href: returnTo })
       : navigate({ to: '/s/$spaceId/history', params: { spaceId: space.id } })
+  // A transfer needs two wallets; say so instead of failing after the tap.
+  const needsSecondWallet =
+    kind === 'TRANSFER' && wallets.isSuccess && (wallets.data?.items.length ?? 0) < 2
   const walletById = (id: string) => wallets.data?.items.find((w) => w.id === id)
 
   return (
@@ -44,13 +47,24 @@ export function AddTransactionSheet() {
       onOpenChange={(o) => !o && void close()}
       title="Add transaction"
       footer={
-        <Button type="submit" form="txn-form" block disabled={pending}>
-          {pending
-            ? 'Saving…'
-            : kind === 'TRANSFER'
-              ? 'Transfer'
-              : `Add ${kind === 'EXPENSE' ? 'expense' : 'income'}`}
-        </Button>
+        <>
+          <Button
+            type="submit"
+            form="txn-form"
+            block
+            disabled={pending || needsSecondWallet}
+            aria-describedby={needsSecondWallet ? 'transfer-reason' : undefined}
+          >
+            {pending
+              ? 'Saving…'
+              : kind === 'TRANSFER'
+                ? 'Transfer'
+                : `Add ${kind === 'EXPENSE' ? 'expense' : 'income'}`}
+          </Button>
+          {needsSecondWallet ? (
+            <DisabledReason id="transfer-reason">Add a second wallet to transfer</DisabledReason>
+          ) : null}
+        </>
       }
     >
       <div className="flex flex-col gap-5">
