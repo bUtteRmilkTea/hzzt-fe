@@ -370,6 +370,86 @@ describe('wallet detail', () => {
     expect(calls).toEqual([''])
   })
 
+  it('states the delete impact from the loaded rows and says "at least" when more pages exist', async () => {
+    server.use(
+      http.get(`${BASE}/spaces/s-1/transactions`, () =>
+        HttpResponse.json({
+          items: [txn({ id: 't-1' }), txn({ id: 't-2', type: 'TRANSFER' })],
+          nextCursor: 'more',
+        }),
+      ),
+      ...makeAuthedHandlers(),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/wallets/w-1')
+    await user.click(await screen.findByRole('button', { name: 'Wallet options' }))
+    await user.click(await screen.findByRole('button', { name: /Delete wallet/ }))
+    const confirm = await screen.findByRole('dialog', { name: 'Delete this wallet?' })
+    await waitFor(() =>
+      expect(confirm).toHaveTextContent('This also removes at least 1 transaction and 1 transfer.'),
+    )
+    // The destructive button is not the focused element.
+    expect(within(confirm).getByRole('button', { name: 'Delete wallet' })).not.toHaveFocus()
+  })
+
+  it('uses the server delete-impact counts and forces the delete the dialog already described', async () => {
+    const calls: string[] = []
+    server.use(
+      http.get(`${W}/w-1/delete-impact`, () =>
+        HttpResponse.json({
+          balance: '0',
+          currency: 'IDR',
+          transactions: 12,
+          transfers: 3,
+          goalReserves: 1,
+        }),
+      ),
+      http.delete(`${W}/w-1`, ({ request }) => {
+        calls.push(new URL(request.url).search)
+        return new HttpResponse(null, { status: 204 })
+      }),
+      noTxns,
+      ...makeAuthedHandlers(),
+    )
+    const user = userEvent.setup()
+    const { router } = renderApp('/s/s-1/wallets/w-1')
+    await user.click(await screen.findByRole('button', { name: 'Wallet options' }))
+    await user.click(await screen.findByRole('button', { name: /Delete wallet/ }))
+    const confirm = await screen.findByRole('dialog', { name: 'Delete this wallet?' })
+    await waitFor(() =>
+      expect(confirm).toHaveTextContent(
+        'This also removes 12 transactions (3 transfers among them) and 1 goal reservation.',
+      ),
+    )
+    await user.click(within(confirm).getByRole('button', { name: 'Delete wallet' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/s/s-1/wallets'))
+    expect(calls).toEqual(['?force=true'])
+  })
+
+  it('WALLET_HAS_TRANSACTIONS asks for the explicit second confirmation, like a balance does', async () => {
+    const calls: string[] = []
+    server.use(
+      http.delete(`${W}/w-1`, ({ request }) => {
+        const q = new URL(request.url).search
+        calls.push(q)
+        return q.includes('force=true')
+          ? new HttpResponse(null, { status: 204 })
+          : HttpResponse.json(errorEnvelope('WALLET_HAS_TRANSACTIONS'), { status: 409 })
+      }),
+      noTxns,
+      ...makeAuthedHandlers(),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/wallets/w-1')
+    await user.click(await screen.findByRole('button', { name: 'Wallet options' }))
+    await user.click(await screen.findByRole('button', { name: /Delete wallet/ }))
+    const first = await screen.findByRole('dialog', { name: 'Delete this wallet?' })
+    await user.click(within(first).getByRole('button', { name: 'Delete wallet' }))
+    const second = await screen.findByRole('dialog', { name: 'This wallet still has money in it' })
+    await user.click(within(second).getByRole('button', { name: 'Delete anyway' }))
+    await waitFor(() => expect(calls).toEqual(['', '?force=true']))
+  })
+
   it('explains WALLET_HAS_BALANCE in plain words and needs a second, explicit confirmation to force', async () => {
     const calls: string[] = []
     server.use(

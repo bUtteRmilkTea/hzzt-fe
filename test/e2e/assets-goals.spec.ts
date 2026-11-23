@@ -98,7 +98,8 @@ test('a goal that reaches its target is marked achieved', async ({ page }) => {
     reserves: { 'w-1': 500 },
   })
   await page.goto('/s/s-1/goals')
-  await expect(page.getByText('Achieved')).toBeVisible()
+  await page.getByRole('button', { name: /Achieved \(1\)/ }).click()
+  await expect(page.getByText('Achieved', { exact: true })).toBeVisible()
   await expect(page.getByRole('progressbar', { name: 'Progress' })).toHaveAttribute(
     'aria-valuenow',
     '100',
