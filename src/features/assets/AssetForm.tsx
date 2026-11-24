@@ -31,9 +31,6 @@ const schema = z.object({
     .refine((v) => v !== '' && !new Decimal(v).isNegative(), 'Enter an amount of zero or more'),
   counterpartyName: z.string().max(120),
   dueDate: z.string().refine((v) => v === '' || isValidDay(v), 'Enter a valid date'),
-  estimatedAnnualChangePct: z
-    .string()
-    .refine((v) => v === '' || /^-?\d+(\.\d+)?$/.test(v), 'Enter a number'),
   note: z.string().max(1000),
 })
 type Values = z.infer<typeof schema>
@@ -70,11 +67,6 @@ function AssetPreview({ kind, control }: { kind: AssetKind; control: Control<Val
           Due {format(new Date(`${due}T12:00:00`), 'd MMM yyyy')}
         </p>
       ) : null}
-      {v.estimatedAnnualChangePct && kind === 'FIXED_ASSET' ? (
-        <p className="text-sm text-label-secondary">
-          Estimated change {v.estimatedAnnualChangePct}% a year
-        </p>
-      ) : null}
     </Card>
   )
 }
@@ -107,7 +99,6 @@ export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }
       currentValue: asset?.currentValue ?? '',
       counterpartyName: asset?.counterpartyName ?? '',
       dueDate: asset?.dueDate ?? '',
-      estimatedAnnualChangePct: asset?.estimatedAnnualChangePct ?? '',
       note: asset?.note ?? '',
     },
   })
@@ -126,7 +117,6 @@ export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }
         'currentValue',
         'counterpartyName',
         'dueDate',
-        'estimatedAnnualChangePct',
         'note',
       ]),
     )
@@ -146,9 +136,6 @@ export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }
           currentValue: value,
           ...(v.counterpartyName && !fixed ? { counterpartyName: v.counterpartyName } : {}),
           ...(v.dueDate && !fixed ? { dueDate: v.dueDate } : {}),
-          ...(v.estimatedAnnualChangePct && fixed
-            ? { estimatedAnnualChangePct: v.estimatedAnnualChangePct }
-            : {}),
           ...(v.note ? { note: v.note } : {}),
         },
         {
@@ -173,7 +160,6 @@ export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }
         // null clears these (backend contract)
         counterpartyName: fixed ? undefined : v.counterpartyName || null,
         dueDate: fixed ? undefined : v.dueDate || null,
-        estimatedAnnualChangePct: fixed ? v.estimatedAnnualChangePct || null : undefined,
         note: v.note || null,
       },
       {
@@ -260,14 +246,7 @@ export function AssetForm({ kind, asset }: { kind: AssetKind; asset?: AssetDTO }
               <Input type="date" {...register('dueDate')} />
             </Field>
           </>
-        ) : (
-          <Field
-            label="Estimated annual change % (optional)"
-            error={errors.estimatedAnnualChangePct?.message}
-          >
-            <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
-          </Field>
-        )}
+        ) : null}
         <div className="lg:col-span-2">
           <Field label="Note (optional)" error={errors.note?.message}>
             <Input maxLength={1000} {...register('note')} />

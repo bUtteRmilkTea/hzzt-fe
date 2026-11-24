@@ -23,7 +23,25 @@ export function quantityScale(assetType: string, meta?: { quantityScale?: number
 }
 
 /** Detail fields that are counts of units, with the most decimal places they may have. */
-const DETAIL_SCALE: Record<string, number> = { lots: 1, stakedQuantity: 8 }
+const DETAIL_SCALE: Record<string, number> = { lots: 1 }
+
+/**
+ * Detail fields the form never shows or sends (D-F59 and R7, R11). The wrapper field already asks
+ * for the exchange, broker or platform once, and staked quantity is gone, so a type's metadata that
+ * still lists them (until the backend drops them) must not draw a second field. Remove a name here
+ * once the metadata no longer has it.
+ */
+export const HIDDEN_DETAIL_FIELDS: readonly string[] = [
+  'broker',
+  'exchangeOrWallet',
+  'platform',
+  'stakedQuantity',
+]
+
+/** The detail fields of a type that the form draws and sends. */
+export function visibleDetailFields(meta: TypeMeta): NonNullable<TypeMeta['detailFields']> {
+  return (meta.detailFields ?? []).filter((f) => !HIDDEN_DETAIL_FIELDS.includes(f.name ?? ''))
+}
 
 /** The Zod rule for one `details` field, taken from the field's metadata. A missing key counts as empty. */
 export function detailFieldSchema(f: FieldMeta): z.ZodType<string> {
@@ -82,7 +100,7 @@ export function buildTypeSchema(meta: TypeMeta) {
   const assetType = meta.assetType as string
   const lots = meta.quantityMode === 'LOTS'
   const detailShape: Record<string, z.ZodType<string>> = {}
-  for (const f of meta.detailFields ?? []) if (f.name) detailShape[f.name] = detailFieldSchema(f)
+  for (const f of visibleDetailFields(meta)) if (f.name) detailShape[f.name] = detailFieldSchema(f)
 
   return z
     .object({
@@ -106,7 +124,6 @@ export function buildTypeSchema(meta: TypeMeta) {
       manualCurrentValue: optionalDecimal.optional(),
       fees: optionalDecimal,
       manualFxRate: optionalDecimal,
-      estimatedAnnualChangePct: optionalDecimal,
       quoteCurrency: z.string(),
       purchaseDate: z.string().refine((v) => v === '' || isValidDay(v), 'Enter a valid date'),
       /** Exchange, broker or platform holding it; empty lets the server derive it from details. */
@@ -129,20 +146,6 @@ export function buildTypeSchema(meta: TypeMeta) {
           code: 'custom',
           path: ['instrumentId'],
           message: 'Search and choose an instrument for automatic pricing.',
-        })
-      }
-      const staked = (v.details as Record<string, string>).stakedQuantity
-      if (
-        staked &&
-        v.quantity &&
-        decimalString.test(staked) &&
-        decimalString.test(v.quantity) &&
-        new Decimal(staked).greaterThan(v.quantity)
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['details', 'stakedQuantity'],
-          message: 'Staked quantity cannot exceed the quantity.',
         })
       }
       if (v.fundingAmount && v.fundingWalletId === '') {
@@ -192,7 +195,6 @@ export function toCreateBody(v: TypeFormValues, meta: TypeMeta): Record<string, 
   put('avgBuyPrice', v.avgBuyPrice)
   put('fees', v.fees)
   put('manualFxRate', v.manualFxRate)
-  put('estimatedAnnualChangePct', v.estimatedAnnualChangePct)
   put('purchaseDate', v.purchaseDate)
   if (v.wrapper?.trim()) body.wrapper = v.wrapper.trim()
   if (v.priceMode === 'MANUAL') {
@@ -203,7 +205,7 @@ export function toCreateBody(v: TypeFormValues, meta: TypeMeta): Record<string, 
   if (meta.quoteCurrencyEditable && v.quoteCurrency) body.quoteCurrency = v.quoteCurrency
 
   const details: Record<string, unknown> = {}
-  for (const f of meta.detailFields ?? []) {
+  for (const f of visibleDetailFields(meta)) {
     const raw = ((v.details as Record<string, string>)[f.name ?? ''] ?? '').trim()
     if (!f.name || raw === '') continue
     details[f.name] = f.kind === 'INTEGER' || f.name === 'lots' ? Number(raw) : raw // a lot count is a count, not money

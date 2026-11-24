@@ -7,6 +7,7 @@ import {
   quantityScale,
   type TypeFormValues,
   toCreateBody,
+  visibleDetailFields,
 } from './schema'
 import {
   isExactly100,
@@ -16,7 +17,7 @@ import {
   shareTotal,
   toParticipantsBody,
 } from './shares'
-import { canPreview, exceedsSellable, previewBuy, previewSell, quantityProblem } from './trade'
+import { canPreview, exceedsHeld, previewBuy, previewSell, quantityProblem } from './trade'
 import type { TypeMeta } from './types'
 import { bpsToPct, groupInvestments, isSharedIn, parseValuation } from './valuation'
 
@@ -33,7 +34,6 @@ const base = {
   manualPrice: '',
   fees: '',
   manualFxRate: '',
-  estimatedAnnualChangePct: '5.5',
   quoteCurrency: '',
   purchaseDate: '',
   fundingWalletId: '',
@@ -98,11 +98,35 @@ describe('per-type required fields (driven by the metadata)', () => {
     expect(ok('CRYPTO', values('CRYPTO', { name: 'x'.repeat(61) }))).toBe(false)
     expect(ok('CRYPTO', values('CRYPTO', { symbol: 'X'.repeat(21) }))).toBe(false)
   })
-  it('crypto staked quantity cannot exceed the quantity', () => {
-    expect(
-      errors('CRYPTO', values('CRYPTO', { quantity: '1' }, { stakedQuantity: '2' })),
-    ).toContain('details.stakedQuantity: Staked quantity cannot exceed the quantity.')
-    expect(ok('CRYPTO', values('CRYPTO', { quantity: '2' }, { stakedQuantity: '2' }))).toBe(true)
+  it('staked quantity is gone: a leftover value neither fails nor is sent', () => {
+    expect(ok('CRYPTO', values('CRYPTO', { quantity: '1' }, { stakedQuantity: '2' }))).toBe(true)
+    const body = toCreateBody(
+      values('CRYPTO', { quantity: '1' }, { stakedQuantity: '2', network: 'Bitcoin' }),
+      meta('CRYPTO'),
+    )
+    expect(body.details).toEqual({ network: 'Bitcoin' })
+  })
+  it('the wrapper detail fields are never drawn or sent: the wrapper field asks once (R7)', () => {
+    for (const t of ['CRYPTO', 'ID_STOCK', 'US_STOCK', 'GLOBAL_ETF', 'MUTUAL_FUND']) {
+      const names = visibleDetailFields(meta(t)).map((f) => f.name)
+      for (const hidden of ['broker', 'exchangeOrWallet', 'platform', 'stakedQuantity'])
+        expect(names).not.toContain(hidden)
+    }
+    // the listing exchange of a stock or ETF is a different fact and stays
+    expect(visibleDetailFields(meta('US_STOCK')).map((f) => f.name)).toContain('exchange')
+    const body = toCreateBody(
+      values('CRYPTO', { wrapper: 'Binance' }, { exchangeOrWallet: 'Bybit', network: 'Bitcoin' }),
+      meta('CRYPTO'),
+    )
+    expect(body.wrapper).toBe('Binance')
+    expect(body.details).toEqual({ network: 'Bitcoin' })
+  })
+  it('expected yearly change is not part of the body any more', () => {
+    const body = toCreateBody(
+      values('CRYPTO', { estimatedAnnualChangePct: '5.5' }) as never,
+      meta('CRYPTO'),
+    )
+    expect(body).not.toHaveProperty('estimatedAnnualChangePct')
   })
 })
 
@@ -124,7 +148,7 @@ describe('lots', () => {
       meta('ID_STOCK'),
     )
     expect(body).not.toHaveProperty('quantity')
-    expect(body.details).toEqual({ lots: 2, broker: 'Stockbit' })
+    expect(body.details).toEqual({ lots: 2 }) // the broker goes through the wrapper field now
     expect(body.symbol).toBe('BBCA')
   })
 })
@@ -306,11 +330,10 @@ describe('trade previews (the backend formulas)', () => {
     expect(canPreview('1', '', '')).toBe(false)
     expect(canPreview('1', '2', '-1')).toBe(false)
   })
-  it('knows what is sellable (held minus staked)', () => {
-    expect(exceedsSellable('10', '2', '8')).toBe(false)
-    expect(exceedsSellable('10', '2', '8.01')).toBe(true)
-    expect(exceedsSellable('10', undefined, '10')).toBe(false)
-    expect(exceedsSellable('10', undefined, '')).toBe(false)
+  it('a sale is limited by the held quantity only', () => {
+    expect(exceedsHeld('10', '10')).toBe(false)
+    expect(exceedsHeld('10', '10.01')).toBe(true)
+    expect(exceedsHeld('10', '')).toBe(false)
   })
 })
 
@@ -399,17 +422,11 @@ describe('quantity decimal limits', () => {
       'quantity: Use at most 1 decimal place',
     )
   })
-  it('Indonesian stock lots allow 1 decimal, staked crypto 8', () => {
+  it('Indonesian stock lots allow 1 decimal', () => {
     const lots = (n: string) => values('ID_STOCK', { quantity: '' }, { lots: n })
     expect(ok('ID_STOCK', lots('2.5'))).toBe(true)
     expect(ok('ID_STOCK', lots('0.5'))).toBe(true)
     expect(errors('ID_STOCK', lots('1.55')).join()).toContain('use at most 1 decimal place')
-    expect(
-      errors(
-        'CRYPTO',
-        values('CRYPTO', { quantity: '2' }, { stakedQuantity: '0.123456789' }),
-      ).join(),
-    ).toContain('use at most 8 decimal places')
   })
   it('helpers', () => {
     expect(decimalPlaces('1.25')).toBe(2)

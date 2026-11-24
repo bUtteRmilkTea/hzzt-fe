@@ -27,7 +27,13 @@ import {
   useInvestmentTypes,
 } from './hooks'
 import { type Instrument, InstrumentSearch } from './InstrumentSearch'
-import { buildTypeSchema, derivedShares, type TypeFormValues, toCreateBody } from './schema'
+import {
+  buildTypeSchema,
+  derivedShares,
+  type TypeFormValues,
+  toCreateBody,
+  visibleDetailFields,
+} from './schema'
 import type { TypeMeta } from './types'
 import { groupInvestments, UNASSIGNED_KEY } from './valuation'
 
@@ -164,7 +170,7 @@ function WrapperField({
   const selectValue = creating ? NEW_WRAPPER : existing.includes(value) ? value : ''
   return (
     <div className="flex flex-col gap-2">
-      <Field label="Exchange / broker (optional)" error={creating ? undefined : error}>
+      <Field label="Exchange, broker or platform (optional)" error={creating ? undefined : error}>
         <Select
           value={selectValue}
           onChange={(e) => {
@@ -187,7 +193,7 @@ function WrapperField({
         </Select>
       </Field>
       {creating ? (
-        <Field label="New wrapper name" error={error}>
+        <Field label="Name" error={error}>
           <Input maxLength={60} value={value} onChange={(e) => onChange(e.target.value)} />
         </Field>
       ) : null}
@@ -216,7 +222,7 @@ export function cleanQuantity(raw: string): string {
 
 function emptyValues(meta: TypeMeta): TypeFormValues {
   const details: Record<string, string> = {}
-  for (const f of meta.detailFields ?? []) if (f.name) details[f.name] = ''
+  for (const f of visibleDetailFields(meta)) if (f.name) details[f.name] = ''
   return {
     assetType: meta.assetType,
     name: '',
@@ -231,8 +237,6 @@ function emptyValues(meta: TypeMeta): TypeFormValues {
     manualCurrentValue: '',
     fees: '',
     manualFxRate: '',
-    // Empty by default: there is no assumed return (F34-T05).
-    estimatedAnnualChangePct: '',
     quoteCurrency: meta.quoteCurrency ?? '',
     purchaseDate: '',
     wrapper: '',
@@ -333,8 +337,14 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
         </Field>
       )
     }
+    const listing = f.name === 'exchange'
     return (
-      <Field key={f.name} label={`${f.label}${f.required ? '' : ' (optional)'}`} error={message}>
+      <Field
+        key={f.name}
+        label={listing ? 'Listing exchange' : `${f.label}${f.required ? '' : ' (optional)'}`}
+        {...(listing ? { hint: 'For example NASDAQ or NYSE' } : {})}
+        error={message}
+      >
         <Input
           type={f.kind === 'DATE' ? 'date' : 'text'}
           inputMode={
@@ -546,14 +556,6 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
               ) : null}
             </div>
           ) : null}
-          <Field
-            label="Expected yearly change (optional)"
-            hint="Only used for projections. Leave empty for none."
-            error={err.estimatedAnnualChangePct?.message}
-          >
-            <Input inputMode="decimal" {...register('estimatedAnnualChangePct')} />
-          </Field>
-
           <WrapperField
             assetType={meta.assetType as string}
             value={watched.wrapper ?? ''}
@@ -561,7 +563,9 @@ function TypeForm({ meta }: { meta: TypeMeta }) {
             error={err.wrapper?.message}
           />
 
-          {(meta.detailFields ?? []).filter((f) => !lots || f.name !== 'lots').map(detailInput)}
+          {visibleDetailFields(meta)
+            .filter((f) => !lots || f.name !== 'lots')
+            .map(detailInput)}
         </div>
 
         <fieldset className="flex flex-col gap-3 rounded-lg border border-border p-4">

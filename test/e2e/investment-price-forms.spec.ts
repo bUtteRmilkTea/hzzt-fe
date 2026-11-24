@@ -62,7 +62,7 @@ for (const vp of [
 
       await page.goto('/s/s-1/investments/new')
       await page.getByRole('radio', { name: 'Manual' }).click()
-      await expect(page.getByLabel('Expected yearly change (optional)')).toHaveValue('')
+      await expect(page.getByLabel(/Expected yearly change/)).toHaveCount(0)
       const avg = page.getByLabel('Average buy price')
       await expect(avg.locator('xpath=..').getByTestId('input-prefix')).toHaveText('$')
       await page.getByLabel('Manual current value (optional)').fill('500')

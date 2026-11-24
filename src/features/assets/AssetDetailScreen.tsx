@@ -77,11 +77,6 @@ export function AssetDetailScreen() {
                 Due {format(new Date(`${a.dueDate}T12:00:00`), 'd MMM yyyy')}
               </p>
             ) : null}
-            {a.estimatedAnnualChangePct ? (
-              <p className="text-sm text-label-secondary">
-                Estimated change {a.estimatedAnnualChangePct}% a year
-              </p>
-            ) : null}
             {a.note ? <p className="mt-2 text-sm">{a.note}</p> : null}
           </Card>
 
