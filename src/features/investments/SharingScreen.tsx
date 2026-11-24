@@ -94,7 +94,7 @@ export function SharingScreen() {
   return (
     <Page width="form" gap={5}>
       <PageHeader title="Share" />
-      <p className="-mt-3 text-sm text-label-secondary">
+      <p className="text-sm text-label-secondary">
         Add people who share this investment, with their percentages. Someone with an account gets
         an invitation; a name-only entry is counted right away.
       </p>

@@ -39,7 +39,9 @@ for (const vp of [
       await expect(page).toHaveURL(/\/settings$/)
     })
 
-    test('Wallet detail keeps the wallet name', async ({ page }) => {
+    test('Wallet detail keeps the wallet name in the outline, not as a title (D-F52)', async ({
+      page,
+    }) => {
       const api = await installFakeApi(page, { signedIn: true })
       api.wallets.push({
         id: 'w-1',
@@ -55,8 +57,8 @@ for (const vp of [
       await page.setViewportSize(vp)
       await page.goto('/s/s-1/wallets/w-1')
       const h1 = page.getByRole('heading', { level: 1, name: 'BCA' })
-      await expect(h1).toBeVisible()
-      expect((await h1.boundingBox())?.width ?? 0).toBeGreaterThan(8)
+      await expect(h1).toHaveCount(1)
+      expect((await h1.boundingBox())?.width ?? 0).toBeLessThanOrEqual(1)
     })
   })
 }

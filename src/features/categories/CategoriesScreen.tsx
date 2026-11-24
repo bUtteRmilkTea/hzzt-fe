@@ -16,7 +16,7 @@ import { Card } from '@/shared/ui/Card'
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Page } from '@/shared/ui/Page'
-import { PageGrid, Panel } from '@/shared/ui/PageGrid'
+import { Panel } from '@/shared/ui/PageGrid'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { Skeleton } from '@/shared/ui/Skeleton'
@@ -38,12 +38,7 @@ function CategoryRail({ type }: { type: CategoryType }) {
   if (q.isPending) return <Skeleton className="h-72" />
   if (!q.isSuccess || q.data.items.length === 0) return null
   return (
-    <Panel
-      span={4}
-      aria-label="Category split"
-      data-testid="category-rail"
-      className="lg:sticky lg:top-4 lg:self-start"
-    >
+    <Panel span={4} aria-label="Category split" data-testid="category-rail" className="lg:max-w-md">
       <h2 className="mb-3 text-base font-semibold">
         {type === 'EXPENSE' ? 'Where it went' : 'Where it came from'}
       </h2>
@@ -170,9 +165,13 @@ export function CategoriesScreen() {
               </Button>
             </div>
           ) : null}
-          <PageGrid>
-            <div className="min-w-0 lg:col-span-8">
-              <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+          {/* D-F53: as many columns as the width allows, so the page has no blank area at the right. */}
+          <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
+            <div className="min-w-0">
+              <ul
+                data-testid="category-grid"
+                className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-4 lg:gap-6"
+              >
                 {categories.data.map((c, i, all) => (
                   <li key={c.id} className={STAGGER} style={staggerStyle(i)}>
                     <CategoryRow
@@ -192,7 +191,7 @@ export function CategoriesScreen() {
               </ul>
             </div>
             <CategoryRail type={type} />
-          </PageGrid>
+          </div>
         </>
       )}
 
