@@ -120,3 +120,31 @@ export function useSettle(spaceId: string, id: string) {
     onSettled: refresh,
   })
 }
+
+/** Undo the newest value change: the value goes back to the entry's previous value. */
+export function useRevertValueChange(spaceId: string, id: string) {
+  const refresh = useRefreshAll(spaceId)
+  return useMutation({
+    mutationFn: async (changeId: string) =>
+      (
+        await api.DELETE('/spaces/{spaceId}/manual-assets/{id}/value-changes/{changeId}', {
+          params: { path: { spaceId, id, changeId } },
+        })
+      ).data,
+    meta: { silent: true },
+    onSettled: refresh,
+  })
+}
+
+/** Delete a settlement (the wallet and the outstanding amount are reversed). */
+export function useDeleteSettlement(spaceId: string, id: string) {
+  const refresh = useRefreshAll(spaceId)
+  return useMutation({
+    mutationFn: async (txnId: string) =>
+      api.DELETE('/spaces/{spaceId}/manual-assets/{id}/settlements/{txnId}', {
+        params: { path: { spaceId, id, txnId } },
+      }),
+    meta: { silent: true },
+    onSettled: refresh,
+  })
+}

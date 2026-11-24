@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { api } from '@/shared/api/client'
 import { invalidateMoney } from '@/shared/api/invalidate'
@@ -272,5 +272,55 @@ export function useFxLatest(base: string, enabled: boolean) {
     staleTime: 10 * 60_000,
     queryFn: async () =>
       (await api.GET('/fx/latest', { params: { query: { base } } })).data ?? null,
+  })
+}
+
+export type TradeRow = components['schemas']['investments.TradeDTO']
+
+const TRADES_PAGE = 20
+
+interface TradePage {
+  items: TradeRow[]
+  next: string | null
+  opening: components['schemas']['investments.OpeningPositionDTO'] | null
+}
+
+/** The BUY and SELL history of one investment, newest first, 20 per page. */
+export function useInvestmentTrades(spaceId: string, id: string, enabled = true) {
+  return useInfiniteQuery({
+    enabled,
+    queryKey: queryKeys.space(spaceId).investmentTrades(id),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last: TradePage) => last.next ?? undefined,
+    queryFn: async ({ pageParam }): Promise<TradePage> => {
+      const { data } = await api.GET('/spaces/{spaceId}/investments/{id}/trades', {
+        params: {
+          path: { spaceId, id },
+          query: { limit: TRADES_PAGE, ...(pageParam ? { cursor: pageParam } : {}) },
+        },
+      })
+      return {
+        items: data?.items ?? [],
+        next: data?.next ?? null,
+        opening: data?.openingPosition ?? null,
+      }
+    },
+  })
+}
+
+/**
+ * Deleting a trade restores the position (later trades are replayed by the server) and returns
+ * or takes back the wallet amount, so every money query refreshes.
+ */
+export function useDeleteTrade() {
+  const { space } = useSpace()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (tradeId: string) =>
+      api.DELETE('/spaces/{spaceId}/transfers/{id}', {
+        params: { path: { spaceId: space.id, id: tradeId } },
+      }),
+    meta: { silent: true },
+    onSettled: () => invalidateMoney(queryClient, space.id),
   })
 }

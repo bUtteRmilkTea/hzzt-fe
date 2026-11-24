@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { useState } from 'react'
 import { useSpace } from '@/app/providers/SpaceProvider'
-import { errorMessage } from '@/shared/api/errors'
+import { errorMessage, toAppError } from '@/shared/api/errors'
 import { toMoneyString } from '@/shared/money'
 import { Amount } from '@/shared/ui/Amount'
 import { Button } from '@/shared/ui/Button'
@@ -14,9 +14,13 @@ import { PageHeader } from '@/shared/ui/PageHeader'
 import { Skeleton } from '@/shared/ui/Skeleton'
 import { useToast } from '@/shared/ui/Toast'
 import { AssetForm } from './AssetForm'
-import { useDeleteAsset, useManualAsset } from './hooks'
+import { useDeleteAsset, useDeleteSettlement, useManualAsset, useRevertValueChange } from './hooks'
 import { type AssetKind, kindMeta } from './kinds'
 import { SettleSheet } from './SettleSheet'
+
+type HistoryEntry = NonNullable<
+  NonNullable<ReturnType<typeof useManualAsset>['data']>['history']
+>[number]
 
 export function AssetDetailScreen() {
   const { space } = useSpace()
@@ -26,7 +30,10 @@ export function AssetDetailScreen() {
   const asset = useManualAsset(space.id, id)
   const remove = useDeleteAsset(space.id, id)
   const [settling, setSettling] = useState(false)
+  const revert = useRevertValueChange(space.id, id)
+  const deleteSettlement = useDeleteSettlement(space.id, id)
   const [confirm, setConfirm] = useState(false)
+  const [undo, setUndo] = useState<HistoryEntry | null>(null)
 
   if (asset.isPending)
     return (
@@ -125,7 +132,7 @@ export function AssetDetailScreen() {
             <ul className="divide-y divide-border rounded-lg border border-border bg-surface-1">
               {(a.history ?? []).map((h) => (
                 <li
-                  key={`${h.changedAt}-${h.newValue}`}
+                  key={h.id ?? `${h.changedAt}-${h.newValue}`}
                   className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
                 >
                   <span>
@@ -136,9 +143,22 @@ export function AssetDetailScreen() {
                       {h.changedAt ? format(new Date(h.changedAt), 'd MMM yyyy') : ''}
                     </span>
                   </span>
-                  <span className="tabular">
-                    <Amount value={toMoneyString(h.previousValue)} currency={currency} /> →{' '}
-                    <Amount value={toMoneyString(h.newValue)} currency={currency} />
+                  <span className="flex flex-col items-end gap-1">
+                    <span className="tabular">
+                      <Amount value={toMoneyString(h.previousValue)} currency={currency} /> →{' '}
+                      <Amount value={toMoneyString(h.newValue)} currency={currency} />
+                    </span>
+                    {h.canRevert ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-negative"
+                        data-testid="revert"
+                        onClick={() => setUndo(h)}
+                      >
+                        {h.reason === 'SETTLEMENT' ? 'Delete settlement' : 'Revert'}
+                      </Button>
+                    ) : null}
                   </span>
                 </li>
               ))}
@@ -146,6 +166,48 @@ export function AssetDetailScreen() {
           </section>
         ) : null}
       </div>
+
+      <ConfirmDialog
+        open={undo !== null}
+        onOpenChange={(o) => {
+          if (!o) setUndo(null)
+        }}
+        title={undo?.reason === 'SETTLEMENT' ? 'Delete this settlement?' : 'Revert this change?'}
+        description={
+          undo?.reason === 'SETTLEMENT'
+            ? 'The wallet and the outstanding amount are put back as they were.'
+            : `Set the value back to ${toMoneyString(undo?.previousValue)} ${currency}?`
+        }
+        confirmLabel={undo?.reason === 'SETTLEMENT' ? 'Delete settlement' : 'Revert'}
+        destructive
+        pending={revert.isPending || deleteSettlement.isPending}
+        onConfirm={() => {
+          if (!undo) return
+          const done = {
+            onSuccess: () => {
+              setUndo(null)
+              toast.show(
+                undo.reason === 'SETTLEMENT' ? 'Settlement deleted' : 'Value reverted',
+                'success',
+              )
+            },
+            onError: (e: unknown) => {
+              setUndo(null)
+              const err = toAppError(e)
+              toast.show(
+                err.code === 'VALUE_CHANGED_SINCE'
+                  ? 'The value changed since you opened this. It was refreshed.'
+                  : errorMessage(e),
+                'error',
+              )
+              if (err.status === 409 || err.status === 404) void asset.refetch()
+            },
+          }
+          if (undo.reason === 'SETTLEMENT' && undo.transactionId)
+            deleteSettlement.mutate(undo.transactionId, done)
+          else if (undo.id) revert.mutate(undo.id, done)
+        }}
+      />
 
       {settling ? <SettleSheet asset={a} onClose={() => setSettling(false)} /> : null}
 

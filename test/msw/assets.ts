@@ -42,7 +42,6 @@ export const house: S['manualassets.AssetDTO'] = {
   icon: '🏠',
   currency: 'IDR',
   currentValue: '50000000',
-  estimatedAnnualChangePct: '4',
   history: [
     {
       changedAt: '2026-10-01T00:00:00Z',

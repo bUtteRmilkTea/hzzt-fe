@@ -27,6 +27,8 @@ export const queryKeys = {
     /** Under `investments()` so every money-moving write refreshes it too. */
     investmentWrappers: () => ['space', spaceId, 'investments', 'wrappers'] as const,
     participants: (id: string) => ['space', spaceId, 'investments', id, 'participants'] as const,
+    /** Under `investments()` so every money-moving write refreshes the history too. */
+    investmentTrades: (id: string) => ['space', spaceId, 'investments', id, 'trades'] as const,
     wallets: () => ['space', spaceId, 'wallets'] as const,
     wallet: (id: string) => ['space', spaceId, 'wallets', id] as const,
     transactions: (filters?: unknown) => ['space', spaceId, 'transactions', filters] as const,

@@ -9,7 +9,7 @@ This addendum extends `docs/frontend-plan.md` and follows `plan/feedback-fe-8-pl
 | Document | Addendum 9 to the frontend plan: eleven feedback rows, R1 to R11 |
 | Scope | Frontend, with backend dependencies marked per task. A task that needs a backend phase is blocked until it ships and uses the existing API until then where that is safe |
 | Sources | One written list of eleven requests (no screenshots) |
-| Status | Planning. Questions Q24, Q25, Q26 and Q28 are answered (section 5). F40 and F41 are Ready now. F42 is partly blocked (BE M, P, Q). F43 is partly blocked (BE L). F44 is blocked on BE N and O |
+| Status | Planning. Questions Q24, Q25, Q26 and Q28 are answered (section 5). F40 and F41 are Ready now. F42 is partly blocked (BE M, P, Q). F43 is partly blocked (BE L). F44 is built (BE N and O are merged) |
 
 **Verification limits.** The feedback is text only, so every root cause below is **inferred** from reading the code. Layout, scroll and alignment tasks are checked in real Chromium (Playwright) at 1440 px and 390 px, and contrast with an automated axe run. Never tick them from unit tests alone (the same rule as addendum 8).
 
@@ -94,10 +94,10 @@ F40 and F41 are independent and Ready now. F42, F43 and F44 start with their fro
 - [x] F43-T03 Tests and Playwright
 
 **F44** (trade history, revert; BE Phases N and O)
-- [ ] F44-T01 Investment detail: trade History card (R10, D-F58, blocked on BE N)
-- [ ] F44-T02 Delete a trade with a confirm that states the effect (R10, blocked on BE N)
-- [ ] F44-T03 Manual asset detail: revert the newest value change (R10, blocked on BE O)
-- [ ] F44-T04 Tests and Playwright
+- [x] F44-T01 Investment detail: trade History card (R10, D-F58, blocked on BE N) (Nov 25: unblocked, BE N is merged. `TradeHistory` under the position card, cursor paging 20 per page, opening position line, Buy/Sell with icon and word, realised PnL on a sale, loading, error and empty states. Deviation: an inline Delete button per row instead of a kebab menu (one tap, no hidden menu); a row the API marks `canDelete: false` shows the `blockedReason` text)
+- [x] F44-T02 Delete a trade with a confirm that states the effect (R10, blocked on BE N) (Nov 25: the confirm quotes the position before and after only when the trade is the one that produced the current position (its `positionAfter` equals the investment's position); for an older trade it says the position is recalculated and the later trades replayed, and promises no figure. 422 TRADE_DELETE_BREAKS_LATER_SELL shows the message with a Show that sale button, 404 refetches, 409 POSITION_CHANGED_SINCE refetches, all through the shared money invalidation plus the trades key)
+- [x] F44-T03 Manual asset detail: revert the newest value change (R10, blocked on BE O) (Nov 25: Revert on every entry the API marks `canRevert`, which is the newest value change and a settlement; a settlement entry reads Delete settlement and calls the existing settlement endpoint. After a revert the next entry becomes the newest and gets the button, as on the backend)
+- [x] F44-T04 Tests and Playwright (Nov 25: 12 vitest tests for the history and 3 for the revert; Playwright at 1440 and 390: delete the newest, delete an older one with replay, a blocked buy, keyboard only with axe on the confirm, and the manual asset revert. The fake API gained the trades list, the replaying delete and the value-change revert)
 
 ### F40: Layout and chrome
 
@@ -200,3 +200,10 @@ Dry run on `development` at `f9de6f9` (no unmerged branch matters). No Decision 
 **Backend contract (`../hzzt` `development:docs/swagger.yaml`).** No `/trades`, no `/valuations`, no `value-changes`, no `navAgeDays`, no `openingPosition`. So F42-T03/T04/T05 and F44 stay blocked. **Correction to the plan:** `investments.WrapperGroupDTO.unrealizedPlPct` **does** exist (and `unrealizedPl`), and the front end schema already has it. But it is per asset type and per wrapper (`/investments/wrappers`), while F41-T03 ranks accounts **across** asset types. A cross type account percent would be a client computed percentage, which is not allowed. So in F41-T03 the PnL **amount** is shown (a sum of the server's per holding base figures, the same method `accountGroups` already uses for the group total) and the **percent stays hidden** (and unticked in the notes) until the backend sends an account level percent.
 
 **F43 note.** `CMC_REFRESH_MINUTES` is a backend concern. The 15 minute poll uses the existing endpoints and is safe before BE L.
+
+## 7. Notes from F44 (Nov 25, 2026)
+
+- BE N and O are merged into `development`, so `pnpm sync:api` was run from the BE `development` working tree and the types now include `/investments/{id}/trades`, `value-changes` and `canRevert`. The sync also removed `estimatedAnnualChangePct` from the types (BE P), which the compiler then found in two test fixtures (`test/msw/assets.ts`, `test/msw/investments.ts`); both were cleaned, as F42-T02 planned. The `stakedQuantity` meta entry and a fixture detail were removed for the same reason.
+- Position wording: the trade list is ordered by `occurredAt`, but the backend replays in recorded order (BE plan section 15). So the client never assumes the top row is the latest trade. It compares the trade's `positionAfter` with the investment's current position to decide whether to quote an end position.
+- Not built, still blocked: F42-T03 to T05 (Update value, monthly list, NAV line) need the valuations endpoint of BE Q, which is now also merged. They can be built next.
+- Pre-existing e2e failures seen again, unchanged by this work: `investments.spec.ts:19` (the Sell step of the fake) fails on `development` too; `assets-goals` reserve is intermittent.

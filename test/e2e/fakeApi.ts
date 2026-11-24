@@ -57,6 +57,19 @@ interface FakeInvestment {
   wrapper?: string
   details?: Record<string, unknown>
   participants: Array<Record<string, unknown>>
+  /** BUY and SELL rows in the order they were recorded; deleting one replays the rest. */
+  trades?: FakeTrade[]
+  /** The position before the first recorded trade (default: nothing). */
+  opening?: { quantity: string; avgBuyPrice: string }
+}
+
+export interface FakeTrade {
+  id: string
+  action: 'BUY' | 'SELL'
+  quantity: string
+  unitPrice: string
+  walletId: string
+  occurredAt: string
 }
 
 interface FakeAsset {
@@ -66,6 +79,15 @@ interface FakeAsset {
   icon: string
   currency: string
   currentValue: string
+  /** Newest first, as the API sends it. `canRevert` is worked out when the asset is read. */
+  history?: Array<{
+    id: string
+    changedAt: string
+    previousValue: string
+    newValue: string
+    reason: 'MANUAL' | 'SETTLEMENT'
+    transactionId?: string
+  }>
 }
 interface FakeGoal {
   id: string
@@ -283,6 +305,112 @@ export async function installFakeApi(
         return json(201, state.transactions[0])
       }
     }
+    // Trade history of an investment, and deleting a trade: the rest is replayed from the opening
+    // position, like the backend does. A buy that a later sale needs cannot be deleted.
+    const tradesRoute = /^\/spaces\/[^/]+\/investments\/([^/]+)\/trades$/.exec(path)
+    const replay = (opening: { quantity: string; avgBuyPrice: string }, rows: FakeTrade[]) => {
+      let q = Number(opening.quantity)
+      let avg = Number(opening.avgBuyPrice)
+      for (const t of rows) {
+        const dq = Number(t.quantity)
+        if (t.action === 'BUY') {
+          avg = (q * avg + dq * Number(t.unitPrice)) / (q + dq)
+          q += dq
+        } else {
+          if (dq > q + 1e-9) return null
+          q -= dq
+        }
+      }
+      return { quantity: String(q), avgBuyPrice: String(avg) }
+    }
+    if (tradesRoute && req.method() === 'GET') {
+      const inv = state.investments.find((x) => x.id === tradesRoute[1])
+      if (!inv) return json(404, envelope('NOT_FOUND'))
+      const rows = inv.trades ?? []
+      const opening = inv.opening ?? { quantity: '0', avgBuyPrice: '0' }
+      const items = rows
+        .map((t, k) => {
+          const before = replay(opening, rows.slice(0, k)) ?? opening
+          const after = replay(opening, rows.slice(0, k + 1)) ?? before
+          const without = replay(opening, [...rows.slice(0, k), ...rows.slice(k + 1)])
+          const wallet = state.wallets.find((w) => w.id === t.walletId)
+          return {
+            id: t.id,
+            action: t.action,
+            occurredAt: t.occurredAt,
+            quantity: t.quantity,
+            unitPrice: t.unitPrice,
+            fee: '0',
+            amount: String(Number(t.quantity) * Number(t.unitPrice)),
+            currency: wallet?.currency ?? 'USD',
+            walletId: t.walletId,
+            walletName: wallet?.name ?? '',
+            positionBefore: { ...before, fees: '0' },
+            positionAfter: { ...after, fees: '0' },
+            ...(t.action === 'SELL'
+              ? {
+                  realizedPl: String(
+                    (Number(t.unitPrice) - Number(before.avgBuyPrice)) * Number(t.quantity),
+                  ),
+                }
+              : {}),
+            canDelete: without !== null,
+            ...(without === null ? { blockedReason: 'TRADE_DELETE_BREAKS_LATER_SELL' } : {}),
+          }
+        })
+        .reverse()
+      return json(200, {
+        items,
+        next: null,
+        openingPosition: { quantity: opening.quantity, avgBuyPrice: opening.avgBuyPrice },
+      })
+    }
+    const delTrade = /^\/spaces\/[^/]+\/transfers\/([^/]+)$/.exec(path)
+    if (delTrade && req.method() === 'DELETE') {
+      const inv = state.investments.find((x) => x.trades?.some((t) => t.id === delTrade[1]))
+      if (inv) {
+        const rows = inv.trades ?? []
+        const k = rows.findIndex((t) => t.id === delTrade[1])
+        const gone = rows[k] as FakeTrade
+        const rest = [...rows.slice(0, k), ...rows.slice(k + 1)]
+        const next = replay(inv.opening ?? { quantity: '0', avgBuyPrice: '0' }, rest)
+        if (!next) {
+          const blocker = rest.find((t) => t.action === 'SELL')
+          return json(
+            422,
+            envelope('TRADE_DELETE_BREAKS_LATER_SELL', 'A later sale needs this trade', {
+              tradeId: blocker?.id,
+            }),
+          )
+        }
+        const w = state.wallets.find((x) => x.id === gone.walletId)
+        if (w) {
+          const amount = Number(gone.quantity) * Number(gone.unitPrice)
+          w.balance = String(Number(w.balance) + (gone.action === 'BUY' ? amount : -amount))
+        }
+        inv.trades = rest
+        inv.quantity = next.quantity
+        inv.avgBuyPrice = next.avgBuyPrice
+        return route.fulfill({ status: 204 })
+      }
+    }
+    const revertRoute = /^\/spaces\/[^/]+\/manual-assets\/([^/]+)\/value-changes\/([^/]+)$/.exec(
+      path,
+    )
+    if (revertRoute && req.method() === 'DELETE') {
+      const asset = state.assets.find((a) => a.id === revertRoute[1])
+      const h = asset?.history ?? []
+      if (!asset) return json(404, envelope('NOT_FOUND'))
+      const newest = h[0]
+      if (!newest || newest.id !== revertRoute[2])
+        return json(409, envelope('VALUE_CHANGED_SINCE', 'The value changed since'))
+      asset.currentValue = newest.previousValue
+      asset.history = h.slice(1)
+      return json(200, {
+        ...asset,
+        history: asset.history.map((e, k) => ({ ...e, canRevert: k === 0 && e.id !== 'created' })),
+      })
+    }
     const txnRoute = /^\/spaces\/[^/]+\/(transactions|transfers)(?:\/([^/]+))?$/.exec(path)
     if (txnRoute && !path.endsWith('daily-summary') && !(req.method() === 'GET' && !txnRoute[2])) {
       const [, kind, tid] = txnRoute
@@ -465,7 +593,13 @@ export async function installFakeApi(
     )
     if (assetRoute) {
       const [, aid, sub] = assetRoute
-      const view = (a: FakeAsset) => ({ ...a, history: [] })
+      const view = (a: FakeAsset) => ({
+        ...a,
+        history: (a.history ?? []).map((h, k) => ({
+          ...h,
+          canRevert: h.reason === 'SETTLEMENT' || (k === 0 && h.id !== 'created'),
+        })),
+      })
       if (!aid && req.method() === 'GET') {
         const kind = new URL(req.url()).searchParams.get('kind')
         const items = state.assets.filter((a) => a.kind === kind)
@@ -727,6 +861,22 @@ export async function installFakeApi(
         if (!inv) return json(404, envelope('NOT_FOUND'))
         const dq = Number(trade.quantity)
         const price = Number(trade.unitPrice)
+        const walletId = (b.from.type === 'INVESTMENT' ? b.to.walletId : b.from.walletId) as string
+        const wallet = state.wallets.find((w) => w.id === walletId)
+        if (wallet)
+          wallet.balance = String(
+            Number(wallet.balance) + (b.from.type === 'INVESTMENT' ? 1 : -1) * dq * price,
+          )
+        const rec: FakeTrade = {
+          id: `tr-${(inv.trades?.length ?? 0) + 1}-${inv.id}`,
+          action: b.from.type === 'INVESTMENT' ? 'SELL' : 'BUY',
+          quantity: trade.quantity as string,
+          unitPrice: trade.unitPrice as string,
+          walletId,
+          occurredAt: new Date().toISOString(),
+        }
+        inv.opening ??= { quantity: inv.quantity, avgBuyPrice: inv.avgBuyPrice }
+        inv.trades = [...(inv.trades ?? []), rec]
         if (b.from.type === 'INVESTMENT') {
           if (dq > Number(inv.quantity)) return json(422, envelope('INSUFFICIENT_QUANTITY'))
           inv.quantity = String(Number(inv.quantity) - dq)
