@@ -54,6 +54,16 @@ describe('<Amount animate>', () => {
     }
   })
 
+  it('does not animate again when a refetch brings back the same value', () => {
+    const { container, rerender } = render(<Amount value="134.26" currency="USD" animate />)
+    step(1000)
+    step(3000)
+    expect(queue).toHaveLength(0)
+    rerender(<Amount value="134.26" currency="USD" animate />)
+    expect(queue).toHaveLength(0)
+    expect(container.querySelector('[data-frame]')?.getAttribute('data-frame')).toBe('$134.26')
+  })
+
   it('counts again from the old value when the value changes', () => {
     const { container, rerender } = render(<Amount value="100" currency="USD" animate />)
     step(0)

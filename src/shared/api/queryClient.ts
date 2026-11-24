@@ -13,6 +13,19 @@ declare module '@tanstack/react-query' {
 export const STATIC_STALE_TIME = 5 * 60_000
 export const LIST_STALE_TIME = 30_000
 
+/**
+ * How often screens that show a market price refetch (D-F57). The server job refreshes the CMC
+ * price on this cadence, so polling faster only reads the same price. Paused while the tab is hidden.
+ */
+export const CRYPTO_REFRESH_MS = 15 * 60_000
+
+/** The poll interval for holdings: 15 minutes when any is priced by the market, else no polling. */
+export function priceRefetchInterval(
+  items: readonly { priceMode?: string | undefined }[] | undefined,
+): number | false {
+  return items?.some((i) => i.priceMode === 'AUTO') ? CRYPTO_REFRESH_MS : false
+}
+
 /** No retry on 4xx; one retry otherwise (plan 5.1). */
 export function shouldRetry(failureCount: number, error: unknown): boolean {
   const e = toAppError(error)

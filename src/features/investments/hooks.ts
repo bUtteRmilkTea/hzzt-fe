@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSpace } from '@/app/providers/SpaceProvider'
 import { api } from '@/shared/api/client'
 import { invalidateMoney } from '@/shared/api/invalidate'
-import { STATIC_STALE_TIME } from '@/shared/api/queryClient'
+import { priceRefetchInterval, STATIC_STALE_TIME } from '@/shared/api/queryClient'
 import { queryKeys } from '@/shared/api/queryKeys'
 import type { components } from '@/shared/api/schema'
 import { toMoneyString } from '@/shared/money'
@@ -37,6 +37,8 @@ export function useInvestments(spaceId: string, enabled = true) {
     enabled,
     queryKey: queryKeys.space(spaceId).investments(),
     refetchOnWindowFocus: true,
+    refetchInterval: (q) => priceRefetchInterval(q.state.data?.items),
+    refetchIntervalInBackground: false,
     queryFn: async (): Promise<InvestmentList> => {
       const { data } = await api.GET('/spaces/{spaceId}/investments', {
         params: { path: { spaceId }, query: { include: 'shared' } },
@@ -61,6 +63,8 @@ export function useInvestment(spaceId: string, id: string) {
   return useQuery({
     queryKey: queryKeys.space(spaceId).investment(id),
     refetchOnWindowFocus: true,
+    refetchInterval: (q) => priceRefetchInterval(q.state.data ? [q.state.data] : undefined),
+    refetchIntervalInBackground: false,
     queryFn: async () =>
       (await api.GET('/spaces/{spaceId}/investments/{id}', { params: { path: { spaceId, id } } }))
         .data as InvestmentView | undefined,

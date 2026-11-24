@@ -104,7 +104,7 @@ describe('portfolio list', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(badge).toHaveAttribute('title', expect.stringContaining('Price as of'))
     await user.click(badge)
-    expect(screen.getByText(/Price as of 18 Nov 2026/)).toBeInTheDocument()
+    expect(screen.getByText(/Last price .* ago, retrying \(as of 18 Nov 2026/)).toBeInTheDocument()
   })
 
   it('marks shared-in investments with the share', async () => {

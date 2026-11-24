@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toMoneyString } from '@/shared/money'
 import { api } from './client'
+import { priceRefetchInterval } from './queryClient'
 import { queryKeys } from './queryKeys'
 import type { components } from './schema'
 
@@ -30,9 +31,19 @@ export interface NetWorthSummary {
 
 /** Net worth and its components, all in the space base currency and all from the server. */
 export function useNetWorthSummary(spaceId: string) {
+  const queryClient = useQueryClient()
   return useQuery({
     queryKey: queryKeys.space(spaceId).netWorthSummary(),
     refetchOnWindowFocus: true,
+    // Polls only when the space has a market priced holding, read from the investments list in the
+    // cache (a cash only space never polls). The growth history is never polled.
+    refetchInterval: () =>
+      priceRefetchInterval(
+        queryClient.getQueryData<{ items: { priceMode?: string }[] }>(
+          queryKeys.space(spaceId).investments(),
+        )?.items,
+      ),
+    refetchIntervalInBackground: false,
     queryFn: async (): Promise<NetWorthSummary> => {
       const d = (
         await api.GET('/spaces/{spaceId}/net-worth/summary', { params: { path: { spaceId } } })
