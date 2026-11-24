@@ -19,7 +19,7 @@ import { Skeleton } from '@/shared/ui/Skeleton'
 import { TwoColumn } from '@/shared/ui/TwoColumn'
 import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { AssetBreakdownList } from './AssetBreakdownList'
-import { accountGroups, assetMixSlices, capEach, cashGroups } from './breakdown'
+import { accountGroups, assetMixSlices, capEach, cashGroups, topAccounts } from './breakdown'
 import { useManualAssets, useNetWorthSummary } from './hooks'
 import { KINDS, type KindMeta } from './kinds'
 
@@ -150,6 +150,8 @@ function ManualSection({ meta, currency }: { meta: KindMeta; currency: string })
 }
 
 const INLINE_INVESTMENTS = 5
+/** The Assets page lists only the biggest accounts (D-F56). */
+const TOP_ACCOUNTS = 3
 
 /** Keeps the first `max` rows across groups, dropping groups that end up empty. */
 export function capRows<G extends { rows: unknown[] }>(groups: readonly G[], max: number): G[] {
@@ -207,6 +209,7 @@ export function AssetsScreen() {
 
   const allInvestmentGroups = accountGroups(investments.data?.items ?? [], typeLabel, space.id)
   const investmentRows = allInvestmentGroups.flatMap((g) => g.rows)
+  const top = topAccounts(investments.data?.items ?? [], typeLabel, space.id, TOP_ACCOUNTS)
   const investmentsSection = s ? (
     <Section
       title="Investments"
@@ -246,16 +249,18 @@ export function AssetsScreen() {
       <TypedPriceNote items={investments.data?.items ?? []} />
       <AssetBreakdownList
         collapsible
-        groups={capEach(allInvestmentGroups, INLINE_INVESTMENTS)}
+        groups={capEach(top.groups, INLINE_INVESTMENTS)}
         empty={<p className="text-sm text-label-secondary">No investments yet.</p>}
       />
-      {investmentRows.length > INLINE_INVESTMENTS ? (
+      {top.moreAccounts > 0 ? (
         <Link
           to="/s/$spaceId/investments"
           params={{ spaceId: space.id }}
+          data-testid="more-accounts"
           className="px-2 py-2 text-sm font-medium text-accent"
         >
-          Open all {investmentRows.length} investments
+          {top.moreAccounts} more {top.moreAccounts === 1 ? 'account' : 'accounts'},{' '}
+          {top.moreHoldings} {top.moreHoldings === 1 ? 'holding' : 'holdings'}. Open investments
         </Link>
       ) : null}
     </Section>

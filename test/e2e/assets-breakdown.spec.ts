@@ -26,6 +26,7 @@ test('assets page lists wallets and investments with balances', async ({ page })
     quantity: '1',
     avgBuyPrice: '100',
     price: '150',
+    wrapper: 'Binance',
     participants: [],
   })
   await page.goto('/s/s-1/assets')

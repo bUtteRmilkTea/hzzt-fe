@@ -24,10 +24,15 @@ export interface BreakdownGroup {
   title?: string | undefined
   /** A line under the title, such as "3 holdings · 42.50%". */
   subtitle?: string | undefined
+  /** Holdings in the group and its share of the portfolio (2 decimals), for ranking and the subtitle. */
+  holdings?: number | undefined
+  share?: string | null | undefined
   /** Rows left out by the per-group cap. */
   more?: number | undefined
   /** Total of the group, shown beside its title. */
   total?: { value: string; currency: string } | undefined
+  /** Unrealised PnL of the group (server figures, summed). `pct` stays null until the server sends one for the group. */
+  pl?: { amount: string; pct: string | null } | undefined
   rows: BreakdownRow[]
 }
 
@@ -69,6 +74,30 @@ function Row({ row }: { row: BreakdownRow }) {
   )
 }
 
+/** The group's value, and under it its PnL with sign and tone when there is one. */
+function GroupTotal({ group: g }: { group: BreakdownGroup }) {
+  if (!g.total) return null
+  return (
+    <span className="flex flex-col items-end">
+      <Amount value={g.total.value} currency={g.total.currency} />
+      {g.pl ? (
+        <span
+          data-testid="group-pl"
+          className="tabular text-sm font-normal tracking-normal normal-case"
+        >
+          <Amount
+            value={g.pl.amount}
+            currency={g.total.currency}
+            tone="auto"
+            signDisplay="always"
+          />
+          {g.pl.pct !== null ? <> ({g.pl.pct}%)</> : null}
+        </span>
+      ) : null}
+    </span>
+  )
+}
+
 function GroupBlock({
   group: g,
   collapsible,
@@ -83,7 +112,7 @@ function GroupBlock({
   const toggles = collapsible && g.title !== undefined
   const bodyId = `group-${g.key}`.replace(/\W+/g, '-')
   const titleClass =
-    'flex items-baseline justify-between px-2 text-sm font-semibold tracking-wide text-label-secondary uppercase'
+    'flex items-start justify-between px-2 text-sm font-semibold tracking-wide text-label-secondary uppercase'
   const rows = (
     <ul className="flex flex-col">
       {g.rows.map((r, i) => (
@@ -111,12 +140,12 @@ function GroupBlock({
               />
               <h2>{g.title}</h2>
             </span>
-            {g.total ? <Amount value={g.total.value} currency={g.total.currency} /> : null}
+            <GroupTotal group={g} />
           </button>
         ) : (
           <div className={titleClass}>
             <h2>{g.title}</h2>
-            {g.total ? <Amount value={g.total.value} currency={g.total.currency} /> : null}
+            <GroupTotal group={g} />
           </div>
         )
       ) : null}

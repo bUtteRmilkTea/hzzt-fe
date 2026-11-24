@@ -119,9 +119,41 @@ export function accountGroups(
     subtitle: `${g.items.length} ${g.items.length === 1 ? 'holding' : 'holdings'}${
       g.currency ? ` · ${pcts[idx]}%` : ''
     }`,
-    ...(g.currency ? { total: { value: g.value, currency: g.currency } } : {}),
+    holdings: g.items.length,
+    share: g.currency ? (pcts[idx] as string) : null,
+    ...(g.currency
+      ? { total: { value: g.value, currency: g.currency }, pl: { amount: g.pl, pct: null } }
+      : {}),
     rows: g.items.map((i) => rowOf(i, spaceId, `${i.symbol ?? ''} · ${label(i.assetType ?? '')}`)),
   }))
+}
+
+/**
+ * The Assets page shows only the biggest named accounts (D-F56). Ranked by value (the order of
+ * `accountGroups`); holdings with no broker or exchange are never shown as an account, they are
+ * only counted in the "more" line. Each account carries its value, PnL amount (the server's per
+ * holding figures, summed, display only) and its share of the portfolio. The PnL percent stays
+ * null: the server sends a percent per asset type and wrapper, not per account across types, and
+ * a client computed percent is not allowed.
+ */
+export function topAccounts(
+  items: readonly InvestmentView[],
+  label: (assetType: string) => string,
+  spaceId: string,
+  top = 3,
+): { groups: BreakdownGroup[]; moreAccounts: number; moreHoldings: number } {
+  const all = accountGroups(items, label, spaceId)
+  const named = all.filter((g) => g.key !== UNASSIGNED_KEY)
+  const shown = named.slice(0, top).map((g) => ({
+    ...g,
+    subtitle: `${g.share ? `${g.share}% of portfolio · ` : ''}${g.holdings} ${g.holdings === 1 ? 'holding' : 'holdings'}`,
+  }))
+  const rest = all.filter((g) => !shown.some((s) => s.key === g.key))
+  return {
+    groups: shown,
+    moreAccounts: named.length - shown.length,
+    moreHoldings: rest.reduce((n, g) => n + (g.holdings ?? 0), 0),
+  }
 }
 
 /** Keeps at most `max` rows in each group and records how many were left out. */
