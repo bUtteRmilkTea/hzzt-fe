@@ -166,8 +166,8 @@ export function WalletsScreen() {
 
   return (
     <Page>
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-medium">Wallets</h1>
+      <h1 className="sr-only">Wallets</h1>
+      <div className="flex items-center justify-end gap-3">
         <div className="flex gap-2">
           {!isWide && wallets.data && wallets.data.items.length > 1 ? (
             <Button variant="ghost" size="sm" onClick={() => setReordering((r) => !r)}>

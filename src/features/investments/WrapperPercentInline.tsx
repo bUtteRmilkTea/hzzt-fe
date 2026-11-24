@@ -78,11 +78,26 @@ export function WrapperPercentInline({
     )
   }
 
-  if (disabled) return <span className="tabular text-sm text-label-secondary">{actualPct}%</span>
+  if (disabled)
+    return (
+      <span className="tabular col-span-2 text-sm text-label-secondary sm:col-span-1 sm:justify-self-end">
+        {actualPct}%
+      </span>
+    )
+
+  const note = error ? (
+    <span role="alert" className="col-span-full text-right text-sm text-negative">
+      {error}
+    </span>
+  ) : left.isNegative() || (!editing && others.plus(target ?? 0).isZero()) ? null : (
+    <span className="col-span-full text-right text-xs text-label-tertiary">
+      {left.toFixed(2)}% left in category
+    </span>
+  )
 
   return (
-    <div className="flex flex-col items-end gap-0.5 text-sm">
-      <div className="flex items-center gap-2">
+    <>
+      <div className="col-span-2 flex items-center gap-2 pb-1 text-sm sm:col-span-1 sm:justify-self-end sm:pb-0">
         <span className="tabular text-label-secondary" data-testid="wrapper-actual">
           {actualPct}%
         </span>
@@ -120,13 +135,7 @@ export function WrapperPercentInline({
           </button>
         )}
       </div>
-      {error ? (
-        <span role="alert" className="text-negative">
-          {error}
-        </span>
-      ) : left.isNegative() || (!editing && others.plus(target ?? 0).isZero()) ? null : (
-        <span className="text-xs text-label-tertiary">{left.toFixed(2)}% left in category</span>
-      )}
-    </div>
+      {note}
+    </>
   )
 }

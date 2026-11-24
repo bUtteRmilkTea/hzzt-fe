@@ -263,7 +263,7 @@ export function AssetsScreen() {
 
   return (
     <Page>
-      <h1 className="text-xl font-medium">Assets</h1>
+      <h1 className="sr-only">Assets</h1>
 
       {summary.isPending ? (
         <Skeleton className="h-24" />
