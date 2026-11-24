@@ -8,7 +8,7 @@ import { btc, list, metas, valuation } from '../../../test/msw/investments'
 import { server } from '../../../test/msw/server'
 import { renderApp } from '../../../test/renderApp'
 import type { InvestmentView } from './types'
-import { categorySlices, groupInvestments, topSlices, wrapperOf } from './valuation'
+import { categorySlices, groupInvestments, unionSlices, wrapperOf } from './valuation'
 import { checkTargetPct } from './wrappers'
 
 const I = `${BASE}/spaces/s-1/investments`
@@ -81,11 +81,50 @@ describe('groupInvestments (two-level)', () => {
       { key: 'US_STOCK', name: 'L:US_STOCK', amount: '10' },
     ])
   })
-  it('folds the long tail of the pie into Other', () => {
-    const many = Array.from({ length: 9 }, (_, i) => inv(`i${i}`, `N${i}`, 'W', String(100 - i)))
-    const s = topSlices(many, 6)
-    expect(s).toHaveLength(7)
-    expect(s.at(-1)).toEqual({ key: '_other', name: 'Other', amount: '279' })
+})
+
+describe('unionSlices (D-F54)', () => {
+  const sym = (i: InvestmentView, symbol: string | null) => ({ ...i, symbol }) as InvestmentView
+  it('merges the same symbol held on two wrappers into one slice with its accounts', () => {
+    const s = unionSlices([
+      sym(inv('a', 'Bitcoin', 'Binance', '600'), 'BTC'),
+      sym(inv('b', 'Bitcoin', 'Hyperliquid', '400'), 'btc'),
+      sym(inv('c', 'Ether', 'Binance', '300'), 'ETH'),
+    ])
+    expect(s.map((x) => [x.key, x.name, x.amount, x.accounts])).toEqual([
+      ['CRYPTO:BTC', 'BTC, 2 accounts', '1000', 2],
+      ['CRYPTO:ETH', 'Ether', '300', 1],
+    ])
+    expect(s[0]?.detail).toBe('Binance 60.00%, Hyperliquid 40.00%')
+    expect(s[0]?.parts).toEqual([
+      { wrapper: 'Binance', amount: '600' },
+      { wrapper: 'Hyperliquid', amount: '400' },
+    ])
+    expect(s[1]?.detail).toBeUndefined()
+  })
+  it('keeps the same symbol of another asset type apart and never merges funds without a symbol', () => {
+    const s = unionSlices([
+      sym(inv('a', 'Apple', 'X', '10', 'US_STOCK'), 'AAPL'),
+      sym(inv('b', 'Apple CFD', 'X', '5', 'GLOBAL_ETF'), 'AAPL'),
+      sym(inv('c', 'Fund A', 'X', '4', 'MUTUAL_FUND'), null),
+      sym(inv('d', 'Fund B', 'X', '3', 'MUTUAL_FUND'), null),
+    ])
+    expect(s.map((x) => x.key)).toEqual(['US_STOCK:AAPL', 'GLOBAL_ETF:AAPL', 'c', 'd'])
+  })
+  it('skips holdings without a base value, and folds nothing into Other', () => {
+    const many = Array.from({ length: 25 }, (_, i) =>
+      sym(inv(`i${i}`, `N${i}`, 'W', String(100 - i)), `S${i}`),
+    )
+    many.push({
+      ...many[0],
+      id: 'nr',
+      symbol: 'ZZZ',
+      valuation: valuation({ base: null }),
+    } as never)
+    const s = unionSlices(many)
+    expect(s).toHaveLength(25)
+    expect(s.some((x) => x.name === 'Other')).toBe(false)
+    expect(s[0]?.amount).toBe('100')
   })
 })
 

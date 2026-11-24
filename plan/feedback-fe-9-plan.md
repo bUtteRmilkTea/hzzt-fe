@@ -75,10 +75,10 @@ F40 and F41 are independent and Ready now. F42, F43 and F44 start with their fro
 - [x] F40-T05 Tests and Playwright
 
 **F41** (pies and top accounts; Ready now, percent blocked on BE L-T5)
-- [ ] F41-T01 Union holdings by symbol in the pie (R3, D-F54)
-- [ ] F41-T02 Show every slice, scrollable legend (R3, D-F55)
-- [ ] F41-T03 Assets: top 3 accounts with PnL and percent (R8, D-F56)
-- [ ] F41-T04 Tests and Playwright
+- [x] F41-T01 Union holdings by symbol in the pie (R3, D-F54)
+- [x] F41-T02 Show every slice, scrollable legend (R3, D-F55)
+- [x] F41-T03 Assets: top 3 accounts with PnL (R8, D-F56). The percent is NOT built: the server sends a percent per asset type and wrapper, not per account across types (see section 6), so it stays hidden until BE adds an account level field
+- [x] F41-T04 Tests and Playwright
 
 **F42** (investment forms, mutual fund PnL; BE Phases M, P, Q)
 - [ ] F42-T01 One exchange or broker field (R7)

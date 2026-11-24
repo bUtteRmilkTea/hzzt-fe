@@ -159,14 +159,21 @@ export interface DonutArc {
   fraction: number
 }
 
+/** Smallest angle a drawn slice gets. */
+export const MIN_SLICE_DEG = 1.5
+
 export function donutGeometry(slices: readonly Slice[], outer: number, inner: number): DonutArc[] {
   // Zero and negative amounts have no share of the ring, so they get no arc (not even a padding sliver).
   const drawn = slices.filter((s) => plotValue(s.amount) > 0)
   if (drawn.length === 0) return []
+  // A tiny holding still gets a visible, tappable wedge (about 1.5 degrees); the legend keeps the
+  // true percent. Only slices under that angle are lifted, so every other slice is unchanged.
+  const total = drawn.reduce((n, s) => n + plotValue(s.amount), 0)
+  const floor = total * (MIN_SLICE_DEG / 360)
   const arcs = pie<Slice>()
     .sort(null)
     .padAngle(drawn.length > 1 ? 0.02 : 0)
-    .value((s) => plotValue(s.amount))(drawn)
+    .value((s) => Math.max(plotValue(s.amount), floor))(drawn)
   const gen = arc<{ startAngle: number; endAngle: number }>().innerRadius(inner).outerRadius(outer)
   return arcs.map((a) => ({
     key: a.data.key,

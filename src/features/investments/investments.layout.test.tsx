@@ -19,12 +19,13 @@ const inv = (id: string, name: string, wrapper: string, value: string, assetType
     ...btc,
     id,
     name,
+    symbol: id.toUpperCase(),
     assetType,
     details: { exchangeOrWallet: wrapper },
     valuation: base(value),
   }) as unknown as InvestmentView
 
-// Nine crypto holdings (so the donut folds a tail into Other) plus one stock.
+// Nine crypto holdings (every one drawn, a scrollable legend) plus one stock.
 const items = [
   ...Array.from({ length: 9 }, (_, i) =>
     inv(`c${i}`, `Coin ${i}`, i < 5 ? 'Bybit' : 'Binance', String(900 - i * 50)),
@@ -145,19 +146,22 @@ describe('portfolio line (F31)', () => {
 })
 
 describe('portfolio hero (F13-T01)', () => {
-  it('puts the value and P/L beside a donut whose legend lists the top 6 plus Other', async () => {
+  it('puts the value and P/L beside a donut whose scrollable legend lists every holding, no Other', async () => {
     const user = userEvent.setup()
     renderApp('/s/s-1/investments')
     const hero = await screen.findByTestId('portfolio-summary')
     await user.click(within(hero).getByRole('radio', { name: 'By asset' }))
     expect(within(hero).getByTestId('portfolio-pl')).toHaveTextContent('+IDR 2,500,000')
     expect(within(hero).getByTestId('portfolio-pl')).toHaveTextContent('(25.51%)')
-    const legend = within(hero).getByRole('list', { name: 'Portfolio split by investment legend' })
+    const legend = within(hero).getByRole('region', {
+      name: 'Portfolio split by investment legend, scrollable',
+    })
+    expect(legend).toHaveAttribute('tabindex', '0')
     const names = within(legend)
       .getAllByRole('listitem')
       .map((li) => li.textContent)
-    expect(names).toHaveLength(7)
-    expect(names.at(-1)).toContain('Other')
+    expect(names).toHaveLength(10)
+    expect(names.some((n) => n?.includes('Other'))).toBe(false)
   })
 
   it('defaults to asset classes, and the switch moves between classes and holdings', async () => {
@@ -175,9 +179,11 @@ describe('portfolio hero (F13-T01)', () => {
     )
     expect(legend()).toHaveLength(2) // Crypto, US stock
     await user.click(within(hero).getByRole('radio', { name: 'By asset' }))
-    expect(legend()).toHaveLength(7)
+    expect(legend()).toHaveLength(10)
     expect(
-      within(hero).getByRole('list', { name: 'Portfolio split by investment legend' }),
+      within(hero).getByRole('region', {
+        name: 'Portfolio split by investment legend, scrollable',
+      }),
     ).toBeTruthy()
   })
 
@@ -190,9 +196,9 @@ describe('portfolio hero (F13-T01)', () => {
     const fills = [...hero.querySelectorAll('path[data-slice]')].map(
       (p) => (p as SVGElement).style.fill,
     )
-    expect(fills.length).toBe(7)
-    for (const f of fills) expect(f).toMatch(/^var\(--chart-[1-8]\)$/)
-    expect(new Set(fills).size).toBe(7)
+    expect(fills.length).toBe(10)
+    for (const f of fills) expect(f).toMatch(/^var\(--chart-([1-9]|1[0-2])\)$/)
+    expect(new Set(fills).size).toBe(10)
   })
 })
 

@@ -18,7 +18,7 @@ import { CategoryPanel } from './CategoryPanel'
 import { useInvestments, useInvestmentTypes } from './hooks'
 import { PortfolioLine } from './PortfolioLine'
 import { TypedPriceNote } from './priceSource'
-import { categorySlices, groupInvestments, topSlices } from './valuation'
+import { categorySlices, groupInvestments, unionSlices } from './valuation'
 import { useWrapperTargets } from './wrappers'
 
 export function InvestmentsScreen() {
@@ -33,7 +33,7 @@ export function InvestmentsScreen() {
   const pieSlices =
     mode === 'class'
       ? categorySlices(list.data?.items ?? [], label)
-      : topSlices(list.data?.items ?? [])
+      : unionSlices(list.data?.items ?? [])
 
   const panel = (g: (typeof groups)[number]) => (
     <CategoryPanel
@@ -130,6 +130,7 @@ export function InvestmentsScreen() {
                     layout="row"
                     size={152}
                     slices={pieSlices}
+                    {...(pieSlices.length > 6 ? { legendMaxHeight: 320 } : {})}
                     currency={list.data.summary.currency || space.baseCurrency}
                     label={
                       mode === 'class'
