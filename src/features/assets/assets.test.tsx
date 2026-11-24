@@ -421,3 +421,110 @@ describe('settlements', () => {
     expect(await screen.findByText(/You need a wallet in IDR/)).toBeInTheDocument()
   })
 })
+
+describe('revert a value change (F44)', () => {
+  const withHistory = {
+    ...house,
+    history: [
+      {
+        id: 'h-2',
+        changedAt: '2026-11-01T00:00:00Z',
+        previousValue: '50000000',
+        newValue: '52000000',
+        reason: 'MANUAL',
+        canRevert: true,
+      },
+      {
+        id: 'h-1',
+        changedAt: '2026-10-01T00:00:00Z',
+        previousValue: '48000000',
+        newValue: '50000000',
+        reason: 'MANUAL',
+        canRevert: false,
+      },
+    ],
+  }
+
+  it('offers Revert on the newest entry only, confirms with the previous value, then refetches', async () => {
+    const reverted = vi.fn()
+    let after = false
+    server.use(
+      http.get(`${A}/a-2`, () =>
+        HttpResponse.json(
+          after
+            ? { ...house, history: [withHistory.history[1]], currentValue: '50000000' }
+            : withHistory,
+        ),
+      ),
+      http.delete(`${A}/a-2/value-changes/h-2`, () => {
+        reverted()
+        after = true
+        return HttpResponse.json({ ...house, currentValue: '50000000' })
+      }),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/assets/a-2')
+    await screen.findByTestId('asset-value')
+    expect(screen.getAllByTestId('revert')).toHaveLength(1)
+    await user.click(screen.getByTestId('revert'))
+    const dialog = await screen.findByRole('dialog', { name: 'Revert this change?' })
+    expect(dialog).toHaveTextContent('Set the value back to 50000000')
+    await user.click(within(dialog).getByRole('button', { name: 'Revert' }))
+    await waitFor(() => expect(reverted).toHaveBeenCalled())
+    await waitFor(() => expect(screen.queryByTestId('revert')).not.toBeInTheDocument())
+  })
+
+  it('a settlement entry deletes the settlement through its own endpoint', async () => {
+    const gone = vi.fn()
+    server.use(
+      http.get(`${A}/a-2`, () =>
+        HttpResponse.json({
+          ...house,
+          history: [
+            {
+              id: 'h-9',
+              changedAt: '2026-11-01T00:00:00Z',
+              previousValue: '100',
+              newValue: '60',
+              reason: 'SETTLEMENT',
+              transactionId: 'tx-7',
+              canRevert: true,
+            },
+          ],
+        }),
+      ),
+      http.delete(`${A}/a-2/settlements/tx-7`, () => {
+        gone()
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/assets/a-2')
+    await screen.findByTestId('asset-value')
+    await user.click(screen.getByRole('button', { name: 'Delete settlement' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Delete this settlement?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Delete settlement' }))
+    await waitFor(() => expect(gone).toHaveBeenCalled())
+  })
+
+  it('a 409 value changed since refreshes and says so', async () => {
+    let gets = 0
+    server.use(
+      http.get(`${A}/a-2`, () => {
+        gets++
+        return HttpResponse.json(withHistory)
+      }),
+      http.delete(`${A}/a-2/value-changes/h-2`, () =>
+        HttpResponse.json(errorEnvelope('VALUE_CHANGED_SINCE', 'x'), { status: 409 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderApp('/s/s-1/assets/a-2')
+    await screen.findByTestId('asset-value')
+    await user.click(screen.getByTestId('revert'))
+    const dialog = await screen.findByRole('dialog', { name: 'Revert this change?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Revert' }))
+    expect(await screen.findByText(/value changed since you opened this/i)).toBeInTheDocument()
+    await waitFor(() => expect(gets).toBeGreaterThan(1))
+  })
+})

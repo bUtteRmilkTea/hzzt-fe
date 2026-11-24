@@ -16,6 +16,7 @@ import { WarningsStrip } from '@/shared/ui/WarningsStrip'
 import { useDeleteInvestment, useInvestment, useRefreshPrice, useUseLivePrice } from './hooks'
 import { rowFigures, ShareBadge } from './InvestmentRow'
 import { overridesMarket, PriceSourceBadge } from './priceSource'
+import { TradeHistory } from './TradeHistory'
 import { TradeSheet } from './TradeSheet'
 import { bpsToPct, isSharedIn, parseValuation } from './valuation'
 
@@ -120,7 +121,7 @@ export function InvestmentDetailScreen() {
       </p>
 
       {/* R4: two columns from `lg`. Left: value and the actions. Right: the position and price
-          card (the trade History of a later phase goes under it). One column on a phone, in the
+          card with the trade History under it. One column on a phone, in the
           order value, position, actions. */}
       <div
         data-testid="investment-detail-layout"
@@ -233,6 +234,12 @@ export function InvestmentDetailScreen() {
               </Line>
             ) : null}
           </Card>
+          <TradeHistory
+            investmentId={id}
+            quote={quote}
+            readOnly={sharedIn}
+            position={{ quantity: i.quantity ?? '0', avgBuyPrice: i.avgBuyPrice ?? '0' }}
+          />
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           {sharedIn ? (

@@ -14,11 +14,10 @@ export const metas: S['investments.TypeMeta'][] = [
     quantityScale: 8,
     symbolRequired: true,
     defaultIcon: '🪙',
-    defaults: { priceMode: 'MANUAL', estimatedAnnualChangePct: '5.5', fees: '0' },
+    defaults: { priceMode: 'MANUAL', fees: '0' },
     detailFields: [
       { name: 'exchangeOrWallet', label: 'Exchange or wallet', kind: 'TEXT' },
       { name: 'network', label: 'Network', kind: 'TEXT' },
-      { name: 'stakedQuantity', label: 'Staked quantity', kind: 'DECIMAL' },
     ],
   },
   {
@@ -32,7 +31,7 @@ export const metas: S['investments.TypeMeta'][] = [
     lotSize: 100,
     symbolRequired: true,
     defaultIcon: '🇮🇩',
-    defaults: { priceMode: 'MANUAL', estimatedAnnualChangePct: '5.5', fees: '0' },
+    defaults: { priceMode: 'MANUAL', fees: '0' },
     detailFields: [
       { name: 'broker', label: 'Broker', kind: 'TEXT' },
       { name: 'lots', label: 'Lots', kind: 'DECIMAL', required: true },
@@ -48,7 +47,7 @@ export const metas: S['investments.TypeMeta'][] = [
     quantityScale: 1,
     symbolRequired: true,
     defaultIcon: '🇺🇸',
-    defaults: { priceMode: 'MANUAL', estimatedAnnualChangePct: '5.5', fees: '0' },
+    defaults: { priceMode: 'MANUAL', fees: '0' },
     detailFields: [
       { name: 'exchange', label: 'Exchange', kind: 'TEXT', required: true },
       { name: 'platform', label: 'Platform', kind: 'TEXT' },
@@ -62,7 +61,7 @@ export const metas: S['investments.TypeMeta'][] = [
     quantityMode: 'QUANTITY',
     symbolRequired: false,
     defaultIcon: '💼',
-    defaults: { priceMode: 'MANUAL', estimatedAnnualChangePct: '5.5', fees: '0' },
+    defaults: { priceMode: 'MANUAL', fees: '0' },
     detailFields: [
       { name: 'fundManager', label: 'Fund manager', kind: 'TEXT' },
       {
@@ -84,7 +83,7 @@ export const metas: S['investments.TypeMeta'][] = [
     quantityMode: 'QUANTITY',
     symbolRequired: true,
     defaultIcon: '🌐',
-    defaults: { priceMode: 'MANUAL', estimatedAnnualChangePct: '5.5', fees: '0' },
+    defaults: { priceMode: 'MANUAL', fees: '0' },
     detailFields: [
       { name: 'exchange', label: 'Exchange', kind: 'TEXT', required: true },
       { name: 'platform', label: 'Platform', kind: 'TEXT' },
@@ -133,7 +132,7 @@ export const btc: S['investments.InvestmentDTO'] = {
   myShareBps: 10000,
   valuation: valuation(),
   totalValuation: valuation(),
-  details: { network: 'Bitcoin', stakedQuantity: '0.002' } as never,
+  details: { network: 'Bitcoin' } as never,
   instrumentId: 'inst-btc',
   realizedPl: { amount: '25', base: '400000', currency: 'USD', sells: 1 },
 }

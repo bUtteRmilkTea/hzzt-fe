@@ -83,6 +83,11 @@ export const ERROR_COPY: Record<string, string> = {
   SHARE_TOTAL_INVALID: 'Shares must add up to exactly 100%.',
   PARTICIPANT_LIMIT: 'This investment has reached its participant limit.',
   OWNER_ONLY: 'Only the owner can do that.',
+  TRADE_DELETE_BREAKS_LATER_SELL:
+    'This trade pays for a later sale. Delete or edit that sale first.',
+  VALUE_CHANGED_SINCE: 'The value changed since you opened this. Refresh and try again.',
+  USE_SETTLEMENT_DELETE: 'This entry is a settlement. Delete the settlement instead.',
+  CANNOT_REVERT_INITIAL_VALUE: 'The starting value cannot be reverted.',
   SHARE_INVITATION_NOT_FOUND: "We couldn't find that invitation.",
   SHARE_INVITATION_ANSWERED: 'This invitation has already been answered.',
   SHARE_OWNER_CANNOT_LEAVE: 'The owner cannot leave a shared investment.',

@@ -3073,7 +3073,7 @@ export interface paths {
         put?: never;
         /**
          * Create an investment
-         * @description The body is validated by `assetType` (see GET /investment-types). ID_STOCK takes `details.lots` and derives quantity = lots × 100. CRYPTO checks `details.stakedQuantity` <= quantity. `priceMode: AUTO` is accepted for CRYPTO, US_STOCK and GLOBAL_ETF and answers 422 AUTO_PRICE_NOT_SUPPORTED otherwise. A CRYPTO created without `priceMode` is AUTO by default and linked to its CoinMarketCap coin by symbol; if the symbol is unknown or ambiguous the holding is created as MANUAL and `valuation.warnings` carries `PRICE_NOT_LINKED` (an explicit `priceMode` never falls back). Valuation warnings also include `PRICE_STALE` (a stale market price still counts and is flagged) and `MANUAL_VALUE_OVERRIDES_MARKET` (an AUTO holding with a manual current value, which wins). An AUTO investment is linked to a market instrument: send the `instrumentId` picked from GET /market/crypto/search (CRYPTO) or GET /market/stocks/search (US_STOCK, GLOBAL_ETF), or the symbol is resolved to the highest-ranked coin / the exact ticker (422 INSTRUMENT_NOT_FOUND if none matches). Without a market price the manual price is used. Optional `funding: {walletId, amount?}` pays for the initial position from a wallet: it creates a BUY titled "Initial position {symbol}" (wallet debited quantity × avgBuyPrice + fees, converted to the wallet's currency unless `amount` is given) in the same database transaction.
+         * @description The body is validated by `assetType` (see GET /investment-types). ID_STOCK takes `details.lots` and derives quantity = lots × 100. `priceMode: AUTO` is accepted for CRYPTO, US_STOCK and GLOBAL_ETF and answers 422 AUTO_PRICE_NOT_SUPPORTED otherwise. A CRYPTO created without `priceMode` is AUTO by default and linked to its CoinMarketCap coin by symbol; if the symbol is unknown or ambiguous the holding is created as MANUAL and `valuation.warnings` carries `PRICE_NOT_LINKED` (an explicit `priceMode` never falls back). Valuation warnings also include `PRICE_STALE` (a stale market price still counts and is flagged) and `MANUAL_VALUE_OVERRIDES_MARKET` (an AUTO holding with a manual current value, which wins). An AUTO investment is linked to a market instrument: send the `instrumentId` picked from GET /market/crypto/search (CRYPTO) or GET /market/stocks/search (US_STOCK, GLOBAL_ETF), or the symbol is resolved to the highest-ranked coin / the exact ticker (422 INSTRUMENT_NOT_FOUND if none matches). Without a market price the manual price is used. Optional `funding: {walletId, amount?}` pays for the initial position from a wallet: it creates a BUY titled "Initial position {symbol}" (wallet debited quantity × avgBuyPrice + fees, converted to the wallet's currency unless `amount` is given) in the same database transaction.
          */
         post: {
             parameters: {
@@ -3631,6 +3631,286 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/spaces/{spaceId}/investments/{id}/trades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * History of the BUY and SELL trades of one investment
+         * @description Newest first (occurredAt desc, id desc) with cursor paging (`next`). Whoever can read the investment can read its history (a viewer of a shared investment too; the wallet is then hidden). `openingPosition` is the position before the oldest trade, or the whole current position when there are none; an investment created without funding starts above zero, and the history can never go below that. `canDelete` and `blockedReason` say whether `DELETE /spaces/{spaceId}/transfers/{id}` works for each row: any trade can be deleted, not only the newest; the trades after it are replayed on top of the position it started from and their `positionBefore`, `positionAfter` and `realizedPl` are rewritten (each later trade keeps its own wallet amounts). It is refused with 422 TRADE_DELETE_BREAKS_LATER_SELL (naming the first sale that would no longer fit, nothing changes) or 409 POSITION_CHANGED_SINCE (the position was edited by hand after the trade). Net worth snapshots of past days are not rewritten; only today's figures move. Only the owner can delete (403 OWNER_ONLY).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description next of the previous page */
+                    cursor?: string;
+                    /** @description Page size, 1 to 100 (default 30) */
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Investment ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.TradeListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/investments/{id}/valuations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dated valuations of a mutual fund, with the PnL of each
+         * @description Newest first. `pnl` = value − costBasis and `pnlPct` = pnl / costBasis × 100 (null when the cost is 0). `changeFromPrevious` is the market move since the previous valuation with the position change excluded: (nav − previous nav) × quantity, and (nav − previous nav) / previous nav × 100. Neither is an annual rate. `base` is a copy in the space base currency at the current rate (null without a rate). The list never invents missing months; `lastValuationAt` is the date of the newest one. Owner only (403 OWNER_ONLY); mutual funds only (422).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Investment ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.ValuationListResponse"];
+                    };
+                };
+                /** @description OWNER_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description VALUATIONS_NOT_SUPPORTED */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record the NAV of a mutual fund on a date
+         * @description Mutual funds only (422 VALUATIONS_NOT_SUPPORTED otherwise) and the owner only (403 OWNER_ONLY). One valuation per `asOf` date: sending the same date again replaces it (200, the old value is logged), so a typo is fixed by sending it again. The newest valuation is copied into the investment (`manualPrice` = nav, `details.navDate` = asOf) so every total keeps working; an older date only adds history. `manualCurrentValue` is never touched (if one is set it still wins). The quantity and cost basis of the position are snapshotted when it is typed, so a later BUY or SELL does not rewrite an earlier month. There is no reminder or job: the age of the NAV is `valuation.navAgeDays` on the investment.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Investment ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description The NAV and its date */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["investments.ValuationRequest"];
+                };
+            };
+            responses: {
+                /** @description Replaced the valuation of that date */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.ValuationDTO"];
+                    };
+                };
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.ValuationDTO"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description OWNER_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description VALUATIONS_NOT_SUPPORTED */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/investments/{id}/valuations/{valuationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete one valuation of a mutual fund
+         * @description Removes the valuation. When it was the newest, the investment's `manualPrice` and `details.navDate` go back to the previous valuation. When it was the only one the investment keeps its NAV and `warnings` carries NAV_NOT_REVERTED. Deleting an older valuation only removes history. Owner only.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Investment ID */
+                    id: string;
+                    /** @description Valuation ID */
+                    valuationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["investments.ValuationDeleteResponse"];
+                    };
+                };
+                /** @description OWNER_ONLY */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description VALUATION_NOT_FOUND, INVESTMENT_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/spaces/{spaceId}/investments/grouped": {
         parameters: {
             query?: never;
@@ -4048,7 +4328,7 @@ export interface paths {
         put?: never;
         /**
          * Create a fixed asset, a receivable (money owed to me) or a liability (debt)
-         * @description For a liability `currentValue` is the outstanding amount. `estimatedAnnualChangePct` applies to fixed assets only.
+         * @description For a liability `currentValue` is the outstanding amount.
          */
         post: {
             parameters: {
@@ -4183,7 +4463,7 @@ export interface paths {
         head?: never;
         /**
          * Update an asset
-         * @description Changing `currentValue` is recorded in the value history. `counterpartyName`, `dueDate`, `estimatedAnnualChangePct` and `note` accept null to clear. The currency can only change while the asset has no settlements (MANUAL_ASSET_CURRENCY_LOCKED).
+         * @description Changing `currentValue` is recorded in the value history. `counterpartyName`, `dueDate` and `note` accept null to clear. The currency can only change while the asset has no settlements (MANUAL_ASSET_CURRENCY_LOCKED).
          */
         patch: {
             parameters: {
@@ -4361,6 +4641,79 @@ export interface paths {
                     };
                     content: {
                         "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}/manual-assets/{id}/value-changes/{changeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Undo the newest value change of an asset
+         * @description Sets the value back to the entry's previous value, removes the entry and answers the asset (with its history). Only the newest entry can be reverted (409 VALUE_CHANGED_SINCE otherwise): value changes are plain overwrites and a later change stores its own previous value. A settlement entry answers 409 USE_SETTLEMENT_DELETE with `details.transactionId`; send that to DELETE .../settlements/{txnId}. The entry that created the asset answers 422 CANNOT_REVERT_INITIAL_VALUE. `history[].canRevert` says which entries can be reverted.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Space ID */
+                    spaceId: string;
+                    /** @description Asset ID */
+                    id: string;
+                    /** @description Value change ID (history[].id) */
+                    changeId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["manualassets.AssetDTO"];
+                    };
+                };
+                /** @description MANUAL_ASSET_NOT_FOUND, VALUE_CHANGE_NOT_FOUND */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description VALUE_CHANGED_SINCE, USE_SETTLEMENT_DELETE */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
+                /** @description CANNOT_REVERT_INITIAL_VALUE */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
             };
@@ -4607,7 +4960,7 @@ export interface paths {
         };
         /**
          * Search and filter the transaction history
-         * @description Newest first (occurredAt desc, id desc) with cursor pagination. `period` is TODAY, THIS_WEEK, THIS_PERIOD, LAST_7_DAYS, LAST_30_DAYS, LAST_60_DAYS, LAST_90_DAYS, THIS_YEAR or ALL_TIME; or use `from`/`to` (YYYY-MM-DD, inclusive). `types`, `categoryIds` and `walletIds` accept repeated, `[]`-suffixed or comma-separated values; walletIds matches the source or destination wallet. `q` searches title, note, category and wallet names. Filters combine with AND across fields and OR within a list.
+         * @description Newest first (occurredAt desc, id desc) with cursor pagination. `period` is TODAY, THIS_WEEK, THIS_PERIOD, LAST_7_DAYS, LAST_30_DAYS, LAST_60_DAYS, LAST_90_DAYS, THIS_YEAR or ALL_TIME; or use `from`/`to` (YYYY-MM-DD, inclusive). `types`, `categoryIds`, `walletIds` and `investmentIds` accept repeated, `[]`-suffixed or comma-separated values; walletIds matches the source or destination wallet. `q` searches title, note, category and wallet names. Filters combine with AND across fields and OR within a list.
          */
         get: {
             parameters: {
@@ -4624,6 +4977,8 @@ export interface paths {
                     categoryIds?: string[];
                     /** @description Wallet IDs */
                     walletIds?: string[];
+                    /** @description Investment IDs (the trades of those investments) */
+                    investmentIds?: string[];
                     /** @description Search text */
                     q?: string;
                     /** @description Page size (default 30, max 100) */
@@ -4903,6 +5258,8 @@ export interface paths {
                     categoryIds?: string[];
                     /** @description Wallet IDs */
                     walletIds?: string[];
+                    /** @description Investment IDs (the trades of those investments) */
+                    investmentIds?: string[];
                     /** @description Search text */
                     q?: string;
                 };
@@ -4954,7 +5311,7 @@ export interface paths {
         put?: never;
         /**
          * Transfer between wallets, or buy/sell an investment through a wallet
-         * @description `from` and `to` are `{type:"WALLET", walletId}` or `{type:"INVESTMENT", investmentId, quantity, unitPrice, fee?}`.\n\n**Wallet → wallet**: `toAmount` is required when the wallets use different currencies (the stored rate is toAmount / amount); for the same currency it must equal `amount` or be omitted. Negative balances are allowed.\n\n**BUY** (wallet → investment): the wallet is debited quantity × unitPrice + fee, converted to the wallet's currency unless `amount` is given; the position becomes new_qty = q + Δq and new_avg = (q × avg + Δq × unitPrice) / new_qty, fees += fee.\n\n**SELL** (investment → wallet): the wallet is credited quantity × unitPrice − fee; the average stays; `realizedPl` = (unitPrice − avg) × Δq − fee. Selling more than quantity − stakedQuantity answers 422 INSUFFICIENT_QUANTITY.\n\nInvestment → investment is not supported. Transfers and trades never count as income or expense; they show in the `transfer` column of the daily summary and in the history of the wallet.
+         * @description `from` and `to` are `{type:"WALLET", walletId}` or `{type:"INVESTMENT", investmentId, quantity, unitPrice, fee?}`.\n\n**Wallet → wallet**: `toAmount` is required when the wallets use different currencies (the stored rate is toAmount / amount); for the same currency it must equal `amount` or be omitted. Negative balances are allowed.\n\n**BUY** (wallet → investment): the wallet is debited quantity × unitPrice + fee, converted to the wallet's currency unless `amount` is given; the position becomes new_qty = q + Δq and new_avg = (q × avg + Δq × unitPrice) / new_qty, fees += fee.\n\n**SELL** (investment → wallet): the wallet is credited quantity × unitPrice − fee; the average stays; `realizedPl` = (unitPrice − avg) × Δq − fee. Selling more than the quantity answers 422 INSUFFICIENT_QUANTITY.\n\nInvestment → investment is not supported. Transfers and trades never count as income or expense; they show in the `transfer` column of the daily summary and in the history of the wallet.
          */
         post: {
             parameters: {
@@ -5038,7 +5395,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a transfer, BUY or SELL (balances and position are restored)
-         * @description A BUY/SELL can only be deleted while the investment's position is still the one it left behind (409 POSITION_CHANGED_SINCE).
+         * @description Any BUY/SELL can be deleted, not only the newest: the trades recorded after it are replayed on top of the position it started from, and their position snapshots and realised profit are rewritten in the same database transaction (each later trade keeps its own wallet amounts, the deleted trade's wallet effect is reversed). Refused with 422 TRADE_DELETE_BREAKS_LATER_SELL (details.tradeId names the first later sale that would no longer have enough quantity; nothing changes) and with 409 POSITION_CHANGED_SINCE when the position was edited by hand after the trade. A second delete of the same id is 404. Net worth snapshots of past days are not rewritten. See GET /spaces/{spaceId}/investments/{id}/trades (canDelete, blockedReason).
          */
         delete: {
             parameters: {
@@ -5088,13 +5445,22 @@ export interface paths {
                         "*/*": components["schemas"]["httpx.ErrorEnvelope"];
                     };
                 };
+                /** @description TRADE_DELETE_BREAKS_LATER_SELL */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["httpx.ErrorEnvelope"];
+                    };
+                };
             };
         };
         options?: never;
         head?: never;
         /**
          * Edit a transfer, BUY or SELL
-         * @description Any field may be sent; the old effect is reversed and the new one applied atomically. For wallet transfers, changing the amount or either wallet of a cross-currency transfer requires `toAmount`. For a BUY/SELL, send the investment side as `{type:"INVESTMENT", quantity?, unitPrice?, fee?}` and the wallet side as `{type:"WALLET", walletId}`; the investment itself cannot change. A BUY/SELL can only be edited (or deleted) while the investment's position is still the one it left behind, otherwise 409 POSITION_CHANGED_SINCE.
+         * @description Any field may be sent; the old effect is reversed and the new one applied atomically. For wallet transfers, changing the amount or either wallet of a cross-currency transfer requires `toAmount`. For a BUY/SELL, send the investment side as `{type:"INVESTMENT", quantity?, unitPrice?, fee?}` and the wallet side as `{type:"WALLET", walletId}`; the investment itself cannot change. A BUY/SELL can only be edited while the investment's position is still the one it left behind, otherwise 409 POSITION_CHANGED_SINCE (deleting is more permissive, see DELETE).
          */
         patch: {
             parameters: {
@@ -6210,8 +6576,6 @@ export interface components {
             /** @example 9200 */
             avgBuyPrice?: string;
             details?: Record<string, never>;
-            /** @example 5.5 */
-            estimatedAnnualChangePct?: string;
             fees?: string;
             /** @description Funding pays the initial position from a wallet (optional). */
             funding?: components["schemas"]["investments.Funding"];
@@ -6231,7 +6595,7 @@ export interface components {
             quoteCurrency?: string;
             symbol?: string;
             /**
-             * @description Wrapper is the exchange, broker or platform holding the position (1 to 60 characters). When omitted it is derived from details (exchangeOrWallet, broker or platform).
+             * @description Wrapper is the exchange, broker or platform holding the position (1 to 60 characters). This is the only field for it. An old client may still send details.exchangeOrWallet, details.broker or details.platform: they are accepted for one release and mapped into the wrapper when it is omitted, but never stored or returned.
              * @example Binance
              */
             wrapper?: string;
@@ -6239,9 +6603,9 @@ export interface components {
         "investments.FieldMeta": {
             /** @enum {string} */
             kind?: "TEXT" | "INTEGER" | "DECIMAL" | "DATE" | "ENUM";
-            /** @example Staked quantity */
+            /** @example Network */
             label?: string;
-            /** @example stakedQuantity */
+            /** @example network */
             name?: string;
             options?: string[];
             required?: boolean;
@@ -6264,8 +6628,6 @@ export interface components {
             avgBuyPrice?: string;
             createdAt?: string;
             details?: Record<string, never>;
-            /** @description EstimatedAnnualChangePct is the user's own assumed yearly change in percent; null when never set (there is no default). */
-            estimatedAnnualChangePct?: string;
             fees?: string;
             fxAsOf?: string;
             /**
@@ -6336,6 +6698,12 @@ export interface components {
             items?: components["schemas"]["investments.InvestmentDTO"][];
             summary?: components["schemas"]["investments.Summary"];
         };
+        "investments.OpeningPositionDTO": {
+            /** @example 0 */
+            avgBuyPrice?: string;
+            /** @example 0 */
+            quantity?: string;
+        };
         "investments.ParticipantDTO": {
             displayName?: string;
             email?: string;
@@ -6358,7 +6726,6 @@ export interface components {
             assetType?: string;
             avgBuyPrice?: string;
             details?: Record<string, never>;
-            estimatedAnnualChangePct?: string;
             fees?: string;
             icon?: string;
             /** @description InstrumentID relinks an auto-priced investment to an instrument picked from search. */
@@ -6373,8 +6740,16 @@ export interface components {
             quantity?: string;
             quoteCurrency?: string;
             symbol?: string;
-            /** @description Wrapper sets the exchange, broker or platform holding the position; null re-derives it from details. */
+            /** @description Wrapper sets the exchange, broker or platform holding the position; null clears it. */
             wrapper?: string;
+        };
+        "investments.PositionDTO": {
+            /** @example 65000 */
+            avgBuyPrice?: string;
+            /** @example 10 */
+            fees?: string;
+            /** @example 1.5 */
+            quantity?: string;
         };
         "investments.RealizedPLDTO": {
             /**
@@ -6457,9 +6832,51 @@ export interface components {
             /** @example 900000 */
             value?: string;
         };
+        "investments.TradeDTO": {
+            /** @enum {string} */
+            action?: "BUY" | "SELL";
+            /**
+             * @description Amount is the wallet side (what left or entered the wallet), in the wallet's currency.
+             * @example 30000
+             */
+            amount?: string;
+            blockedByTradeId?: string;
+            /** @enum {string} */
+            blockedReason?: "OWNER_ONLY" | "POSITION_CHANGED_SINCE" | "TRADE_DELETE_BREAKS_LATER_SELL";
+            /**
+             * @description CanDelete says whether DELETE /transfers/{id} would work now. When false, BlockedReason is OWNER_ONLY,
+             *     POSITION_CHANGED_SINCE (the position was edited by hand after the trade) or TRADE_DELETE_BREAKS_LATER_SELL.
+             */
+            canDelete?: boolean;
+            /** @example USD */
+            currency?: string;
+            /** @example 0 */
+            fee?: string;
+            id?: string;
+            occurredAt?: string;
+            positionAfter?: components["schemas"]["investments.PositionDTO"];
+            /** @description PositionBefore and PositionAfter are the position of the investment around this trade. */
+            positionBefore?: components["schemas"]["investments.PositionDTO"];
+            /** @example 0.5 */
+            quantity?: string;
+            realizedPl?: string;
+            /** @example 60000 */
+            unitPrice?: string;
+            /** @description WalletID and WalletName are null for a viewer of a shared investment (the wallet is the owner's). */
+            walletId?: string;
+            walletName?: string;
+        };
+        "investments.TradeListResponse": {
+            items?: components["schemas"]["investments.TradeDTO"][];
+            /** @description Next is the cursor of the next page; null on the last page. */
+            next?: string;
+            /**
+             * @description OpeningPosition is the position before the oldest trade (the whole current position when there are no trades),
+             *     so the screen can show where the history starts. An investment created without funding starts above zero.
+             */
+            openingPosition?: components["schemas"]["investments.OpeningPositionDTO"];
+        };
         "investments.TypeDefaults": {
-            /** @description EstimatedAnnualChangePct is always null: there is no assumed return (the field is kept so clients can rely on it). */
-            estimatedAnnualChangePct?: string;
             fees?: string;
             priceMode?: string;
         };
@@ -6491,6 +6908,8 @@ export interface components {
             isStale?: boolean;
             /** @description Native figures, in the investment's quote currency. */
             marketValue?: string;
+            /** @description NavAgeDays is how many days old the NAV is (today minus details.navDate); null for anything but a mutual fund and for a fund without a NAV date. */
+            navAgeDays?: number;
             price?: string;
             priceAsOf?: string;
             /**
@@ -6503,6 +6922,66 @@ export interface components {
             /** @description UnrealizedPLPct is a percentage (12.5 means +12.5%); null when the cost basis is 0. */
             unrealizedPlPct?: string;
             warnings?: components["schemas"]["currency.Warning"][];
+        };
+        "investments.ValuationBaseDTO": {
+            changeFromPrevious?: string;
+            costBasis?: string;
+            /** @example IDR */
+            currency?: string;
+            fxRate?: string;
+            pnl?: string;
+            value?: string;
+        };
+        "investments.ValuationChangeDTO": {
+            pct?: string;
+            value?: string;
+        };
+        "investments.ValuationDTO": {
+            /** @example 2026-10-31 */
+            asOf?: string;
+            base?: components["schemas"]["investments.ValuationBaseDTO"];
+            /** @description ChangeFromPrevious is null for the oldest valuation. */
+            changeFromPrevious?: components["schemas"]["investments.ValuationChangeDTO"];
+            costBasis?: string;
+            createdAt?: string;
+            id?: string;
+            /** @description IsLatest is true for the newest valuation, the one the investment uses as its current NAV. */
+            isLatest?: boolean;
+            /** @example 1534.2 */
+            nav?: string;
+            note?: string;
+            /** @description PnL is value − costBasis and PnLPct is PnL / costBasis × 100 (null when the cost is 0): profit since cost, not a yearly rate. */
+            pnl?: string;
+            pnlPct?: string;
+            /** @description Quantity and CostBasis are the position when the valuation was typed. */
+            quantity?: string;
+            value?: string;
+        };
+        "investments.ValuationDeleteResponse": {
+            warnings?: components["schemas"]["currency.Warning"][];
+        };
+        "investments.ValuationListResponse": {
+            /** @example IDR */
+            currency?: string;
+            items?: components["schemas"]["investments.ValuationDTO"][];
+            /**
+             * @description LastValuationAt is the date of the newest valuation (null when there is none).
+             * @example 2026-10-31
+             */
+            lastValuationAt?: string;
+        };
+        "investments.ValuationRequest": {
+            /**
+             * @description AsOf is the date of the NAV, not the day it is typed (YYYY-MM-DD, not in the future).
+             * @example 2026-10-31
+             */
+            asOf: string;
+            /**
+             * @description NAV is the price per unit, as 1534.20 or 1,534.20.
+             * @example 1534.20
+             */
+            nav: string;
+            note?: string;
         };
         "investments.WrapperAllocationDTO": {
             /**
@@ -6593,7 +7072,6 @@ export interface components {
             currentValue?: string;
             /** @example 2026-12-31 */
             dueDate?: string;
-            estimatedAnnualChangePct?: string;
             /** @description detail only, newest first */
             history?: components["schemas"]["manualassets.ValueChangeDTO"][];
             icon?: string;
@@ -6615,7 +7093,10 @@ export interface components {
             transaction?: components["schemas"]["transactions.TransactionDTO"];
         };
         "manualassets.ValueChangeDTO": {
+            /** @description CanRevert is true for the newest value change (undo it with DELETE .../value-changes/{id}) and for a settlement entry whose settlement still exists (undo it with the settlement delete). The entry that created the asset can never be reverted. */
+            canRevert?: boolean;
             changedAt?: string;
+            id?: string;
             newValue?: string;
             previousValue?: string;
             /** @enum {string} */
@@ -6629,7 +7110,6 @@ export interface components {
             currentValue: string;
             /** @example 2026-12-31 */
             dueDate?: string;
-            estimatedAnnualChangePct?: string;
             icon?: string;
             /** @enum {string} */
             kind: "FIXED_ASSET" | "RECEIVABLE" | "LIABILITY";
@@ -6648,7 +7128,6 @@ export interface components {
             currency?: string;
             currentValue?: string;
             dueDate?: string;
-            estimatedAnnualChangePct?: string;
             icon?: string;
             name?: string;
             note?: string;
