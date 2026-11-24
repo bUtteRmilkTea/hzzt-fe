@@ -82,7 +82,7 @@ export function useCreateAsset(spaceId: string) {
 export function useUpdateAsset(spaceId: string, id: string) {
   const refresh = useRefreshAll(spaceId)
   return useMutation({
-    // null clears counterpartyName, dueDate, estimatedAnnualChangePct and note (backend contract)
+    // null clears counterpartyName, dueDate and note (backend contract)
     mutationFn: async (body: Record<string, unknown>) =>
       (
         await api.PATCH('/spaces/{spaceId}/manual-assets/{id}', {

@@ -244,12 +244,11 @@ describe('manual assets', () => {
     expect(screen.queryByLabelText(/Owed to|Who owes you/)).not.toBeInTheDocument()
     for (const k of ['9', '9'])
       await user.click(screen.getByRole('button', { name: new RegExp(`^${k}$`) }))
-    await user.type(screen.getByLabelText('Estimated annual change % (optional)'), '4.5')
+    expect(screen.queryByLabelText(/Estimated annual change/)).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Add fixed asset' }))
-    await waitFor(() =>
-      expect(body).toMatchObject({ kind: 'FIXED_ASSET', estimatedAnnualChangePct: '4.5' }),
-    )
+    await waitFor(() => expect(body).toMatchObject({ kind: 'FIXED_ASSET', name: 'Apartment' }))
     expect(body).not.toHaveProperty('counterpartyName')
+    expect(body).not.toHaveProperty('estimatedAnnualChangePct')
   })
 
   it('validates a name and an amount before sending', async () => {

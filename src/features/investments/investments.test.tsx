@@ -305,17 +305,12 @@ describe('create investment', () => {
     expect(screen.getByLabelText(/Symbol \(optional\)/)).toBeInTheDocument()
   })
 
-  it('crypto: staked quantity cannot exceed the quantity', async () => {
+  it('crypto has no staked quantity field and no second exchange field', async () => {
     const user = userEvent.setup()
     await open(user, 'Crypto')
-    await user.type(screen.getByLabelText('Name'), 'Eth')
-    await user.type(screen.getByLabelText('Symbol'), 'ETH')
-    await user.type(screen.getByLabelText('Quantity'), '1')
-    await user.type(screen.getByLabelText(/Staked quantity/), '2')
-    await user.click(screen.getByRole('button', { name: 'Add investment' }))
-    expect(
-      await screen.findByText('Staked quantity cannot exceed the quantity.'),
-    ).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Staked quantity/)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Exchange or wallet/)).not.toBeInTheDocument()
+    expect(screen.getAllByLabelText(/Exchange, broker or platform/)).toHaveLength(1)
   })
 
   it('can pay for the initial position from a wallet', async () => {
@@ -454,7 +449,6 @@ describe('buy and sell', () => {
     ...btc,
     quantity: '10',
     avgBuyPrice: '100',
-    details: { stakedQuantity: '2' } as never,
   }
   beforeEach(() => server.use(http.get(`${I}/i-1`, () => HttpResponse.json(inv))))
 
@@ -515,7 +509,7 @@ describe('buy and sell', () => {
     )
   })
 
-  it('will not offer to sell more than is held minus what is staked', async () => {
+  it('lets you sell everything held, and refuses more than that', async () => {
     const called = vi.fn()
     server.use(
       http.post(`${BASE}/spaces/s-1/transfers`, () => {
@@ -525,8 +519,8 @@ describe('buy and sell', () => {
     )
     const user = userEvent.setup()
     const sheet = await openTrade(user, 'Sell')
-    expect(within(sheet).getByText(/up to 8 \(staked units excluded\)/)).toBeInTheDocument()
-    await user.type(within(sheet).getByLabelText('Quantity'), '8.01')
+    expect(within(sheet).getByText('You can sell up to 10')).toBeInTheDocument()
+    await user.type(within(sheet).getByLabelText('Quantity'), '10.01')
     await user.type(within(sheet).getByLabelText(/Unit price/), '1')
     expect(within(sheet).getByText("You don't hold that much to sell.")).toBeInTheDocument()
     expect(within(sheet).getByRole('button', { name: 'Sell' })).toBeDisabled()

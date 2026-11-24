@@ -190,26 +190,79 @@ export function groupInvestments(items: readonly InvestmentView[]): InvestmentGr
     })
 }
 
-/** Pie data for the whole portfolio: the biggest holdings, the rest folded into "Other". */
-export function topSlices(
-  items: readonly InvestmentView[],
-  top = 6,
-): Array<{ key: string; name: string; amount: string }> {
-  const rows = items
-    .flatMap((i) => {
-      const b = baseValueOf(i)
-      return b ? [{ key: i.id as string, name: i.name ?? '', amount: b.value }] : []
+export interface UnionSlice {
+  key: string
+  name: string
+  amount: string
+  /** Distinct wrappers (accounts) this slice spans. */
+  accounts: number
+  /** Value held in each wrapper, biggest first. */
+  parts: Array<{ wrapper: string; amount: string }>
+  /** Second legend line: "Binance 60%, Hyperliquid 40%" (shares of this slice). */
+  detail?: string
+}
+
+/**
+ * Pie data for the whole portfolio (D-F54): every holding, with the same asset type and the same
+ * symbol (upper-cased) merged into one slice, so BTC on two exchanges is one slice. A holding with
+ * no symbol (a mutual fund) is never merged. Values are the server's base-currency figures, summed
+ * with Decimal for display only. A holding with no base value (no rate) is left out. Biggest first,
+ * nothing folded into "Other".
+ */
+export function unionSlices(items: readonly InvestmentView[]): UnionSlice[] {
+  const by = new Map<
+    string,
+    {
+      name: string
+      symbol: string
+      total: Decimal
+      wrappers: Map<string, { label: string; v: Decimal }>
+    }
+  >()
+  for (const i of items) {
+    const b = baseValueOf(i)
+    if (!b) continue
+    const symbol = clean(i.symbol).toUpperCase()
+    const key = symbol ? `${i.assetType ?? ''}:${symbol}` : (i.id as string)
+    const w = wrapperOf(i)
+    const cur = by.get(key) ?? {
+      name: i.name ?? symbol,
+      symbol,
+      total: new Decimal(0),
+      wrappers: new Map<string, { label: string; v: Decimal }>(),
+    }
+    cur.total = cur.total.plus(b.value)
+    cur.wrappers.set(w.key, {
+      label: w.label,
+      v: (cur.wrappers.get(w.key)?.v ?? new Decimal(0)).plus(b.value),
     })
-    .sort((a, b) => toDecimal(b.amount).comparedTo(a.amount))
-  if (rows.length <= top) return rows
-  const head = rows.slice(0, top)
-  const other = rows.slice(top).reduce((acc, r) => acc.plus(r.amount), new Decimal(0))
-  return [...head, { key: '_other', name: 'Other', amount: other.toFixed() }]
+    by.set(key, cur)
+  }
+  return [...by.entries()]
+    .map(([key, g]) => {
+      const parts = [...g.wrappers.values()]
+        .map((w) => ({ wrapper: w.label, amount: w.v.toFixed() }))
+        .sort((x, y) => toDecimal(y.amount).comparedTo(x.amount))
+      const accounts = parts.length
+      const pcts = allocatePct(parts.map((p) => p.amount))
+      const named = g.symbol && accounts > 1
+      return {
+        key,
+        name: named ? `${g.symbol}, ${accounts} accounts` : g.name || g.symbol,
+        amount: g.total.toFixed(),
+        accounts,
+        parts,
+        ...(accounts > 1
+          ? { detail: parts.map((p, n) => `${p.wrapper} ${pcts[n]}%`).join(', ') }
+          : {}),
+      }
+    })
+    .sort((x, y) => toDecimal(y.amount).comparedTo(x.amount) || x.name.localeCompare(y.name))
 }
 
 /**
  * Pie data per asset class: one slice per asset type in display order, valued in the base
- * currency. A type with no base value (no rate) is left out, as `topSlices` does.
+ * currency. A type with no base value (no rate) is left out.
  */
 export function categorySlices(
   items: readonly InvestmentView[],

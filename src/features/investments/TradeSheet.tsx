@@ -12,7 +12,7 @@ import { Select } from '@/shared/ui/Select'
 import { SheetShell } from '@/shared/ui/SheetShell'
 import { useToast } from '@/shared/ui/Toast'
 import { useTrade } from './hooks'
-import { canPreview, exceedsSellable, previewBuy, previewSell, quantityProblem } from './trade'
+import { canPreview, exceedsHeld, previewBuy, previewSell, quantityProblem } from './trade'
 import type { InvestmentView } from './types'
 
 interface TradeSheetProps {
@@ -37,21 +37,18 @@ export function TradeSheet({ side, investment, onRefresh, onClose }: TradeSheetP
 
   const currency = investment.quoteCurrency ?? ''
   const held = investment.quantity ?? '0'
-  const staked = (investment.details as unknown as { stakedQuantity?: string } | undefined)
-    ?.stakedQuantity
   const list = wallets.data?.items ?? []
   const chosen = walletId || list[0]?.id || ''
   const pos = { quantity: held, avgBuyPrice: investment.avgBuyPrice ?? '0' }
   const qtyProblem = quantityProblem(investment.assetType as string, quantity)
   const previewable = canPreview(quantity, unitPrice, fee) && !qtyProblem
-  const tooMuch = side === 'SELL' && exceedsSellable(held, staked, quantity)
+  const tooMuch = side === 'SELL' && exceedsHeld(held, quantity)
   const preview =
     previewable && !tooMuch
       ? side === 'BUY'
         ? previewBuy(pos, quantity, unitPrice, fee)
         : previewSell(pos, quantity, unitPrice, fee)
       : null
-  const sellable = new Decimal(held).minus(staked || '0')
 
   return (
     <SheetShell
@@ -120,11 +117,7 @@ export function TradeSheet({ side, investment, onRefresh, onClose }: TradeSheetP
         </Field>
         <Field
           label="Quantity"
-          hint={
-            side === 'SELL'
-              ? `You can sell up to ${sellable.toFixed()}${staked ? ' (staked units excluded)' : ''}`
-              : undefined
-          }
+          hint={side === 'SELL' ? `You can sell up to ${new Decimal(held).toFixed()}` : undefined}
           error={tooMuch ? "You don't hold that much to sell." : (qtyProblem ?? undefined)}
         >
           <Input

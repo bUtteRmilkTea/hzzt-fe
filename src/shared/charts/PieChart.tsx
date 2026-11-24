@@ -12,6 +12,8 @@ export interface PieSlice {
   amount: string
   /** Server-computed share, e.g. "42.50". Computed locally (sums to 100.00) when omitted. */
   pct?: string | null
+  /** A short second legend line, e.g. "Binance 60%, Hyperliquid 40%". */
+  detail?: string
 }
 
 interface PieChartProps {
@@ -31,6 +33,8 @@ interface PieChartProps {
   layout?: 'stack' | 'row'
   /** Sweep the slices in, staggered. */
   draw?: boolean
+  /** Longest the legend gets, in px. Past it the legend scrolls inside its own region. */
+  legendMaxHeight?: number
 }
 
 const RAMP = [
@@ -42,6 +46,10 @@ const RAMP = [
   'var(--chart-6)',
   'var(--chart-7)',
   'var(--chart-8)',
+  'var(--chart-9)',
+  'var(--chart-10)',
+  'var(--chart-11)',
+  'var(--chart-12)',
 ]
 
 /**
@@ -61,6 +69,7 @@ export function PieChart({
   donut,
   layout = 'stack',
   draw,
+  legendMaxHeight,
 }: PieChartProps) {
   const [viewRef, seen] = useInView(Boolean(draw))
   const pcts = allocatePct(slices.map((s) => s.amount))
@@ -85,7 +94,13 @@ export function PieChart({
       )}
       data-testid="pie-chart"
     >
-      <svg width={size} height={size} role="img" aria-label={label} className="block shrink-0">
+      <svg
+        width={size}
+        height={size}
+        role="img"
+        aria-label={label}
+        className={cn('block shrink-0', legendMaxHeight && layout === 'row' && 'sm:self-start')}
+      >
         <title>{label}</title>
         <g transform={`translate(${size / 2},${size / 2})`}>
           {arcs.map((a, i) => (
@@ -107,44 +122,71 @@ export function PieChart({
         </g>
       </svg>
       {compact ? null : (
-        <ul
-          className={cn('flex w-full flex-col gap-1', layout === 'row' && 'min-w-0 flex-1')}
-          aria-label={`${label} legend`}
+        <div
+          // A long legend is its own scroll region: focusable (arrow keys scroll it), named, and it
+          // never hands its scroll to the page. The list stays a real list inside it.
+          {...(legendMaxHeight
+            ? {
+                tabIndex: 0,
+                role: 'region',
+                'aria-label': `${label} legend, scrollable`,
+                style: { maxHeight: legendMaxHeight },
+              }
+            : {})}
+          data-testid="pie-legend"
+          className={cn(
+            'w-full',
+            layout === 'row' && 'min-w-0 flex-1',
+            legendMaxHeight &&
+              'overflow-y-auto overscroll-contain rounded-md focus-visible:outline-2 [scrollbar-gutter:stable]',
+          )}
         >
-          {slices.map((s, i) => {
-            const body = (
-              <>
-                <span className="w-4 text-xs text-label-tertiary">{i + 1}</span>
-                <span
-                  aria-hidden
-                  style={{ backgroundColor: RAMP[i % RAMP.length] }}
-                  className="size-3 shrink-0 rounded-full border border-border-strong"
-                />
-                <span className="min-w-0 flex-1 truncate text-left">{s.name}</span>
-                <span className="tabular text-label-secondary">{pctOf(i)}%</span>
-                {showAmounts ? (
-                  <Amount value={s.amount} currency={currency} className="w-28 text-right" />
-                ) : null}
-              </>
-            )
-            return (
-              <li key={s.key}>
-                {onSelect ? (
-                  <button
-                    type="button"
-                    aria-pressed={selectedKey === s.key}
-                    onClick={() => onSelect(s.key)}
-                    className="flex min-h-12 w-full items-center gap-2 rounded-md px-2 hover:bg-surface-3 aria-pressed:bg-surface-3"
-                  >
-                    {body}
-                  </button>
-                ) : (
-                  <div className="flex min-h-12 w-full items-center gap-2 px-2">{body}</div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+          <ul
+            className="flex w-full flex-col gap-1"
+            {...(legendMaxHeight ? {} : { 'aria-label': `${label} legend` })}
+          >
+            {slices.map((s, i) => {
+              const body = (
+                <>
+                  <span className="w-4 text-xs text-label-tertiary">{i + 1}</span>
+                  <span
+                    aria-hidden
+                    style={{ backgroundColor: RAMP[i % RAMP.length] }}
+                    className="size-3 shrink-0 rounded-full border border-border-strong"
+                  />
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block truncate">{s.name}</span>
+                    {s.detail ? (
+                      <span className="block truncate text-xs text-label-secondary">
+                        {s.detail}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="tabular text-label-secondary">{pctOf(i)}%</span>
+                  {showAmounts ? (
+                    <Amount value={s.amount} currency={currency} className="w-28 text-right" />
+                  ) : null}
+                </>
+              )
+              return (
+                <li key={s.key}>
+                  {onSelect ? (
+                    <button
+                      type="button"
+                      aria-pressed={selectedKey === s.key}
+                      onClick={() => onSelect(s.key)}
+                      className="flex min-h-12 w-full items-center gap-2 rounded-md px-2 hover:bg-surface-3 aria-pressed:bg-surface-3"
+                    >
+                      {body}
+                    </button>
+                  ) : (
+                    <div className="flex min-h-12 w-full items-center gap-2 px-2">{body}</div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </div>
   )

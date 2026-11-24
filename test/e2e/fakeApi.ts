@@ -671,6 +671,7 @@ export async function installFakeApi(
           quantity: b.quantity ?? '0',
           avgBuyPrice: b.avgBuyPrice ?? '0',
           price: b.manualPrice ?? '100',
+          ...(b.wrapper ? { wrapper: b.wrapper } : {}),
           participants: [
             {
               id: 'p-1',

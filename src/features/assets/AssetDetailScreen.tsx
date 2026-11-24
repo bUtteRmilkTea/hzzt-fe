@@ -47,17 +47,25 @@ export function AssetDetailScreen() {
   const a = asset.data
   const meta = kindMeta(a.kind)
   const currency = a.currency ?? ''
+  const hasHistory = (a.history ?? []).length > 0
 
   return (
-    <Page width="wide" gap={8}>
+    <Page width="form" gap={5}>
       <PageHeader title={a.name ?? meta.noun} />
+      {/* R4: with no history the card and the actions are one centred column, with history two
+          columns from `lg`, so the page is never half empty. */}
       <div
         data-testid="asset-detail-layout"
-        className="grid items-start gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-10"
+        className={
+          hasHistory
+            ? 'grid items-start gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-10'
+            : 'mx-auto flex w-full max-w-[26rem] flex-col'
+        }
       >
         <div className="flex min-w-0 flex-col gap-5">
           <Card className="flex flex-col gap-1" data-testid="asset-card">
             <p className="text-sm text-label-secondary">
+              {a.name ? `${a.name} · ` : ''}
               {a.kind === 'LIABILITY'
                 ? 'Outstanding'
                 : a.kind === 'RECEIVABLE'
@@ -77,12 +85,10 @@ export function AssetDetailScreen() {
                 Due {format(new Date(`${a.dueDate}T12:00:00`), 'd MMM yyyy')}
               </p>
             ) : null}
-            {a.estimatedAnnualChangePct ? (
-              <p className="text-sm text-label-secondary">
-                Estimated change {a.estimatedAnnualChangePct}% a year
-              </p>
-            ) : null}
             {a.note ? <p className="mt-2 text-sm">{a.note}</p> : null}
+            {hasHistory ? null : (
+              <p className="mt-2 text-sm text-label-secondary">No changes yet.</p>
+            )}
           </Card>
 
           <div className="flex flex-col gap-3">
@@ -111,7 +117,7 @@ export function AssetDetailScreen() {
           </div>
         </div>
 
-        {(a.history ?? []).length > 0 ? (
+        {hasHistory ? (
           <section aria-labelledby="hist" className="flex flex-col gap-2">
             <h2 id="hist" className="text-lg font-medium">
               History
@@ -138,9 +144,7 @@ export function AssetDetailScreen() {
               ))}
             </ul>
           </section>
-        ) : (
-          <p className="text-sm text-label-secondary">No changes yet.</p>
-        )}
+        ) : null}
       </div>
 
       {settling ? <SettleSheet asset={a} onClose={() => setSettling(false)} /> : null}
