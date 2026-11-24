@@ -113,161 +113,173 @@ export function InvestmentDetailScreen() {
   return (
     <Page width="form" gap={5}>
       <PageHeader title={i.name ?? 'Investment'} />
-      <p className="-mt-3 flex flex-wrap items-center gap-2 text-sm text-label-secondary">
-        <span aria-hidden>{i.icon}</span> {i.symbol}
+      <p className="flex flex-wrap items-center gap-2 text-sm text-label-secondary">
+        <span aria-hidden>{i.icon}</span> {[i.name, i.symbol].filter(Boolean).join(' · ')}
         {sharedIn || i.isShared ? <ShareBadge bps={i.myShareBps} /> : null}
         {v ? <PriceSourceBadge valuation={v} assetType={i.assetType} /> : null}
       </p>
 
-      {f && v ? (
-        <Card className="flex flex-col" data-testid="valuation">
-          <p className="text-sm text-label-secondary">{sharedIn ? 'Your share' : 'Value'}</p>
-          <p className="pb-2 text-3xl font-medium">
-            <Amount animate value={f.value} currency={f.currency} />
-          </p>
-          <Line label="Cost basis">
-            <Amount value={f.cost} currency={f.currency} />
-          </Line>
-          <Line label="Unrealised P/L">
-            <Amount value={f.pl} currency={f.currency} tone="auto" signDisplay="always" />
-            {v.unrealizedPlPct !== null ? <> ({v.unrealizedPlPct}%)</> : null}
-          </Line>
-          {v.base ? (
-            <Line label={`In ${quote}`}>
-              <Amount value={v.marketValue} currency={quote} />
-            </Line>
+      {/* R4: two columns from `lg`. Left: value and the actions. Right: the position and price
+          card (the trade History of a later phase goes under it). One column on a phone, in the
+          order value, position, actions. */}
+      <div
+        data-testid="investment-detail-layout"
+        className="grid items-start gap-5 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-8"
+      >
+        <div className="flex min-w-0 flex-col gap-5">
+          {f && v ? (
+            <Card className="flex flex-col" data-testid="valuation">
+              <p className="text-sm text-label-secondary">{sharedIn ? 'Your share' : 'Value'}</p>
+              <p className="pb-2 text-3xl font-medium">
+                <Amount animate value={f.value} currency={f.currency} />
+              </p>
+              <Line label="Cost basis">
+                <Amount value={f.cost} currency={f.currency} />
+              </Line>
+              <Line label="Unrealised P/L">
+                <Amount value={f.pl} currency={f.currency} tone="auto" signDisplay="always" />
+                {v.unrealizedPlPct !== null ? <> ({v.unrealizedPlPct}%)</> : null}
+              </Line>
+              {v.base ? (
+                <Line label={`In ${quote}`}>
+                  <Amount value={v.marketValue} currency={quote} />
+                </Line>
+              ) : null}
+              {v.base ? <Line label="Exchange rate">{v.base.fxRate}</Line> : null}
+            </Card>
           ) : null}
-          {v.base ? <Line label="Exchange rate">{v.base.fxRate}</Line> : null}
-        </Card>
-      ) : null}
-      <WarningsStrip
-        warnings={v?.warnings.filter((w) => w.code !== 'MANUAL_VALUE_OVERRIDES_MARKET')}
-      />
-      {overridesMarket(v) ? (
-        <div
-          role="status"
-          data-testid="override-warning"
-          className="flex flex-col items-start gap-2 rounded-lg border border-warning px-4 py-3 text-sm"
-        >
-          <p className="flex items-center gap-2 text-warning">
-            <TriangleAlert aria-hidden className="size-4 shrink-0" />
-            Manual value is used instead of the live price
-          </p>
-          {sharedIn ? null : (
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={useLive.isPending}
-              onClick={() =>
-                useLive.mutate(undefined, {
-                  onError: (e) => toast.show(errorMessage(e), 'error'),
-                })
-              }
+          <WarningsStrip
+            warnings={v?.warnings.filter((w) => w.code !== 'MANUAL_VALUE_OVERRIDES_MARKET')}
+          />
+          {overridesMarket(v) ? (
+            <div
+              role="status"
+              data-testid="override-warning"
+              className="flex flex-col items-start gap-2 rounded-lg border border-warning px-4 py-3 text-sm"
             >
-              Use live price
-            </Button>
+              <p className="flex items-center gap-2 text-warning">
+                <TriangleAlert aria-hidden className="size-4 shrink-0" />
+                Manual value is used instead of the live price
+              </p>
+              {sharedIn ? null : (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={useLive.isPending}
+                  onClick={() =>
+                    useLive.mutate(undefined, {
+                      onError: (e) => toast.show(errorMessage(e), 'error'),
+                    })
+                  }
+                >
+                  Use live price
+                </Button>
+              )}
+            </div>
+          ) : null}
+
+          {sharedIn && total ? (
+            <Card className="grid grid-cols-2 gap-3" data-testid="share-compare">
+              <div>
+                <p className="text-sm text-label-secondary">My share ({bpsToPct(i.myShareBps)}%)</p>
+                <Amount
+                  value={v ? rowFigures(v, quote).value : '0'}
+                  currency={f?.currency ?? quote}
+                  className="font-semibold"
+                />
+              </div>
+              <div>
+                <p className="text-sm text-label-secondary">Total</p>
+                <Amount
+                  value={rowFigures(total, quote).value}
+                  currency={rowFigures(total, quote).currency}
+                  className="font-semibold"
+                />
+              </div>
+            </Card>
+          ) : null}
+        </div>
+        <div className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <Card className="flex flex-col">
+            <h2 className="pb-1 text-sm font-semibold text-label-secondary">Position</h2>
+            <Line label="Quantity">{i.quantity}</Line>
+            <Line label="Average buy price">
+              <Amount value={i.avgBuyPrice ?? '0'} currency={quote} />
+            </Line>
+            {v ? (
+              <Line label="Price source">
+                {v.priceSource === 'MARKET'
+                  ? 'Market'
+                  : v.priceSource === 'MANUAL'
+                    ? 'Typed price'
+                    : 'Manual value'}
+              </Line>
+            ) : null}
+            {v ? (
+              <Line label="Current price">
+                <Amount value={v.price} currency={quote} />
+              </Line>
+            ) : null}
+            {realized?.sells ? (
+              <Line
+                label={`Realised P/L (${realized.sells} ${realized.sells === 1 ? 'sale' : 'sales'})`}
+              >
+                <Amount
+                  value={realized.amount ?? '0'}
+                  currency={realized.currency ?? quote}
+                  tone="auto"
+                  signDisplay="always"
+                />
+              </Line>
+            ) : null}
+          </Card>
+        </div>
+        <div className="flex min-w-0 flex-col gap-5">
+          {sharedIn ? (
+            <p className="text-center text-sm text-label-tertiary">
+              This investment is shared with you, so it is read-only.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <Button className="flex-1" onClick={() => setTrade('BUY')}>
+                  Buy
+                </Button>
+                <Button className="flex-1" variant="secondary" onClick={() => setTrade('SELL')}>
+                  Sell
+                </Button>
+              </div>
+              {i.priceMode === 'AUTO' ? (
+                <Button
+                  variant="secondary"
+                  disabled={refresh.isPending || cooldown > 0}
+                  onClick={doRefresh}
+                >
+                  {cooldown > 0
+                    ? `Refresh available in ${cooldown}s`
+                    : refresh.isPending
+                      ? 'Refreshing…'
+                      : 'Refresh price'}
+                </Button>
+              ) : null}
+              <div className="flex gap-3" data-testid="more-actions">
+                <Button variant="ghost" className="flex-1" asChild>
+                  <Link to="/s/$spaceId/investments/$id/sharing" params={{ spaceId: space.id, id }}>
+                    Share
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-1 text-negative"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
           )}
         </div>
-      ) : null}
-
-      {sharedIn && total ? (
-        <Card className="grid grid-cols-2 gap-3" data-testid="share-compare">
-          <div>
-            <p className="text-sm text-label-secondary">My share ({bpsToPct(i.myShareBps)}%)</p>
-            <Amount
-              value={v ? rowFigures(v, quote).value : '0'}
-              currency={f?.currency ?? quote}
-              className="font-semibold"
-            />
-          </div>
-          <div>
-            <p className="text-sm text-label-secondary">Total</p>
-            <Amount
-              value={rowFigures(total, quote).value}
-              currency={rowFigures(total, quote).currency}
-              className="font-semibold"
-            />
-          </div>
-        </Card>
-      ) : null}
-
-      <Card className="flex flex-col">
-        <h2 className="pb-1 text-sm font-semibold text-label-secondary">Position</h2>
-        <Line label="Quantity">{i.quantity}</Line>
-        <Line label="Average buy price">
-          <Amount value={i.avgBuyPrice ?? '0'} currency={quote} />
-        </Line>
-        {v ? (
-          <Line label="Price source">
-            {v.priceSource === 'MARKET'
-              ? 'Market'
-              : v.priceSource === 'MANUAL'
-                ? 'Typed price'
-                : 'Manual value'}
-          </Line>
-        ) : null}
-        {v ? (
-          <Line label="Current price">
-            <Amount value={v.price} currency={quote} />
-          </Line>
-        ) : null}
-        {realized?.sells ? (
-          <Line
-            label={`Realised P/L (${realized.sells} ${realized.sells === 1 ? 'sale' : 'sales'})`}
-          >
-            <Amount
-              value={realized.amount ?? '0'}
-              currency={realized.currency ?? quote}
-              tone="auto"
-              signDisplay="always"
-            />
-          </Line>
-        ) : null}
-      </Card>
-
-      {sharedIn ? (
-        <p className="text-center text-sm text-label-tertiary">
-          This investment is shared with you, so it is read-only.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-3">
-            <Button className="flex-1" onClick={() => setTrade('BUY')}>
-              Buy
-            </Button>
-            <Button className="flex-1" variant="secondary" onClick={() => setTrade('SELL')}>
-              Sell
-            </Button>
-          </div>
-          {i.priceMode === 'AUTO' ? (
-            <Button
-              variant="secondary"
-              disabled={refresh.isPending || cooldown > 0}
-              onClick={doRefresh}
-            >
-              {cooldown > 0
-                ? `Refresh available in ${cooldown}s`
-                : refresh.isPending
-                  ? 'Refreshing…'
-                  : 'Refresh price'}
-            </Button>
-          ) : null}
-          <div className="flex gap-3">
-            <Button variant="ghost" className="flex-1" asChild>
-              <Link to="/s/$spaceId/investments/$id/sharing" params={{ spaceId: space.id, id }}>
-                Share
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className="flex-1 text-negative"
-              onClick={() => setConfirmDelete(true)}
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
-      )}
+      </div>
 
       {trade ? (
         <TradeSheet

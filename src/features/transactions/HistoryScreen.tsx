@@ -108,7 +108,7 @@ export function HistoryScreen() {
   return (
     <Page className="flex-row gap-6">
       <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <h1 className="text-xl font-medium">History</h1>
+        <h1 className="sr-only">History</h1>
 
         <div className="sticky top-14 z-20 -mx-4 flex flex-col gap-2 bg-bg px-4 py-2 lg:top-0 lg:mx-0 lg:px-0">
           <div className="flex flex-wrap items-center gap-2">

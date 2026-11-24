@@ -32,7 +32,7 @@
   --warning: #ffd60a;
   --transfer: #a3a3a3;
 
-  /* Chart ramp: eight distinct hues, each at least 3:1 against surface-1 (tokens.contrast.test.ts) */
+  /* Chart ramp: twelve hues (the legend index is the second cue), each at least 3:1 against surface-1 (tokens.contrast.test.ts) */
   --chart-1: #60a5fa;
   --chart-2: #34d399;
   --chart-3: #fbbf24;
@@ -41,6 +41,10 @@
   --chart-6: #fb923c;
   --chart-7: #22d3ee;
   --chart-8: #a3e635;
+  --chart-9: #f87171;
+  --chart-10: #14b8a6;
+  --chart-11: #e879f9;
+  --chart-12: #d4a373;
 
   /* Radius */
   --r-sm: 10px;
@@ -122,6 +126,10 @@
   --chart-6: #c2410c;
   --chart-7: #0e7490;
   --chart-8: #4d7c0f;
+  --chart-9: #b91c1c;
+  --chart-10: #0f766e;
+  --chart-11: #a21caf;
+  --chart-12: #7c4a2d;
   --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.12);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.08);
   --chrome: rgb(255 255 255 / 0.72);
@@ -154,6 +162,10 @@
   --color-chart-6: var(--chart-6);
   --color-chart-7: var(--chart-7);
   --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
+  --color-chart-11: var(--chart-11);
+  --color-chart-12: var(--chart-12);
   --color-warning: var(--warning);
   --color-transfer: var(--transfer);
   --color-chrome: var(--chrome);

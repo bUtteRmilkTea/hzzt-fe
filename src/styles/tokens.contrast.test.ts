@@ -75,9 +75,17 @@ describe.each(Object.entries(themes))('%s theme contrast (WCAG AA, 4.5:1 for tex
 })
 
 describe.each(Object.entries(themes))('%s theme chart ramp', (_name, t) => {
-  const ramp = Array.from({ length: 8 }, (_, i) => t[`chart-${i + 1}`] as string)
-  it('has eight distinct colours', () => {
-    expect(new Set(ramp).size).toBe(8)
+  const ramp = Array.from({ length: 12 }, (_, i) => t[`chart-${i + 1}`] as string)
+  it('has twelve distinct colours, no two nearly the same', () => {
+    expect(new Set(ramp).size).toBe(12)
+    const rgb = (c: string) =>
+      [1, 3, 5].map((k) => Number.parseInt(c.slice(k, k + 2), 16) as number)
+    for (let a = 0; a < ramp.length; a++)
+      for (let b = a + 1; b < ramp.length; b++) {
+        const [x, y] = [rgb(ramp[a] as string), rgb(ramp[b] as string)]
+        const d = Math.hypot(...x.map((v, k) => v - (y[k] as number)))
+        expect(d, `chart-${a + 1} vs chart-${b + 1}`).toBeGreaterThan(40)
+      }
   })
   it.each(ramp.map((c, i) => [i + 1, c] as const))(
     'slice %i is at least 3:1 against the card surface (WCAG 1.4.11)',

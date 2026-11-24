@@ -11,7 +11,12 @@ import { renderApp } from '../../../test/renderApp'
 import { capRows, collapsedSummary } from './AssetsScreen'
 
 const NW = `${BASE}/spaces/s-1/net-worth`
-const many = Array.from({ length: 7 }, (_, i) => ({ ...btc, id: `inv-${i}`, name: `Coin ${i}` }))
+const many = Array.from({ length: 7 }, (_, i) => ({
+  ...btc,
+  id: `inv-${i}`,
+  name: `Coin ${i}`,
+  wrapper: 'Binance',
+}))
 
 beforeEach(() => {
   server.use(...makeAuthedHandlers())
@@ -163,15 +168,13 @@ describe('assets layout (F12)', () => {
       ).not.toBeInTheDocument()
   })
 
-  it('lists at most 5 investments inline, with a link to open all of them', async () => {
+  it('lists at most 5 investments inline in an account, with no link when it is the only account', async () => {
     renderApp('/s/s-1/assets')
     const inv = await screen.findByRole('region', { name: 'Investments' })
     await within(inv).findByText('Coin 0')
     expect(within(inv).getAllByText(/^Coin \d$/)).toHaveLength(5)
     expect(within(inv).queryByText('Coin 5')).not.toBeInTheDocument()
-    expect(within(inv).getByRole('link', { name: 'Open all 7 investments' })).toHaveAttribute(
-      'href',
-      '/s/s-1/investments',
-    )
+    expect(within(inv).getByTestId('group-more')).toHaveTextContent('+2 more')
+    expect(within(inv).queryByTestId('more-accounts')).not.toBeInTheDocument()
   })
 })

@@ -21,6 +21,7 @@ beforeEach(() => {
         list([
           {
             ...btc,
+            wrapper: 'Binance',
             valuation: valuation({
               base: {
                 currency: 'IDR',
@@ -64,8 +65,9 @@ describe('assets page breakdown (S6)', () => {
 
     const inv = screen.getByRole('region', { name: 'Investments' })
     expect(await within(inv).findByText('Bitcoin')).toBeInTheDocument()
-    // No broker on this fixture, so it lands under "Other"; the asset type moves to the row's second line.
-    expect(within(inv).getByRole('heading', { name: 'Other' })).toBeInTheDocument()
+    // The holding sits under its broker (D-F56); the asset type is on the row's second line.
+    expect(within(inv).getByRole('heading', { name: 'Binance' })).toBeInTheDocument()
+    expect(within(inv).getByTestId('group-pl')).toHaveTextContent('+IDR 2,400,000')
     expect(within(inv).getByText(/BTC · Crypto/)).toBeInTheDocument()
     const pl = within(inv).getByTestId('row-pl')
     expect(pl).toHaveTextContent('+IDR 2,400,000')

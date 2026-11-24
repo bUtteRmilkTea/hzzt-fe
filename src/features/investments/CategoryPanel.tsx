@@ -34,23 +34,30 @@ function WrapperSection({
       data-testid="wrapper-section"
       className="flex flex-col gap-2 border-t border-border pt-3"
     >
-      <div className="flex items-start justify-between gap-3">
+      {/* One row (R5): name, amount, share and target on one line from `sm`; two fixed lines on a
+          phone. The hint and any error sit in their own grid row, so the row height never changes. */}
+      <div
+        data-testid="wrapper-header"
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
+      >
         <button
           type="button"
           aria-expanded={open}
           aria-controls={bodyId}
           onClick={() => setOpen((o) => !o)}
-          className="flex min-h-12 min-w-0 flex-1 items-center gap-2 text-left"
+          className="flex min-h-12 min-w-0 items-center gap-2 text-left"
         >
           <ChevronDown
             aria-hidden
             className={cn('size-4 shrink-0 transition-transform', !open && '-rotate-90')}
           />
           <span className="truncate font-medium">{w.label}</span>
-          {currency ? (
-            <Amount value={w.value} currency={currency} className="ml-auto font-medium" />
-          ) : null}
         </button>
+        {currency ? (
+          <Amount value={w.value} currency={currency} className="tabular font-medium" />
+        ) : (
+          <span />
+        )}
         <WrapperPercentInline
           assetType={group.assetType}
           wrapperKey={w.key}
@@ -95,7 +102,7 @@ export function CategoryPanel({
   const currency = group.currency
   return (
     <section aria-label={label} className={cn(cardClass, 'flex flex-col gap-3')}>
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-medium">{label}</h2>
         {currency ? (
           <Amount animate value={group.value} currency={currency} className="text-lg font-medium" />

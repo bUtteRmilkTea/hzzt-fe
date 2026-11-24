@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { InvestmentView } from '@/features/investments/types'
 import { valuation } from '../../../test/msw/investments'
-import { accountGroups, capEach } from './breakdown'
+import { accountGroups, capEach, topAccounts } from './breakdown'
 
 const inv = (
   id: string,
@@ -61,6 +61,42 @@ describe('accountGroups (F15-T06, D-F18)', () => {
 
   it('returns no groups for no investments', () => {
     expect(accountGroups([], label, 's-1')).toEqual([])
+  })
+})
+
+describe('topAccounts (D-F56)', () => {
+  const many = [
+    inv('1', 'Bitcoin', 'CRYPTO', '600', 'Bybit'),
+    inv('2', 'Apple', 'US_STOCK', '300', 'Ajaib'),
+    inv('3', 'Ether', 'CRYPTO', '200', 'Binance'),
+    inv('4', 'Solana', 'CRYPTO', '100', 'Kraken'),
+    inv('5', 'Dogecoin', 'CRYPTO', '90', 'Kraken'),
+    inv('6', 'Gold', 'CRYPTO', '50'), // no wrapper
+  ]
+  const withPl = many.map((i, n) => {
+    const v = i.valuation as unknown as { base: { unrealizedPl: string } }
+    v.base.unrealizedPl = n === 1 ? '-30' : '60'
+    return i
+  })
+
+  it('keeps the three biggest named accounts and counts the rest, never showing "no broker" as an account', () => {
+    const t = topAccounts(withPl, label, 's-1', 3)
+    expect(t.groups.map((g) => g.title)).toEqual(['Bybit', 'Ajaib', 'Binance'])
+    expect(t.moreAccounts).toBe(1)
+    expect(t.moreHoldings).toBe(3) // Kraken has 2, the holding with no broker is only counted
+  })
+
+  it('gives each account its value, signed PnL and share, and leaves the percent to the server', () => {
+    const t = topAccounts(withPl, label, 's-1', 3)
+    expect(t.groups[1]?.total?.value).toBe('300')
+    expect(t.groups[1]?.pl).toEqual({ amount: '-30', pct: null })
+    expect(t.groups[0]?.pl?.amount).toBe('60')
+    expect(t.groups[0]?.subtitle).toBe('44.78% of portfolio · 1 holding')
+  })
+
+  it('has no more line for three accounts or fewer', () => {
+    const t = topAccounts(withPl.slice(0, 3), label, 's-1', 3)
+    expect(t.moreAccounts).toBe(0)
   })
 })
 
