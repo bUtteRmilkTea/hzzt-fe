@@ -81,12 +81,12 @@ F40 and F41 are independent and Ready now. F42, F43 and F44 start with their fro
 - [x] F41-T04 Tests and Playwright
 
 **F42** (investment forms, mutual fund PnL; BE Phases M, P, Q)
-- [ ] F42-T01 One exchange or broker field (R7)
-- [ ] F42-T02 Remove expected yearly change and staked quantity (R11, BE P)
-- [ ] F42-T03 Mutual fund: Update value sheet (R6, D-F59, blocked on BE Q)
-- [ ] F42-T04 Mutual fund: monthly PnL list and NAV age (R6, blocked on BE Q)
-- [ ] F42-T05 Mutual fund: NAV line with tooltip (R6, optional)
-- [ ] F42-T06 Tests and Playwright
+- [x] F42-T01 One exchange or broker field (R7)
+- [x] F42-T02 Remove expected yearly change and staked quantity (R11, BE P)
+- [ ] F42-T03 Mutual fund: Update value sheet (R6, D-F59, blocked on BE Q: no `/valuations` path in the swagger yet)
+- [ ] F42-T04 Mutual fund: monthly PnL list and NAV age (R6, blocked on BE Q: no valuations or `navAgeDays` in the swagger yet)
+- [ ] F42-T05 Mutual fund: NAV line with tooltip (R6, optional, blocked on BE Q)
+- [ ] F42-T06 Tests and Playwright (done for T01 and T02: unit, form per asset type, Playwright at 1440 and 390; the Update value, valuations and shared-in tests wait for BE Q)
 
 **F43** (crypto refresh; BE Phase L for the 15 minute job)
 - [ ] F43-T01 15 minute `refetchInterval`, paused when hidden (R9, D-F57)

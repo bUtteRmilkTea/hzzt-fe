@@ -83,10 +83,27 @@ describe('add investment form rules (F34)', () => {
     expect(price).toBeEnabled()
   })
 
-  it('the yearly change is empty by default and never 5.5', async () => {
+  it.each([['CRYPTO'], ['ID_STOCK'], ['US_STOCK'], ['GLOBAL_ETF'], ['MUTUAL_FUND']])(
+    '%s: no expected yearly change, no staked quantity, one exchange question',
+    async (type) => {
+      await open()
+      const user = userEvent.setup()
+      await user.selectOptions(screen.getByLabelText('Type'), type)
+      expect(screen.queryByLabelText(/Expected yearly change/i)).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/Staked/i)).not.toBeInTheDocument()
+      expect(
+        screen.queryByLabelText(/^(Exchange or wallet|Broker|Platform)/),
+      ).not.toBeInTheDocument()
+      expect(screen.getAllByLabelText(/Exchange, broker or platform/)).toHaveLength(1)
+    },
+  )
+
+  it('a stock or ETF keeps its listing exchange, with an example', async () => {
     await open()
-    expect(screen.getByLabelText('Expected yearly change (optional)')).toHaveValue('')
-    expect(screen.getByText('Only used for projections. Leave empty for none.')).toBeInTheDocument()
+    const user = userEvent.setup()
+    await user.selectOptions(screen.getByLabelText('Type'), 'US_STOCK')
+    expect(screen.getByLabelText('Listing exchange')).toBeInTheDocument()
+    expect(screen.getByText('For example NASDAQ or NYSE')).toBeInTheDocument()
   })
 })
 

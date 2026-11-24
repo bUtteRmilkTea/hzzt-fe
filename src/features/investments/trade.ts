@@ -67,14 +67,9 @@ export function previewSell(
   }
 }
 
-/** Whether a sale asks for more than is sellable (held minus staked). */
-export function exceedsSellable(
-  held: string,
-  staked: string | undefined,
-  quantity: string,
-): boolean {
-  if (!positive(quantity)) return false
-  return new Decimal(quantity).greaterThan(new Decimal(held).minus(staked || '0'))
+/** Whether a sale asks for more than is held. Selling is limited by the held quantity only (nothing is locked as staked). */
+export function exceedsHeld(held: string, quantity: string): boolean {
+  return positive(quantity) && new Decimal(quantity).greaterThan(held)
 }
 
 /**
