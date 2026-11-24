@@ -89,9 +89,9 @@ F40 and F41 are independent and Ready now. F42, F43 and F44 start with their fro
 - [ ] F42-T06 Tests and Playwright (done for T01 and T02: unit, form per asset type, Playwright at 1440 and 390; the Update value, valuations and shared-in tests wait for BE Q)
 
 **F43** (crypto refresh; BE Phase L for the 15 minute job)
-- [ ] F43-T01 15 minute `refetchInterval`, paused when hidden (R9, D-F57)
-- [ ] F43-T02 "Priced N min ago" line and stale hint (R9)
-- [ ] F43-T03 Tests and Playwright
+- [x] F43-T01 15 minute `refetchInterval`, paused when hidden (R9, D-F57)
+- [x] F43-T02 "Priced N min ago" line and stale hint (R9)
+- [x] F43-T03 Tests and Playwright
 
 **F44** (trade history, revert; BE Phases N and O)
 - [ ] F44-T01 Investment detail: trade History card (R10, D-F58, blocked on BE N)

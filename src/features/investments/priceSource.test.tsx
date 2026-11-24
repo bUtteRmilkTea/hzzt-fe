@@ -9,14 +9,28 @@ import { bank, cash, walletList } from '../../../test/msw/wallets'
 import { renderApp } from '../../../test/renderApp'
 import {
   PriceSourceBadge,
+  priceAge,
   priceSourceLabel,
   priceSourceShort,
+  staleHint,
   typedPriceCount,
 } from './priceSource'
 import { parseValuation } from './valuation'
 
 const I = `${BASE}/spaces/s-1/investments`
 const now = new Date('2026-11-23T10:02:00Z')
+
+describe('price age and stale hint (D-F57)', () => {
+  it('says how old the last price is, and that the app is retrying', () => {
+    expect(priceAge('2026-11-23T10:01:50Z', now)).toBe('just now')
+    expect(priceAge('2026-11-23T09:58:00Z', now)).toBe('4 min ago')
+    expect(priceAge('2026-11-23T07:00:00Z', now)).toBe('3 h ago')
+    expect(priceAge('2026-11-21T10:00:00Z', now)).toBe('2 d ago')
+    expect(priceAge(null, now)).toBeNull()
+    expect(staleHint('2026-11-23T09:20:00Z', now)).toBe('Last price 42 min ago, retrying')
+    expect(staleHint(null, now)).toBe('Last price time unknown, retrying')
+  })
+})
 
 describe('price source text (F34-T01)', () => {
   it('names each source', () => {

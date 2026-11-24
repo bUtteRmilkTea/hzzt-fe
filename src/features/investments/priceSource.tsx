@@ -1,6 +1,7 @@
 import { format, formatDistanceStrict } from 'date-fns'
 import { TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
+import { useNow } from '@/shared/hooks/useNow'
 import type { InvestmentView, Valuation } from './types'
 import { parseValuation } from './valuation'
 
@@ -34,6 +35,24 @@ export function priceSourceShort(v: Pick<Valuation, 'priceSource' | 'isStale'>):
   return v.isStale ? `${base} · price is old` : base
 }
 
+/** "4 min ago", "3 h ago", "2 d ago" for the stale hint. */
+export function priceAge(asOf: string | null, now = new Date()): string | null {
+  if (!asOf) return null
+  const t = new Date(asOf).getTime()
+  if (Number.isNaN(t)) return null
+  const min = Math.max(0, Math.floor((now.getTime() - t) / 60_000))
+  if (min < 1) return 'just now'
+  if (min < 60) return `${min} min ago`
+  if (min < 24 * 60) return `${Math.floor(min / 60)} h ago`
+  return `${Math.floor(min / (24 * 60))} d ago`
+}
+
+/** What the stale hint says: how old the last price is, and that the app keeps trying. */
+export const staleHint = (asOf: string | null, now = new Date()): string => {
+  const age = priceAge(asOf, now)
+  return age ? `Last price ${age}, retrying` : 'Last price time unknown, retrying'
+}
+
 export const sourceName = (assetType: string | undefined) =>
   assetType === 'CRYPTO' ? 'CoinMarketCap' : 'Market'
 
@@ -57,6 +76,9 @@ export function PriceSourceBadge({
 }) {
   const live = valuation.priceSource === 'MARKET'
   const [open, setOpen] = useState(false)
+  // A light minute timer keeps "2 minutes ago" true between the 15 minute refetches. It is not a
+  // live region: a price that changes every 15 minutes must not be read out.
+  const now = useNow()
   const when = valuation.priceAsOf
     ? format(new Date(valuation.priceAsOf), 'd MMM yyyy, HH:mm')
     : 'unknown time'
@@ -67,7 +89,7 @@ export function PriceSourceBadge({
         title={live ? `Source: ${sourceName(assetType)}` : undefined}
         className="inline-flex min-h-6 items-center rounded-full bg-surface-3 px-2 text-xs font-medium text-label-secondary"
       >
-        {priceSourceLabel(valuation)}
+        {priceSourceLabel(valuation, now)}
       </span>
       {valuation.isStale ? (
         <span className="inline-flex flex-col">
@@ -84,7 +106,11 @@ export function PriceSourceBadge({
             <TriangleAlert aria-hidden className="size-3" />
             Price is old
           </button>
-          {open ? <span className="text-xs text-label-secondary">Price as of {when}</span> : null}
+          {open ? (
+            <span className="text-xs text-label-secondary">
+              {staleHint(valuation.priceAsOf, now)} (as of {when})
+            </span>
+          ) : null}
         </span>
       ) : null}
     </span>

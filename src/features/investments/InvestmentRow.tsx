@@ -3,7 +3,7 @@ import { format } from 'date-fns'
 import { useState } from 'react'
 import { Amount } from '@/shared/ui/Amount'
 import { cn } from '@/shared/ui/cn'
-import { PriceSourceBadge } from './priceSource'
+import { PriceSourceBadge, staleHint } from './priceSource'
 import type { InvestmentView, Valuation } from './types'
 import { bpsToPct, isSharedIn, parseValuation } from './valuation'
 
@@ -25,7 +25,11 @@ export function StaleBadge({ valuation }: { valuation: Valuation }) {
       >
         Stale price
       </button>
-      {open ? <span className="text-xs text-label-secondary">Price as of {when}</span> : null}
+      {open ? (
+        <span className="text-xs text-label-secondary">
+          {staleHint(valuation.priceAsOf)} (as of {when})
+        </span>
+      ) : null}
     </span>
   )
 }
